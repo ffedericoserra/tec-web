@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="stylesheet.css" />
+</head>
+<body>
+    <h1>Esercizio 1</h1>
+    <form>
+        <label for="nome">Nome:</label>
+        <br>
+        <input type="text" id="nome" name="nome">
+        <br>
+
+        <label for="cognome">Cognome:</label>
+        <br>
+        <input type="text" id="cognome" name="cognome">
+        <br>
+
+        <label for="email">Email:</label>
+        <br>
+        <input type="email" id="email" name="email">
+        <br>
+
+        <label for="partenza">Luogo di partenza:</label>
+        <br>
+        <input type="text" id="partenza" name="partenza">
+        <br>
+
+        <label for="data">Data di partenza:</label>
+        <br>
+        <input type="date" id="data" name="data" min="2025-10-06">
+        <br>
+
+        <label for="accompagnameto">Accompagnamento sì o no?</label>
+        <br>
+        <input type="checkbox" id="accompagnameto" name="accompagnameto">
+        <br>
+    </form>
+
+
+    <h1>Esercizio 2</h1>
+    <form>
+        <label for="nome">Nome:</label>
+        <br>
+        <input type="text" id="nome" name="nome">
+        <br>
+
+        <label for="cognome">Cognome:</label>
+        <br>
+        <input type="text" id="cognome" name="cognome">
+        <br>
+
+        <label for="email">Email:</label>
+        <br>
+        <input type="email" id="email" name="email">
+        <br>
+
+        <label for="periodo">Ogni quanto vuoi gli aggiornamenti</label> <br>
+        <select name="periodo" id="periodo" name="periodo">
+            <option value="daily">Ogni giorno</option>
+            <option value="weekly">Ogni settimana</option>
+            <option value="wmonthly">Ogni mese</option>
+        </select>
+        <br>
+
+        <label for="trattamentoDati">accetto il trattamento dati</label><br>
+        <input type="checkbox" id="trattamentoDati" name="trattamentoDati">
+        <br>
+    </form>
+
+
+    <h1>Esercizio 3</h1>
+    <form>
+        <label for="figura">Tipologia di figura</label><br>
+        <select name="figura" id="figura" name="figura">
+            <option value="cerchio">cerchio</option>
+            <option value="quadrato">quadrato</option>
+            <option value="triangolo">triangolo</option>
+        </select>
+        <br>
+        <label for="dimensione">Dimensione</label><br>
+        <input type="number" id="dimensione" name="dimensione" value="dimensione"><br>
+
+        <label for="sfondo">Colore sfondo</label><br>
+        <input type="color" id="sfondo" name="sfondo" value="sfondo"><br>
+
+        <label for="colore">Colore figura</label><br>
+        <input type="color" id="colore" name="colore" value="colore"><br>
+
+        <label for="bordo">Spessore bordo</label><br>
+        <input type="number" id="bordo" name="bordo" value="bordo"><br>
+
+        <button type="submit">genera</button>
+
+    </form>
+</body>
+</html>
