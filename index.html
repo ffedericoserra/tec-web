@@ -1,102 +1,410 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="stylesheet.css" />
+  <meta charset="UTF-8" />
+  <title>ArtAround</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Font Google opzionale -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 0% 0%, #ff9a9e 0, transparent 55%),
+                     radial-gradient(circle at 100% 100%, #a18cd1 0, transparent 55%),
+                     linear-gradient(135deg, #111827 0%, #020617 100%);
+      --glass-bg: rgba(15, 23, 42, 0.65);
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.2);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-subtle: rgba(148, 163, 184, 0.2);
+      --radius-xl: 1.75rem;
+      --radius-pill: 999px;
+      --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.75);
+      --blur-strong: 18px;
+      --transition-fast: 180ms ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      overflow: hidden;
+    }
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.09;
+      mix-blend-mode: soft-light;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='noStitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+      z-index: 0;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.6;
+      z-index: 0;
+    }
+
+    .orb--orange {
+      width: 260px; height: 260px;
+      background: #f97316;
+      top: 15%;
+      left: 10%;
+    }
+
+    .orb--violet {
+      width: 220px; height: 220px;
+      background: #6366f1;
+      bottom: 10%;
+      right: 10%;
+    }
+
+    .orb--teal {
+      width: 160px; height: 160px;
+      background: #22c55e;
+      bottom: 20%;
+      left: 30%;
+    }
+
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(960px, 100% - 3rem);
+      max-width: 960px;
+    }
+
+    .card {
+      position: relative;
+      border-radius: var(--radius-xl);
+      background: var(--glass-bg);
+      backdrop-filter: blur(var(--blur-strong));
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      padding: 2.5rem clamp(2rem, 4vw, 3.5rem);
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(249, 115, 22, 0.8), rgba(59, 130, 246, 0.7));
+      opacity: 0;
+      transition: opacity 260ms ease-out;
+      z-index: -1;
+    }
+
+    .card:hover::before {
+      opacity: 0.4;
+    }
+
+    .card-inner {
+      position: relative;
+      border-radius: calc(var(--radius-xl) - 4px);
+      padding: 1px;
+      background: radial-gradient(circle at 0% 0%, rgba(249, 115, 22, 0.18), transparent 60%),
+                  radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.18), transparent 55%),
+                  linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(17, 24, 39, 0.95));
+    }
+
+    .card-content {
+      border-radius: inherit;
+      padding: clamp(2rem, 3vw, 2.75rem);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      background: radial-gradient(circle at 0% 0%, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.96));
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      background: rgba(15, 23, 42, 0.75);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f97316 0%, rgba(15, 23, 42, 0) 70%);
+      box-shadow: 0 0 18px rgba(249, 115, 22, 0.8);
+    }
+
+    .badge-soft {
+      border-color: rgba(148, 163, 184, 0.45);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    h1 {
+      font-size: clamp(3rem, 5vw, 4.1rem);
+      line-height: 1.02;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(120deg, #f9fafb 0%, #e5e7eb 40%, #f97316 60%, #38bdf8 100%);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      font-size: clamp(1.1rem, 2vw, 1.3rem);
+      font-weight: 400;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.24em;
+      margin-bottom: 1.8rem;
+    }
+
+    .description {
+      max-width: 34rem;
+      font-size: 0.98rem;
+      line-height: 1.7;
+      color: #e5e7eb;
+      margin-bottom: 2.4rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .primary-link,
+    .secondary-link {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      padding: 0.86rem 1.55rem;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: 1px solid transparent;
+      cursor: pointer;
+      overflow: hidden;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .primary-link {
+      background: linear-gradient(140deg, #f97316, #fb923c);
+      color: #111827;
+      box-shadow: 0 14px 30px rgba(249, 115, 22, 0.4);
+    }
+
+    .primary-link::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.45), transparent 55%);
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+
+    .primary-link:hover::after {
+      opacity: 1;
+    }
+
+    .primary-link:hover {
+      transform: translateY(-1px) translateZ(0);
+      box-shadow: 0 18px 40px rgba(249, 115, 22, 0.55);
+    }
+
+    .secondary-link {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.6);
+      color: var(--text-main);
+    }
+
+    .secondary-link:hover {
+      transform: translateY(-1px) translateZ(0);
+      background: rgba(15, 23, 42, 0.95);
+      border-color: rgba(248, 250, 252, 0.8);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.95);
+    }
+
+    .link-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .link-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .meta-row {
+      margin-top: 1.9rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .pill {
+      padding: 0.4rem 0.9rem;
+      border-radius: var(--radius-pill);
+      border: 1px dashed rgba(148, 163, 184, 0.5);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .accent-pill {
+      border-style: solid;
+      border-color: var(--accent-soft);
+      background: radial-gradient(circle at 0 0, rgba(249, 115, 22, 0.2), transparent 70%);
+      color: #fed7aa;
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 1.5rem 1rem;
+      }
+
+      .card {
+        padding: 1.8rem 1.4rem;
+      }
+
+      .card-content {
+        padding: 1.8rem 1.4rem;
+      }
+
+      .actions {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .primary-link,
+      .secondary-link {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .meta-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h1>Esercizio Prova MAMMAMIA</h1>
-    <form>
-        <label for="nome">Nome:</label>
-        <br>
-        <input type="text" id="nome" name="nome">
-        <br>
+  <div class="noise-overlay"></div>
+  <div class="orb orb--orange"></div>
+  <div class="orb orb--violet"></div>
+  <div class="orb orb--teal"></div>
 
-        <label for="cognome">Cognome:</label>
-        <br>
-        <input type="text" id="cognome" name="cognome">
-        <br>
+  <main class="shell">
+    <section class="card">
+      <div class="card-inner">
+        <div class="card-content">
+          <div class="badge-row">
+            <span class="badge">
+              <span class="badge-dot"></span>
+              ART AROUND YOUR CITY
+            </span>
+            <span class="badge badge-soft">
+              Curated spaces · Musei · Mostre
+            </span>
+          </div>
 
-        <label for="email">Email:</label>
-        <br>
-        <input type="email" id="email" name="email">
-        <br>
+          <h1>ArtAround</h1>
+          <p class="subtitle">Marketplace &amp; editor</p>
 
-        <label for="partenza">Luogo di partenza:</label>
-        <br>
-        <input type="text" id="partenza" name="partenza">
-        <br>
+          <p class="description">
+            Progetta, organizza e condividi percorsi d&rsquo;arte.  
+            Un posto unico dove collezionisti, musei e creatori possono
+            incontrarsi, costruire esperienze e dare vita a nuove narrazioni
+            visive.
+          </p>
 
-        <label for="data">Data di partenza:</label>
-        <br>
-        <input type="date" id="data" name="data" min="2025-10-06">
-        <br>
+          <div class="actions">
+            <!-- LINK al tuo "navigator" -->
+            <a class="primary-link" href="navigator.html">
+              Apri Navigator
+              <span class="link-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M5 15L15 5M9 5H15V11"
+                        stroke="currentColor"
+                        stroke-width="1.6"
+                        stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+              </span>
+            </a>
 
-        <label for="accompagnameto">Accompagnamento sì o no?</label>
-        <br>
-        <input type="checkbox" id="accompagnameto" name="accompagnameto">
-        <br>
-    </form>
+            <!-- LINK per esplorare più a fondo il marketplace (collezione musei ecc.) -->
+            <a class="secondary-link" href="marketplace.html">
+              Esplora il marketplace
+              <span class="link-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10H16M4 6H13M4 14H11"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                        stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+              </span>
+            </a>
+          </div>
 
-
-    <h1>Esercizio 2</h1>
-    <form>
-        <label for="nome">Nome:</label>
-        <br>
-        <input type="text" id="nome" name="nome">
-        <br>
-
-        <label for="cognome">Cognome:</label>
-        <br>
-        <input type="text" id="cognome" name="cognome">
-        <br>
-
-        <label for="email">Email:</label>
-        <br>
-        <input type="email" id="email" name="email">
-        <br>
-
-        <label for="periodo">Ogni quanto vuoi gli aggiornamenti</label> <br>
-        <select name="periodo" id="periodo" name="periodo">
-            <option value="daily">Ogni giorno</option>
-            <option value="weekly">Ogni settimana</option>
-            <option value="wmonthly">Ogni mese</option>
-        </select>
-        <br>
-
-        <label for="trattamentoDati">accetto il trattamento dati</label><br>
-        <input type="checkbox" id="trattamentoDati" name="trattamentoDati">
-        <br>
-    </form>
-
-
-    <h1>Esercizio 3</h1>
-    <form>
-        <label for="figura">Tipologia di figura</label><br>
-        <select name="figura" id="figura" name="figura">
-            <option value="cerchio">cerchio</option>
-            <option value="quadrato">quadrato</option>
-            <option value="triangolo">triangolo</option>
-        </select>
-        <br>
-        <label for="dimensione">Dimensione</label><br>
-        <input type="number" id="dimensione" name="dimensione" value="dimensione"><br>
-
-        <label for="sfondo">Colore sfondo</label><br>
-        <input type="color" id="sfondo" name="sfondo" value="sfondo"><br>
-
-        <label for="colore">Colore figura</label><br>
-        <input type="color" id="colore" name="colore" value="colore"><br>
-
-        <label for="bordo">Spessore bordo</label><br>
-        <input type="number" id="bordo" name="bordo" value="bordo"><br>
-
-        <button type="submit">genera</button>
-
-    </form>
-
-    <h1>PROVA!</h1>
+          <div class="meta-row">
+            <span class="pill accent-pill">
+              Prossimo: collezioni di musei, percorsi e mostre dinamiche
+            </span>
+            <span class="pill">
+              Draft UI &middot; pronto per il tuo backend
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
 </body>
 </html>
