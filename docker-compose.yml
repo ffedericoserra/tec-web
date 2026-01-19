@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # 1. MongoDB Container
+  mongo_db:
+    image: mongo:latest
+    container_name: local_mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: site242557       # Matches your index.js
+      MONGO_INITDB_ROOT_PASSWORD: UgeeJie6         # Matches your index.js
+      MONGO_INITDB_DATABASE: mongo_site242557      # Matches your index.js
+    ports:
+      - "27017:27017" # Exposes DB to your local machine (for mongosh/Compass)
+    volumes:
+      - mongo_data:/data/db
+
+  # 2. Node.js Container (Node 22)
+  node_app:
+    image: node:22
+    container_name: local_node_app
+    working_dir: /app
+    volumes:
+      - ./:/app              # Maps your current folder to /app in container
+      - /app/node_modules    # Prevents local node_modules from overwriting container's
+    ports:
+      - "8000:8000"          # Maps port 8000 (from index.js) to localhost
+    depends_on:
+      - mongo_db
+    environment:
+      # We override the DB host for local dev. 
+      # 'mongo_db' is the service name defined above.
+      DB_HOST: mongo_db 
+    # Command to install dependencies and run the server
+    command: sh -c "npm install && node index_local.js"
+
+volumes:
+  mongo_data:
