@@ -7,7 +7,9 @@
     "start": "node src/index.js",
     "dev": "node src/index.js",
     "seed": "node scripts/seed.js",
-    "test": "node tests/api.test.js"
+    "seed:prod": "DB_HOST=localhost node scripts/seed.js",
+    "test": "node tests/api.test.js",
+    "test:prod": "node tests/api.test.js --prod"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

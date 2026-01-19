@@ -1,14 +1,20 @@
 /**
  * ArtAround API Tests
  *
- * Run with: npm test
- * Requires: MongoDB running, server running on localhost:8000
+ * Run with:
+ *   npm test                                    # Test localhost:8000
+ *   npm test -- --prod                          # Test production
+ *   API_URL=https://example.com/api npm test    # Test custom URL
  *
  * Before running tests, seed the database:
  *   npm run seed
  */
 
-const BASE_URL = 'http://localhost:8000/api';
+const PROD_URL = 'https://site242557.tw.cs.unibo.it/api';
+const LOCAL_URL = 'http://localhost:8000/api';
+
+const isProd = process.argv.includes('--prod');
+const BASE_URL = process.env.API_URL || (isProd ? PROD_URL : LOCAL_URL);
 
 // Test state
 let authToken = null;
