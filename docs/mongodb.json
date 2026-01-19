@@ -1,0 +1,132 @@
+/* MONGODB collections structure based on the models in /src/models */ 
+ 
+ {
+    "users": {
+      "_id": "ObjectId",
+      "username": "String (unique, required, min 3 chars)",
+      "passwordHash": "String (required)",
+      "savedMuseums": ["ObjectId (ref: Museum)"],
+      "myVisits": ["ObjectId (ref: Visit)"],
+      "purchasedItems": ["ObjectId (ref: Item)"],
+      "walletBalance": "Number (default: 100, min: 0)",
+      "activeSession": "String | null",
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    },
+
+    "museums": {
+      "_id": "ObjectId",
+      "name": "String (required)",
+      "slug": "String (unique, auto-generated)",
+      "address": "String",
+      "description": "String",
+      "theme": {
+        "primaryColor": "String (default: '#1a1a1a')",
+        "secondaryColor": "String (default: '#ffffff')",
+        "font": "String (default: 'Inter')"
+      },
+      "mapData": {
+        "imageUrl": "String",
+        "bounds": { "north": "Number", "south": "Number", "east": "Number", "west": "Number" },
+        "center": { "lat": "Number", "lng": "Number" }
+      },
+      "pointsOfInterest": [{
+        "type": "String (enum: toilet|exit|bar|stairs|entrance|shop)",
+        "coordinates": { "lat": "Number", "lng": "Number" },
+        "label": "String"
+      }],
+      "imageUrl": "String",
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    },
+
+    "rawcontents": {
+      "_id": "ObjectId",
+      "type": "String (enum: Artwork|Artist|Movement|Place, required)",
+      "museumId": "ObjectId (ref: Museum, required)",
+      "universalId": "String (unique, sparse)",
+      "name": "String (required)",
+      "author": "String",
+      "year": "String",
+      "imageRecognitionUrl": "String",
+      "coordinates": { "lat": "Number", "lng": "Number" },
+      "qrCode": "String",
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    },
+
+    "items": {
+      "_id": "ObjectId",
+      "contentId": "String (required)",
+      "rawContentRef": "ObjectId (ref: RawContent)",
+      "creatorId": "ObjectId (ref: User, required)",
+      "targetAudience": "String (required)",
+      "descriptions": [{
+        "tone": "String (enum: easy|medium|complex)",
+        "texts": [{
+          "text": "String (required)",
+          "lengthCategory": "String (enum: 3s|15s|45s)",
+          "language": "String (default: 'it')",
+          "isAiGenerated": "Boolean (default: false)"
+        }]
+      }],
+      "price": "Number (default: 0, min: 0)",
+      "license": "String (enum: CC-BY|CC-BY-SA|CC-BY-NC|Copyright|Public Domain, default: 'CC-BY')",
+      "isPublic": "Boolean (default: false)",
+      "associatedContents": ["ObjectId (ref: RawContent)"],
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    },
+
+    "visits": {
+      "_id": "ObjectId",
+      "title": "String (required)",
+      "slug": "String (auto-generated)",
+      "museumId": "ObjectId (ref: Museum, required)",
+      "creatorId": "ObjectId (ref: User, required)",
+      "description": "String",
+      "imageUrl": "String",
+      "sequence": [{
+        "itemId": "ObjectId (ref: Item, required)",
+        "order": "Number (required)",
+        "nextDirections": "String (default: '')",
+        "prevDirections": "String (default: '')",
+        "overrideImage": "String"
+      }],
+      "type": "String (enum: standard|synchronized, default: 'standard')",
+      "sessionCode": "String (unique, sparse)",
+      "quiz": [{
+        "question": "String (required)",
+        "options": ["String"],
+        "correctIndex": "Number (required)"
+      }],
+      "isPublic": "Boolean (default: true)",
+      "viewCount": "Number (default: 0)",
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    },
+
+    "sessions": {
+      "_id": "ObjectId",
+      "code": "String (unique, uppercase, required)",
+      "owner": "ObjectId (ref: User, required)",
+      "visitId": "ObjectId (ref: Visit, required)",
+      "participants": [{
+        "userId": "ObjectId (ref: User, required)",
+        "username": "String",
+        "joinedAt": "Date (default: now)",
+        "isActive": "Boolean (default: true)"
+      }],
+      "currentItemIndex": "Number (default: 0)",
+      "isActive": "Boolean (default: true)",
+      "activities": [{
+        "participantId": "ObjectId (ref: User, required)",
+        "action": "String (enum: joined|left|tellMore|tellLess|simpler|tooSimple)",
+        "timestamp": "Date (default: now)"
+      }],
+      "startedAt": "Date (default: now)",
+      "endedAt": "Date",
+      "createdAt": "Date",
+      "updatedAt": "Date"
+    }
+  }

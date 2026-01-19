@@ -14,7 +14,7 @@ const textSchema = new mongoose.Schema(
     },
     lengthCategory: {
         type: String,
-        enum: ['3s', '15s', '45s', '2min'],
+        enum: ['3s', '15s', '45s'],
         required: true,
     },
     language: {
@@ -60,9 +60,9 @@ const itemSchema = new mongoose.Schema(
       required: [true, 'Creator is required'],
     },
     targetAudience: {
-      type: String,
-      enum: ['child', 'tourist', 'expert', 'student'],
-      default: 'tourist',
+        type: String,
+        trim: true,
+        required: [true, 'Target audience description is required'],
     },
     descriptions: [descriptionSchema],
 
