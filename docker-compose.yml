@@ -32,7 +32,7 @@ services:
       # 'mongo_db' is the service name defined above.
       DB_HOST: mongo_db 
     # Command to install dependencies and run the server
-    command: sh -c "npm install && node index_local.js"
+    command: sh -c "npm install && npm start"
 
 volumes:
   mongo_data:

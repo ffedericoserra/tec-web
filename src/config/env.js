@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const env = {
     NODE_ENV: process.env.NODE_ENV || 'development',
@@ -20,4 +21,6 @@ const env = {
     // Helpers
     isDev: () => env.NODE_ENV === 'development',
     isProd: () => env.NODE_ENV === 'production',
-}
+};
+
+module.exports = env;

@@ -5,7 +5,7 @@
 
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const env = require('../config/.env');
+const env = require('../config/env');
 
 /**
  * Register a new user
