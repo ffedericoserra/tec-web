@@ -10,6 +10,8 @@ const env = require('./config/env');
 const apiRoutes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
 
+const runSeed = require('../scripts/seed');
+
 const app = express();
 
 // Middleware
@@ -27,6 +29,9 @@ app.use(errorHandler);
 const startServer = async () => {
   try {
     await connectDB();
+
+    // Seeding mongo with sample data;
+    await runSeed(); 
 
     app.listen(env.PORT, () => {
       console.log(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
