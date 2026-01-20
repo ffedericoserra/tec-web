@@ -399,14 +399,26 @@ async function seed() {
     console.log(`Items: ${items.length}`);
     console.log(`Visits: ${visits.length}`);
     console.log(`  - ${visits.map((v) => v.title).join(', ')}`);
-
-    await disconnectDB();
-    process.exit(0);
   } catch (error) {
     console.error('Seed error:', error);
-    await disconnectDB();
-    process.exit(1);
+    throw error;
   }
 }
 
-seed();
+// Export for use as module (e.g., from index.js)
+module.exports = seed;
+
+// Run directly if executed as main script (npm run seed)
+if (require.main === module) {
+  (async () => {
+    try {
+      await connectDB();
+      await seed();
+      await disconnectDB();
+      process.exit(0);
+    } catch (error) {
+      await disconnectDB();
+      process.exit(1);
+    }
+  })();
+}
