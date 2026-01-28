@@ -9,15 +9,15 @@
 
 ### 1. Copy the environment file
 
-Copy the production environment template to the config directory:
+Copy the production environment template to the project root:
 
 ```bash
-cp src/config/.env.production src/config/.env
+cp .env.production .env
 ```
 
-Edit `src/config/.env` and update:
-- `JWT_SECRET` - Use a strong, unique secret for production
-- `OPENAI_API_KEY` - Add your OpenAI API key when ready for Tier 3
+Edit `.env` and update:
+- `JWT_SECRET` - Use a strong, unique secret for production (required, server won't start without it)
+- `OPENAI_API_KEY` - Add your OpenAI API key (AI integration currently not implemented)
 
 ### 2. Install dependencies
 
@@ -39,23 +39,20 @@ This creates test users:
 ### 4. Start the server
 
 ```bash
-npm start
+ssh gocker
+gocker start node-22 site242557 src/index.js
 ```
 
 The server will run on port 8000.
 
 ## Testing Production
 
-Run tests against production:
+Run tests against production (also works on local machines):
+
+### API tests
 
 ```bash
 npm run test:prod
-```
-
-Or with custom URL:
-
-```bash
-API_URL=https://site242557.tw.cs.unibo.it/api npm test
 ```
 
 ## API Health Check
@@ -73,17 +70,17 @@ Expected response:
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NODE_ENV` | Environment mode | `development` |
-| `PORT` | Server port | `8000` |
-| `DB_HOST` | MongoDB hostname | `localhost` |
-| `DB_USER` | MongoDB username | `site242557` |
-| `DB_PASS` | MongoDB password | - |
-| `DB_NAME` | MongoDB database | `mongo_site242557` |
-| `JWT_SECRET` | JWT signing secret | - |
-| `JWT_EXPIRES_IN` | Token expiration | `24h` |
-| `OPENAI_API_KEY` | OpenAI API key (Tier 3) | - |
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NODE_ENV` | Environment mode | Yes |
+| `PORT` | Server port | Yes |
+| `DB_HOST` | MongoDB hostname | Yes |
+| `DB_USER` | MongoDB username | Yes |
+| `DB_PASS` | MongoDB password | Yes |
+| `DB_NAME` | MongoDB database | Yes |
+| `JWT_SECRET` | JWT signing secret | Yes (validated in production) |
+| `JWT_EXPIRES_IN` | Token expiration | Yes |
+| `OPENAI_API_KEY` | OpenAI API key | No |
 
 ## Troubleshooting
 

@@ -23,7 +23,7 @@ node tests/api.test.js     # run tests
 
 **Production (department machines):**
 ```bash
-mv src/.env.production src/.env
+mv .env.production .env
 ssh gocker
 gocker start node-22 site242557 src/index.js
 ```
@@ -33,12 +33,12 @@ API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
 ## Structure
 
 ```
+.env                    # Environment config (copy from .env.example)
 src/
 ├── index.js            # Express server entry point
 ├── config/
 │   ├── db.js           # MongoDB connection
-│   ├── env.js          # Environment variables
-│   └── .env            # Local environment config
+│   └── env.js          # Environment variables
 ├── models/             # Mongoose schemas
 │   ├── User.js
 │   ├── Museum.js
