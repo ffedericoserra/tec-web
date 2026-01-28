@@ -49,12 +49,6 @@ async function request(method, endpoint, body = null, token = null) {
   return { status: response.status, data };
 }
 
-function assert(condition, message) {
-  if (!condition) {
-    throw new Error(`Assertion failed: ${message}`);
-  }
-}
-
 function log(testName, passed, details = '') {
   const status = passed ? '✓' : '✗';
   console.log(`  ${status} ${testName}${details ? ` - ${details}` : ''}`);
