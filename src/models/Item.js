@@ -44,15 +44,10 @@ const descriptionSchema = new mongoose.Schema(
 
 const itemSchema = new mongoose.Schema(
   {
-    // Links to Content.universalId or Content._id
+    // Links to Content.universalId
     contentId: {
       type: String,
       required: [true, 'Content reference is required'],
-    },
-    // Reference to Content for population
-    contentRef: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Content',
     },
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,

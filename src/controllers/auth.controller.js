@@ -30,10 +30,8 @@ exports.register = async (req, res, next) => {
     }
 
     // Create user
-    const user = new User({
-      username,
-      passwordHash: password, // Will be hashed by pre-save hook
-    });
+    const user = new User({ username });
+    user.password = password; // Uses virtual setter, hashed in pre-save hook
     await user.save();
 
     // Generate token

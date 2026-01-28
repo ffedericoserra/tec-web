@@ -132,7 +132,6 @@
 {
   _id: ObjectId,
   contentId: String,             // links to Content.universalId
-  contentRef: ObjectId,          // refs Content (for population)
   creatorId: ObjectId,           // refs User
   targetAudience: String,
   descriptions: [{

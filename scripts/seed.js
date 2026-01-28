@@ -33,17 +33,17 @@ async function seed() {
     const users = await User.create([
       {
         username: 'autore1',
-        passwordHash: '12345678',
+        password: '12345678',
         walletBalance: 500,
       },
       {
         username: 'visitatore1',
-        passwordHash: '12345678',
+        password: '12345678',
         walletBalance: 100,
       },
       {
         username: 'docente1',
-        passwordHash: '12345678',
+        password: '12345678',
         walletBalance: 200,
       },
     ]);
@@ -280,7 +280,6 @@ async function seed() {
     for (const content of contents.filter((c) => c.type === 'Artwork')) {
       const item = await Item.create({
         contentId: content.universalId,
-        contentRef: content._id,
         creatorId: autore._id,
         targetAudience: 'tourist',
         descriptions: createDescriptions(content.name, content.author),

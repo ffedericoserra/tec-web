@@ -31,7 +31,6 @@ exports.list = async (req, res, next) => {
 
     const items = await Item.find(query)
       .populate('creatorId', 'username')
-      .populate('contentRef', 'name type imageRecognitionUrl')
       .sort({ createdAt: -1 });
 
     res.json({ items });
@@ -48,7 +47,6 @@ exports.getById = async (req, res, next) => {
   try {
     const item = await Item.findById(req.params.id)
       .populate('creatorId', 'username')
-      .populate('contentRef')
       .populate('associatedContents');
 
     if (!item) {
@@ -69,7 +67,6 @@ exports.create = async (req, res, next) => {
   try {
     const {
       contentId,
-      rawContentRef,
       targetAudience,
       descriptions,
       price,
@@ -78,18 +75,8 @@ exports.create = async (req, res, next) => {
       associatedContents,
     } = req.body;
 
-    // Find Content if not provided
-    let contentRefId = rawContentRef;
-    if (!contentRefId && contentId) {
-      const content = await Content.findOne({ universalId: contentId });
-      if (content) {
-        contentRefId = content._id;
-      }
-    }
-
     const item = new Item({
       contentId,
-      contentRef: contentRefId,
       creatorId: req.user._id,
       targetAudience,
       descriptions,

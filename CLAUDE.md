@@ -25,3 +25,11 @@ node tests/api.test.js     # run tests
 - **Minimal dependencies.** Add external packages only when strictly necessary, highly beneficial, or required by project constraints.
 - **Clarity over brevity.** A few extra lines are fine if they make intent clear.
 - **No over-engineering.** Solve the current problem, not hypothetical future ones.
+
+## Breaking changes log
+
+### 2025-01-28: Item.contentRef removed
+- **Before:** Items had both `contentId` (string, linked to Content.universalId) and `contentRef` (ObjectId)
+- **After:** Items only have `contentId` (string, links to Content.universalId)
+- **Reason:** Dual reference was redundant and could get out of sync
+- **Migration:** Re-seed database or manually update existing items to remove `contentRef` field
