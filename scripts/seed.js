@@ -9,7 +9,7 @@ const { connectDB, disconnectDB } = require('../src/config/db');
 
 const User = require('../src/models/User');
 const Museum = require('../src/models/Museum');
-const RawContent = require('../src/models/RawContent');
+const Content = require('../src/models/Content');
 const Item = require('../src/models/Item');
 const Visit = require('../src/models/Visit');
 
@@ -21,7 +21,7 @@ async function seed() {
     await Promise.all([
       User.deleteMany({}),
       Museum.deleteMany({}),
-      RawContent.deleteMany({}),
+      Content.deleteMany({}),
       Item.deleteMany({}),
       Visit.deleteMany({}),
     ]);
@@ -91,7 +91,7 @@ async function seed() {
     console.log(`Created museum: ${museum.name}`);
 
     // =====================
-    // 3. CREATE RAW CONTENTS
+    // 3. CREATE CONTENTS
     // =====================
     const artworksData = [
       {
@@ -197,14 +197,14 @@ async function seed() {
       },
     ];
 
-    const rawContents = await RawContent.create(
+    const contents = await Content.create(
       artworksData.map((art) => ({
         ...art,
         museumId: museum._id,
         qrCode: `QR-${art.universalId}`,
       }))
     );
-    console.log(`Created ${rawContents.length} raw contents`);
+    console.log(`Created ${contents.length} contents`);
 
     // =====================
     // 4. CREATE ITEMS
@@ -277,10 +277,10 @@ async function seed() {
     };
 
     const items = [];
-    for (const content of rawContents.filter((c) => c.type === 'Artwork')) {
+    for (const content of contents.filter((c) => c.type === 'Artwork')) {
       const item = await Item.create({
         contentId: content.universalId,
-        rawContentRef: content._id,
+        contentRef: content._id,
         creatorId: autore._id,
         targetAudience: 'tourist',
         descriptions: createDescriptions(content.name, content.author),
@@ -395,7 +395,7 @@ async function seed() {
     console.log(`  - docente1 (password: 12345678)`);
     console.log(`Museums: 1`);
     console.log(`  - ${museum.name}`);
-    console.log(`Raw Contents: ${rawContents.length}`);
+    console.log(`Contents: ${contents.length}`);
     console.log(`Items: ${items.length}`);
     console.log(`Visits: ${visits.length}`);
     console.log(`  - ${visits.map((v) => v.title).join(', ')}`);

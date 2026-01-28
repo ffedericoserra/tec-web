@@ -5,7 +5,7 @@
 
 const Item = require('../models/Item');
 const User = require('../models/User');
-const RawContent = require('../models/RawContent');
+const Content = require('../models/Content');
 
 /**
  * List items
@@ -31,7 +31,7 @@ exports.list = async (req, res, next) => {
 
     const items = await Item.find(query)
       .populate('creatorId', 'username')
-      .populate('rawContentRef', 'name type imageRecognitionUrl')
+      .populate('contentRef', 'name type imageRecognitionUrl')
       .sort({ createdAt: -1 });
 
     res.json({ items });
@@ -48,7 +48,7 @@ exports.getById = async (req, res, next) => {
   try {
     const item = await Item.findById(req.params.id)
       .populate('creatorId', 'username')
-      .populate('rawContentRef')
+      .populate('contentRef')
       .populate('associatedContents');
 
     if (!item) {
@@ -78,18 +78,18 @@ exports.create = async (req, res, next) => {
       associatedContents,
     } = req.body;
 
-    // Find RawContent if not provided
-    let rawContentId = rawContentRef;
-    if (!rawContentId && contentId) {
-      const rawContent = await RawContent.findOne({ universalId: contentId });
-      if (rawContent) {
-        rawContentId = rawContent._id;
+    // Find Content if not provided
+    let contentRefId = rawContentRef;
+    if (!contentRefId && contentId) {
+      const content = await Content.findOne({ universalId: contentId });
+      if (content) {
+        contentRefId = content._id;
       }
     }
 
     const item = new Item({
       contentId,
-      rawContentRef: rawContentId,
+      contentRef: contentRefId,
       creatorId: req.user._id,
       targetAudience,
       descriptions,

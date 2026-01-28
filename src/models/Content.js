@@ -1,11 +1,11 @@
 /**
- * RawContent Model
+ * Content Model
  * Represents a base entity (artwork, artist, movement) in a museum
  */
 
 const mongoose = require('mongoose');
 
-const rawContentSchema = new mongoose.Schema(
+const contentSchema = new mongoose.Schema(
   {
     type: {
       type: String,
@@ -54,9 +54,9 @@ const rawContentSchema = new mongoose.Schema(
 );
 
 // Index for efficient queries
-rawContentSchema.index({ museumId: 1, type: 1 });
-rawContentSchema.index({ universalId: 1 });
+contentSchema.index({ museumId: 1, type: 1 });
+contentSchema.index({ universalId: 1 });
 
-const RawContent = mongoose.model('RawContent', rawContentSchema);
+const Content = mongoose.model('Content', contentSchema);
 
-module.exports = RawContent;
+module.exports = Content;

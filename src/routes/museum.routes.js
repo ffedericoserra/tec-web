@@ -6,8 +6,8 @@
  * PUT /api/museums/:id - Update museum (authenticated)
  * POST /api/museums/:id/save - Save museum to user's list
  * DELETE /api/museums/:id/save - Remove from saved list
- * GET /api/museums/:id/contents - Get RawContents for museum
- * POST /api/museums/:id/contents - Create RawContent (authenticated)
+ * GET /api/museums/:id/contents - Get Contents for museum
+ * POST /api/museums/:id/contents - Create Content (authenticated)
  */
 
 const express = require('express');
@@ -26,7 +26,7 @@ router.put('/:id', requireAuth, validate(updateMuseumSchema), museumController.u
 router.post('/:id/save', requireAuth, museumController.saveMuseum);
 router.delete('/:id/save', requireAuth, museumController.unsaveMuseum);
 
-// RawContents
+// Contents
 router.get('/:id/contents', museumController.getContents);
 router.post('/:id/contents', requireAuth, validate(createContentSchema), museumController.createContent);
 

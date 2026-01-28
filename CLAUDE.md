@@ -26,7 +26,7 @@ node scripts/seed.js
 src/
 ├── index.js        # Express server entry point
 ├── config/         # Database connection (db.js), environment loader (env.js)
-├── models/         # Mongoose schemas: User, Museum, RawContent, Item, Visit, Session
+├── models/         # Mongoose schemas: User, Museum, Content, Item, Visit, Session
 ├── controllers/    # Request handlers per resource
 ├── routes/         # API route definitions (aggregated in routes/index.js under /api)
 ├── schemas/        # Zod validation schemas for API requests
@@ -35,8 +35,8 @@ src/
 ```
 
 ### Data Model Relationships
-- **Museum** contains **RawContent** (artworks, artists, movements, places)
-- **Item** is a personalized presentation of RawContent with multiple description tones/lengths
+- **Museum** contains **Content** (artworks, artists, movements, places)
+- **Item** is a personalized presentation of Content with multiple description tones/lengths
 - **Visit** is an ordered sequence of Items for a tour
 - **Session** enables synchronized group visits (teacher controls navigation for participants)
 

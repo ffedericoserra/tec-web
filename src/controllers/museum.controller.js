@@ -4,7 +4,7 @@
  */
 
 const Museum = require('../models/Museum');
-const RawContent = require('../models/RawContent');
+const Content = require('../models/Content');
 const Visit = require('../models/Visit');
 const User = require('../models/User');
 
@@ -128,7 +128,7 @@ exports.unsaveMuseum = async (req, res, next) => {
 };
 
 /**
- * Get RawContents for a museum
+ * Get Contents for a museum
  * GET /api/museums/:id/contents
  */
 exports.getContents = async (req, res, next) => {
@@ -145,7 +145,7 @@ exports.getContents = async (req, res, next) => {
       query.type = type;
     }
 
-    const contents = await RawContent.find(query).sort({ name: 1 });
+    const contents = await Content.find(query).sort({ name: 1 });
     res.json({ contents });
   } catch (error) {
     next(error);
@@ -153,7 +153,7 @@ exports.getContents = async (req, res, next) => {
 };
 
 /**
- * Create RawContent for a museum
+ * Create Content for a museum
  * POST /api/museums/:id/contents
  */
 exports.createContent = async (req, res, next) => {
@@ -166,7 +166,7 @@ exports.createContent = async (req, res, next) => {
       return res.status(404).json({ error: 'Museum not found' });
     }
 
-    const content = new RawContent({
+    const content = new Content({
       type,
       museumId: req.params.id,
       universalId,

@@ -6,11 +6,12 @@ Backend works. AI integration and frontends not implemented yet.
 
 ## Running
 
+Run this on department machines.
+
 ```bash
-# If server is down, run this (on department machines)
-> mv src/.env.production /src/.env
-> ssh gocker
-> gocker start node-22 site242557 src/index.js
+mv src/.env.production /src/.env
+ssh gocker
+gocker start node-22 site242557 src/index.js
 ```
 
 
@@ -36,11 +37,11 @@ src/
 
 ## The data model
 
-    Museum -> RawContent (artworks, artists, movements, places)
+    Museum -> Content (artworks, artists, movements, places)
            -> Visit (ordered sequence of Items)
            -> Session (synchronized group visit)
 
-Items are personalized presentations of RawContent with multiple description
+Items are personalized presentations of Content with multiple description
 tones (easy/medium/complex) and lengths (3s/15s/45s).
 
 ## Implemented APIs
@@ -85,6 +86,6 @@ tones (easy/medium/complex) and lengths (3s/15s/45s).
 
 On your local machine, run this:
 
-```
-> node tests/api.test.js --prod
+```bash
+node tests/api.test.js --prod
 ```
