@@ -143,6 +143,7 @@ Base URL: `http://localhost:8000/api`
     { "itemId": "...", "nextDirections": "Turn right", "prevDirections": "" }
   ],
   "type": "standard",
+  "length": "normal",
   "isPublic": true,
   "quiz": [
     {
@@ -155,6 +156,7 @@ Base URL: `http://localhost:8000/api`
 ```
 
 **Visit types:** `standard`, `synchronized`
+**Visit lengths:** `quick`, `normal`, `deep`
 
 ### Sessions (Synchronized Visits)
 
@@ -240,6 +242,7 @@ GET /api/health
 - `museumId`, `creatorId` - References
 - `sequence` - Ordered array of items with navigation directions
 - `type` - `standard` or `synchronized`
+- `length` - `quick`, `normal`, or `deep` (description length preference)
 - `quiz` - Optional quiz questions
 - `isPublic`, `viewCount` - Visibility and stats
 
