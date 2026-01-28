@@ -1,50 +1,72 @@
-# Info per gli amici del gruppo, in inglese perché ormai l'ho fatto così
+# ArtAround
+
+Museum tour navigation app. Node.js 22 + Express + MongoDB + JWT + Zod.
 
 ## Status
 
 Backend works. AI integration and frontends not implemented yet.
 
+## Documentation
+
+- [docs/SPECS.md](docs/SPECS.md) - project requirements and constraints
+- [docs/API.md](docs/API.md) - endpoints, requests, responses, errors
+- [docs/SCHEMA.md](docs/SCHEMA.md) - data models, MongoDB collections
+
 ## Running
 
-Run this on department machines.
-
+**Development (local Docker):**
 ```bash
-mv src/.env.production /src/.env
+docker-compose up
+node scripts/seed.js       # seed database
+node tests/api.test.js     # run tests
+```
+
+**Production (department machines):**
+```bash
+mv src/.env.production src/.env
 ssh gocker
 gocker start node-22 site242557 src/index.js
 ```
 
-
-## Architecture
-
-Backend: Express, MongoDB, JWT auth.
-
-API on port 8000, reachable at https://site242557.tw.cs.unibo.it/api. MongoDB on 27017, reachable only through the node container (or any app in the same domain) or via mongosh in gocker.
+API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
 
 ## Structure
 
 ```
 src/
-  index.js          # entry point
-  config/           # db connection, env
-  models/           # mongoose schemas
-  controllers/      # request handlers
-  routes/           # API routes under /api
-  schemas/          # zod validation
-  middleware/       # auth, validation, errors
-  services/         # AI and socket stubs
+├── index.js            # Express server entry point
+├── config/
+│   ├── db.js           # MongoDB connection
+│   ├── env.js          # Environment variables
+│   └── .env            # Local environment config
+├── models/             # Mongoose schemas
+│   ├── User.js
+│   ├── Museum.js
+│   ├── Content.js
+│   ├── Item.js
+│   ├── Visit.js
+│   └── Session.js
+├── controllers/        # Request handlers
+├── routes/             # API route definitions
+├── schemas/            # Zod validation schemas
+├── middleware/
+│   ├── auth.js         # JWT authentication
+│   ├── validate.js     # Zod validation
+│   └── errorHandler.js # Global error handling
+└── services/           # Business logic (AI, Socket.io stubs)
 ```
 
-## The data model
+## Data model
 
-    Museum -> Content (artworks, artists, movements, places)
-           -> Visit (ordered sequence of Items)
-           -> Session (synchronized group visit)
+```
+Museum -> Content (artworks, artists, movements, places)
+       -> Visit (ordered sequence of Items)
+       -> Session (synchronized group visit)
+```
 
-Items are personalized presentations of Content with multiple description
-tones (easy/medium/complex) and lengths (3s/15s/45s).
+Items are personalized presentations of Content with multiple description tones (easy/medium/complex) and lengths (3s/15s/45s).
 
-## Implemented APIs
+## API summary
 
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
@@ -82,10 +104,4 @@ tones (easy/medium/complex) and lengths (3s/15s/45s).
 | POST | /api/sessions/:code/previous | yes | Prev item (teacher) |
 | POST | /api/sessions/:code/end | yes | End session (teacher) |
 
-## Testing
-
-On your local machine, run this:
-
-```bash
-node tests/api.test.js --prod
-```
+See [docs/API.md](docs/API.md) for full request/response details.
