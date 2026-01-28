@@ -41,7 +41,7 @@ exports.getById = async (req, res, next) => {
       .populate({
         path: 'sequence.itemId',
         populate: [
-          { path: 'rawContentRef', select: 'name author type imageRecognitionUrl coordinates' },
+          { path: 'contentRef', select: 'name author type imageRecognitionUrl coordinates' },
           { path: 'creatorId', select: 'username' },
         ],
       });
