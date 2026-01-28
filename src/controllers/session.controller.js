@@ -226,12 +226,6 @@ exports.previous = async (req, res, next) => {
 exports.logActivity = async (req, res, next) => {
   try {
     const { action } = req.body;
-    const validActions = ['tellMore', 'tellLess', 'simpler', 'tooSimple'];
-
-    if (!validActions.includes(action)) {
-      return res.status(400).json({ error: 'Invalid action' });
-    }
-
     const session = await Session.findActiveByCode(req.params.code);
 
     if (!session) {
