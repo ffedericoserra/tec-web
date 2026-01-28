@@ -331,6 +331,7 @@ async function seed() {
           'Un percorso attraverso i più grandi capolavori del Rinascimento fiorentino, da Botticelli a Michelangelo.',
         sequence: createVisitSequence(items, 0, 10),
         type: 'standard',
+        length: 'deep',
         isPublic: true,
         imageUrl: '/uploads/visits/rinascimento.jpg',
       },
@@ -342,6 +343,7 @@ async function seed() {
           'Esplora l\'arte di Botticelli e degli artisti che hanno condiviso la sua epoca.',
         sequence: createVisitSequence(items, 0, 5),
         type: 'standard',
+        length: 'quick',
         isPublic: true,
         imageUrl: '/uploads/visits/botticelli.jpg',
       },
@@ -353,6 +355,7 @@ async function seed() {
           'Percorso didattico per gruppi scolastici con quiz finale.',
         sequence: createVisitSequence(items, 2, 8),
         type: 'synchronized',
+        length: 'normal',
         sessionCode: 'SCUOLA_ARTE',
         isPublic: false,
         quiz: [

@@ -312,6 +312,15 @@ async function testVisits() {
     allPassed = allPassed && passed;
   }
 
+  // Get visit includes length field
+  {
+    const { status, data } = await request('GET', `/visits/${visitId}`);
+    const validLengths = ['quick', 'normal', 'deep'];
+    const passed = status === 200 && validLengths.includes(data.visit?.length);
+    log('GET /visits/:id includes length', passed, data.visit?.length);
+    allPassed = allPassed && passed;
+  }
+
   // Get my visits (authenticated)
   {
     const { status, data } = await request('GET', '/visits/my', null, authToken);
