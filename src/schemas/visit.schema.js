@@ -24,6 +24,7 @@ const createVisitSchema = z.object({
   imageUrl: z.string().url().optional(),
   sequence: z.array(sequenceItemSchema).optional(),
   type: z.enum(['standard', 'synchronized']).default('standard'),
+  length: z.enum(['quick', 'normal', 'deep']).default('normal'),
   isPublic: z.boolean().default(true),
   quiz: z.array(quizQuestionSchema).optional(),
 });
@@ -34,6 +35,7 @@ const updateVisitSchema = z.object({
   imageUrl: z.string().url().optional(),
   sequence: z.array(sequenceItemSchema).optional(),
   type: z.enum(['standard', 'synchronized']).optional(),
+  length: z.enum(['quick', 'normal', 'deep']).optional(),
   isPublic: z.boolean().optional(),
   quiz: z.array(quizQuestionSchema).optional(),
 });

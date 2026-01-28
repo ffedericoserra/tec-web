@@ -65,7 +65,7 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { title, museumId, description, imageUrl, sequence, type, isPublic, quiz } = req.body;
+    const { title, museumId, description, imageUrl, sequence, type, length, isPublic, quiz } = req.body;
 
     // Process sequence to add order
     const processedSequence = (sequence || []).map((item, index) => ({
@@ -81,6 +81,7 @@ exports.create = async (req, res, next) => {
       imageUrl,
       sequence: processedSequence,
       type: type || 'standard',
+      length: length || 'normal',
       isPublic: isPublic !== false,
       quiz,
     });
@@ -114,7 +115,7 @@ exports.update = async (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to update this visit' });
     }
 
-    const { title, description, imageUrl, sequence, type, isPublic, quiz } = req.body;
+    const { title, description, imageUrl, sequence, type, length, isPublic, quiz } = req.body;
 
     // Process sequence to add order
     let processedSequence;
@@ -131,6 +132,7 @@ exports.update = async (req, res, next) => {
       ...(imageUrl !== undefined && { imageUrl }),
       ...(processedSequence && { sequence: processedSequence }),
       ...(type && { type }),
+      ...(length && { length }),
       ...(isPublic !== undefined && { isPublic }),
       ...(quiz && { quiz }),
     });

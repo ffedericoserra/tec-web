@@ -76,6 +76,13 @@ const visitSchema = new mongoose.Schema(
     },
     sequence: [sequenceItemSchema],
 
+    // Preferred description length for this visit
+    length: {
+      type: String,
+      enum: ['quick', 'normal', 'deep'],
+      default: 'normal',
+    },
+
     // Tier 2: Synchronized mode
     type: {
       type: String,
