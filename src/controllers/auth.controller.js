@@ -22,15 +22,14 @@ exports.register = async (req, res, next) => {
     }
 
     // Create user
-    const user = new User({ username });
-    user.password = password; // Uses virtual setter, hashed in pre-save hook
+    const user = new User({ username, password });
     await user.save();
 
     // Generate token
     const token = jwt.sign(
-        { userId: user._id }, 
-        env.JWT_SECRET, 
-        { expiresIn: env.JWT_EXPIRES_IN,}
+        { userId: user._id },
+        env.JWT_SECRET,
+        { expiresIn: env.JWT_EXPIRES_IN }
     );
 
     res.status(201).json({
@@ -63,9 +62,10 @@ exports.login = async (req, res, next) => {
     }
 
     // Generate token
-    const token = jwt.sign({ userId: user._id }, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    });
+    const token = jwt.sign(
+      { userId: user._id },
+      env.JWT_SECRET,
+      { expiresIn: env.JWT_EXPIRES_IN });
 
     res.json({
       user: user.toJSON(),

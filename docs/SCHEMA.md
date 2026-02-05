@@ -6,7 +6,7 @@
 
 | Environment | Database | User | Host |
 |-------------|----------|------|------|
-| Development | `artaround` | - | `localhost:27017` |
+| Development | `artaround` | `site242557` | `localhost:27017` |
 | Production | `mongo_site242557` | `site242557` | `mongodb` |
 
 ## Data Models
