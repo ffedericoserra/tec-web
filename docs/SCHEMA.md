@@ -6,8 +6,8 @@
 
 | Environment | Database | User | Host |
 |-------------|----------|------|------|
+| Production | `artaround` | `site242557` | `?? (localhost:27017 from inside node container?)` |
 | Development | `artaround` | `site242557` | `localhost:27017` |
-| Production | `mongo_site242557` | `site242557` | `mongodb` |
 
 ## Data Models
 
