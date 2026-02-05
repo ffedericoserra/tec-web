@@ -14,7 +14,7 @@ const textSchema = new mongoose.Schema(
     },
     lengthCategory: {
         type: String,
-        enum: ['3s', '15s', '45s'],
+        enum: ['3s', '15s', '45s'],     // TODO: TBD if variable length
         required: true,
     },
     language: {
@@ -34,7 +34,7 @@ const descriptionSchema = new mongoose.Schema(
   {
     tone: {
         type: String,
-        enum: ['easy', 'medium', 'complex'],
+        enum: ['easy', 'medium', 'complex'],      // TODO: TBD if more granular
         required: true,
     },
     texts: [textSchema],
@@ -69,7 +69,7 @@ const itemSchema = new mongoose.Schema(
     },
     license: {
       type: String,
-      enum: ['CC-BY', 'CC-BY-SA', 'CC-BY-NC', 'Copyright', 'Public Domain'],
+      enum: ['CC-BY', 'CC-BY-SA', 'CC-BY-NC', 'Copyright', 'Public Domain'],    // TODO: TBD necessary?
       default: 'CC-BY',
     },
     isPublic: {

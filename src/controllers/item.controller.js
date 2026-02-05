@@ -5,7 +5,6 @@
 
 const Item = require('../models/Item');
 const User = require('../models/User');
-const Content = require('../models/Content');
 
 /**
  * List items
