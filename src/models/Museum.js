@@ -9,7 +9,7 @@ const pointOfInterestSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ['toilet', 'exit', 'bar', 'stairs', 'entrance', 'shop'],
+      enum: ['toilet', 'exit', 'bar', 'stairs', 'entrance', 'shop'],    // TODO: maintain default, or allow anything?
       required: true,
     },
     coordinates: {
@@ -44,7 +44,7 @@ const museumSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    theme: {
+    theme: {            // TODO: to be better defined
       primaryColor: {
         type: String,
         default: '#1a1a1a',
@@ -53,12 +53,12 @@ const museumSchema = new mongoose.Schema(
         type: String,
         default: '#ffffff',
       },
-      font: {
+      font: {         // TODO: setup sample museums w/ different fonts
         type: String,
         default: 'Inter',
       },
     },
-    mapData: {
+    mapData: {      // TODO: eventually to refine, still not tested with actual maps
       imageUrl: String,
       // For geo-referenced maps (lat/lng)
       bounds: {
