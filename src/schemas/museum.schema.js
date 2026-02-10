@@ -30,7 +30,7 @@ const mapDataSchema = z.object({
     west: z.number(),
   }).optional(),
   center: coordinatesSchema.optional(),
-}).optional();      // TODO: Maybe we want the img to be mandatory?
+}).optional();      // Revisit when testing with actual maps
 
 const createMuseumSchema = z.object({
   name: z.string().min(1, 'Museum name is required').trim(),

@@ -11,7 +11,7 @@ const museumRoutes = require('./museum.routes');
 const itemRoutes = require('./item.routes');
 const visitRoutes = require('./visit.routes');
 const sessionRoutes = require('./session.routes');
-// const aiRoutes = require('./ai.routes'); // TODO: Implement AI routes
+// const aiRoutes = require('./ai.routes'); // Extension 2
 
 // Health check
 router.get('/health', (req, res) => {
@@ -24,6 +24,6 @@ router.use('/museums', museumRoutes);
 router.use('/items', itemRoutes);
 router.use('/visits', visitRoutes);
 router.use('/sessions', sessionRoutes);
-// router.use('/ai', aiRoutes); // TODO: Uncomment when AI routes are implemented
+// router.use('/ai', aiRoutes); // Extension 2
 
 module.exports = router;

@@ -1,3 +1,3 @@
 /**
- * AI Routes (Tier 3)
+ * AI Routes (Extension 2)
  */

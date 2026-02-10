@@ -1,5 +1,5 @@
 /**
- * Session Routes (Tier 2 - Synchronized Mode)
+ * Session Routes (Extension 1 - Synchronized Mode)
  */
 
 const express = require('express');

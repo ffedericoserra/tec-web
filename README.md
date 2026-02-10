@@ -60,6 +60,7 @@ src/
 
 ```
 Museum -> Content (artworks, artists, movements, places)
+       -> Item (personalized presentations of Content)
        -> Visit (ordered sequence of Items)
        -> Session (synchronized group visit)
 ```

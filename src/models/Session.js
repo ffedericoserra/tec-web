@@ -89,7 +89,7 @@ sessionSchema.index({ code: 1 });
 sessionSchema.index({ owner: 1, isActive: 1 });
 sessionSchema.index({ visitId: 1 });
 
-// Generate a mnemonic session code
+// Generate a mnemonic session code (used as fallback when no custom name is provided)
 sessionSchema.statics.generateCode = function () {
   const adjectives = ['ROSSO', 'BLU', 'VERDE', 'GIALLO', 'VIOLA', 'ARANCIO'];
   const nouns = ['LEONE', 'AQUILA', 'TIGRE', 'LUPO', 'FALCO', 'ORSO'];

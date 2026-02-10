@@ -83,7 +83,7 @@ const visitSchema = new mongoose.Schema(
       default: 'normal',
     },
 
-    // Tier 2: Synchronized mode
+    // Extension 1: Synchronized mode
     type: {
       type: String,
       enum: ['standard', 'synchronized'],

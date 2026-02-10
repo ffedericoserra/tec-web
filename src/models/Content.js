@@ -4,12 +4,11 @@
  */
 
 const mongoose = require('mongoose');
-// TODO: TBD if we want/need validation also for contents
 const contentSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ['Artwork', 'Artist', 'Movement', 'Place'],   // TODO: TBD specific type to use, could be free (no costraint)
+      enum: ['Artwork', 'Artist', 'Movement', 'Place'],
       required: [true, 'Content type is required'],
     },
     museumId: {
@@ -17,7 +16,7 @@ const contentSchema = new mongoose.Schema(
       ref: 'Museum',
       required: [true, 'Museum reference is required'],
     },
-    universalId: {    // TODO: used for retrieval by mnemonic name instead of _id?
+    universalId: {    // Stable external ID, used by Item.contentId for linking
       type: String,
       unique: true,
       sparse: true, // Allows multiple null values

@@ -1,6 +1,6 @@
 /**
  * Session Controller
- * Handles synchronized visit sessions (Tier 2)
+ * Handles synchronized visit sessions (Extension 1)
  */
 
 const Session = require('../models/Session');
@@ -21,15 +21,22 @@ exports.create = async (req, res, next) => {
       return res.status(404).json({ error: 'Visit not found' });
     }
 
-    // Generate unique code
-    let code;
-    let attempts = 0;
-    do {
-      code = Session.generateCode();
+    // Use custom name if provided, otherwise auto-generate
+    let code = req.body.code?.trim().toUpperCase();
+    if (!code) {
+      let attempts = 0;
+      do {
+        code = Session.generateCode();
+        const existing = await Session.findOne({ code, isActive: true });
+        if (!existing) break;
+        attempts++;
+      } while (attempts < 10);
+    } else {
       const existing = await Session.findOne({ code, isActive: true });
-      if (!existing) break;
-      attempts++;
-    } while (attempts < 10);
+      if (existing) {
+        return res.status(409).json({ error: 'Session code already in use' });
+      }
+    }
 
     const session = new Session({
       code,

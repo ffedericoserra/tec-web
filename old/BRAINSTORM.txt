@@ -1,7 +1,7 @@
 =================================== OVERVIEW ====================================
 
 * We are building ArtAround, a university web project consisting of two interacting applications: a Navigator (Mobile/Visitor) and an Editor (DesktopCurator). We are using a Hybrid Monolith architecture hosted on a single Node.js container (Port 8000) backed by a MongoDB container. Official requirementscan be found in `./requirements.md`
-* The implementation target is the Tier 3 (Extension 2, Vote 18-33 - LLM integration)
+* The implementation target is the Extension 2 (Extension 2, Vote 18-33 - LLM integration)
 * On the prod environment (`main` branch), The apps will be hosted on two containers in the computer science department servers (already created):
     - one for node (node-22), which is not directly accessible (only runnable with an entry js script in this repo). The entry script must bind to port 8000;
     - one for mongodb (latest), accesible only 'internally' by the containers hosted exposed in the same domain (such as the node container), or via the custom tool through mongosh (for cli control).
@@ -203,7 +203,7 @@ Collections drafts:
 ├── client-navigator/     # FRONTEND 1 (React - Mobile)
 │   ├── src/
 │   │   ├── components/
-│   │   │   └── Teleport/ # DevTool for mocking location (Tier 3)
+│   │   │   └── Teleport/ # DevTool for mocking location (Extension 2)
 │   │   └── ...
 │   ├── vite.config.js    # Builds to ../public/app
 │   └── ...

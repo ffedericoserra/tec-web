@@ -6,10 +6,10 @@
 
 | Environment | Database | User | Host |
 |-------------|----------|------|------|
-| Production | `artaround` | `site242557` | `?? (localhost:27017 from inside node container?)` |
+| Production | `artaround` | `site242557` | `?(localhost:27017 from inside node container)?` |
 | Development | `artaround` | `site242557` | `localhost:27017` |
 
-## Data Models
+## Data Models Overview
 
 ### User
 - `username` - Unique identifier
@@ -61,7 +61,7 @@
 - `activities` - Log of participant actions
 - `isActive`, `startedAt`, `endedAt` - Status
 
-## Collection Schemas
+## Data Models Collections Details
 
 ### users
 ```js

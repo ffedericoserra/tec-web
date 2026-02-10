@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
       default: 100,
       min: 0,
     },
-    // Tier 2: Synchronized mode
+    // Extension 1: Synchronized mode
     activeSession: {
       type: String,
       default: null,

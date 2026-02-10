@@ -1,4 +1,4 @@
 /**
  * AI Controller
- * Handles AI-powered features (Tier 3)
+ * Handles AI-powered features (Extension 2)
  */
