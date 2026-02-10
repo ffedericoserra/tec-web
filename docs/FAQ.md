@@ -1,7 +1,5 @@
 # FAQ Progetto
 
----
-
 ### Aspetti Legali
 Gli aspetti legali come privacy, cookie etc. devono essere rispettati? Tendenzialmente no, non essendo un progetto pubblicato non si applicano.
 
