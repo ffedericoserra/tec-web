@@ -8,6 +8,7 @@
     "dev": "node src/index.js",
     "seed": "node scripts/seed.js",
     "seed:prod": "DB_HOST=localhost node scripts/seed.js",
+    "load-museum": "node scripts/load-museum.js",
     "test": "node tests/api.test.js",
     "test:prod": "node tests/api.test.js --prod"
   },

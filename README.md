@@ -17,15 +17,21 @@ Backend works. AI integration and frontends not implemented yet.
 **Development (local Docker):**
 ```bash
 docker-compose up
-node scripts/seed.js       # seed database
+node scripts/seed.js       # seed database (wipes + recreates all data)
 node tests/api.test.js     # run tests
+```
+
+**Load museum config files (without wiping):**
+```bash
+node scripts/load-museum.js data/museums/              # load all museums
+node scripts/load-museum.js data/museums/uffizi.json   # load single museum
 ```
 
 **Production (department machines):**
 ```bash
 mv .env.production .env
 ssh gocker
-gocker start node-22 site242557 src/index.js
+start node-22 site242557 src/index.js
 ```
 
 API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
@@ -34,6 +40,10 @@ API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
 
 ```
 .env                    # Environment config (copy from .env.example)
+data/
+└── museums/            # Museum config files (JSON)
+    ├── uffizi.json
+    └── mambo.json
 src/
 ├── index.js            # Express server entry point
 ├── config/

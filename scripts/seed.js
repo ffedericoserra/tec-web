@@ -2,16 +2,22 @@
  * Database Seeding Script
  * Creates test data for ArtAround application
  *
+ * Loads museums from config files (data/museums/*.json),
+ * then creates test users, items, and visits as demo fixtures.
+ *
  * Usage: npm run seed
  */
 
+const path = require('path');
 const { connectDB, disconnectDB } = require('../src/config/db');
+const { loadMuseums } = require('./load-museum');
 
 const User = require('../src/models/User');
 const Museum = require('../src/models/Museum');
 const Content = require('../src/models/Content');
 const Item = require('../src/models/Item');
 const Visit = require('../src/models/Visit');
+const Session = require('../src/models/Session');
 
 async function seed() {
   try {
@@ -24,6 +30,7 @@ async function seed() {
       Content.deleteMany({}),
       Item.deleteMany({}),
       Visit.deleteMany({}),
+      Session.deleteMany({}),
     ]);
     console.log('Cleared existing data');
 
@@ -52,162 +59,19 @@ async function seed() {
     const [autore, visitatore, docente] = users;
 
     // =====================
-    // 2. CREATE MUSEUM
+    // 2. LOAD MUSEUMS FROM CONFIG FILES
     // =====================
-    const museum = await Museum.create({
-      name: 'Galleria degli Uffizi',
-      address: 'Piazzale degli Uffizi, 6, 50122 Firenze FI',
-      description:
-        'Una delle più famose gallerie d\'arte al mondo, ospita capolavori del Rinascimento italiano.',
-      theme: {
-        primaryColor: '#8B4513',
-        secondaryColor: '#F5F5DC',
-        font: 'Georgia',
-      },
-      mapData: {
-        imageUrl: '/uploads/maps/uffizi-map.png',
-        bounds: {
-          north: 43.7688,
-          south: 43.7676,
-          east: 11.2562,
-          west: 11.2546,
-        },
-        center: {
-          lat: 43.7682,
-          lng: 11.2554,
-        },
-      },
-      pointsOfInterest: [
-        { type: 'entrance', coordinates: { lat: 43.7677, lng: 11.2554 }, label: 'Ingresso principale' },
-        { type: 'toilet', coordinates: { lat: 43.7680, lng: 11.2558 }, label: 'Bagni Piano Terra' },
-        { type: 'toilet', coordinates: { lat: 43.7685, lng: 11.2550 }, label: 'Bagni Primo Piano' },
-        { type: 'bar', coordinates: { lat: 43.7687, lng: 11.2555 }, label: 'Caffetteria Terrazza' },
-        { type: 'shop', coordinates: { lat: 43.7678, lng: 11.2552 }, label: 'Bookshop' },
-        { type: 'exit', coordinates: { lat: 43.7686, lng: 11.2548 }, label: 'Uscita secondaria' },
-        { type: 'stairs', coordinates: { lat: 43.7681, lng: 11.2556 }, label: 'Scale principali' },
-      ],
-      imageUrl: '/uploads/museums/uffizi.jpg',
-    });
-    console.log(`Created museum: ${museum.name}`);
+    const museumsDir = path.join(__dirname, '../data/museums');
+    await loadMuseums(museumsDir);
+
+    // Get loaded museums and contents for creating items/visits
+    const uffizi = await Museum.findOne({ slug: 'galleria-degli-uffizi' });
+    const mambo = await Museum.findOne({ slug: 'mambo-museo-darte-moderna-di-bologna' });
+    const uffiziContents = await Content.find({ museumId: uffizi._id, type: 'Artwork' });
+    const mamboContents = await Content.find({ museumId: mambo._id, type: 'Artwork' });
 
     // =====================
-    // 3. CREATE CONTENTS
-    // =====================
-    const artworksData = [
-      {
-        type: 'Artwork',
-        name: 'La nascita di Venere',
-        author: 'Sandro Botticelli',
-        year: '1485',
-        coordinates: { lat: 43.7683, lng: 11.2553 },
-        universalId: 'uffizi-botticelli-venere',
-      },
-      {
-        type: 'Artwork',
-        name: 'La Primavera',
-        author: 'Sandro Botticelli',
-        year: '1482',
-        coordinates: { lat: 43.7683, lng: 11.2555 },
-        universalId: 'uffizi-botticelli-primavera',
-      },
-      {
-        type: 'Artwork',
-        name: 'Annunciazione',
-        author: 'Leonardo da Vinci',
-        year: '1472',
-        coordinates: { lat: 43.7684, lng: 11.2551 },
-        universalId: 'uffizi-leonardo-annunciazione',
-      },
-      {
-        type: 'Artwork',
-        name: 'Tondo Doni',
-        author: 'Michelangelo Buonarroti',
-        year: '1507',
-        coordinates: { lat: 43.7685, lng: 11.2554 },
-        universalId: 'uffizi-michelangelo-tondodoni',
-      },
-      {
-        type: 'Artwork',
-        name: 'Madonna del Cardellino',
-        author: 'Raffaello Sanzio',
-        year: '1506',
-        coordinates: { lat: 43.7682, lng: 11.2552 },
-        universalId: 'uffizi-raffaello-cardellino',
-      },
-      {
-        type: 'Artwork',
-        name: 'Venere di Urbino',
-        author: 'Tiziano Vecellio',
-        year: '1538',
-        coordinates: { lat: 43.7681, lng: 11.2556 },
-        universalId: 'uffizi-tiziano-venere',
-      },
-      {
-        type: 'Artwork',
-        name: 'Bacco',
-        author: 'Caravaggio',
-        year: '1597',
-        coordinates: { lat: 43.7680, lng: 11.2553 },
-        universalId: 'uffizi-caravaggio-bacco',
-      },
-      {
-        type: 'Artwork',
-        name: 'Medusa',
-        author: 'Caravaggio',
-        year: '1597',
-        coordinates: { lat: 43.7680, lng: 11.2555 },
-        universalId: 'uffizi-caravaggio-medusa',
-      },
-      {
-        type: 'Artwork',
-        name: 'Adorazione dei Magi',
-        author: 'Gentile da Fabriano',
-        year: '1423',
-        coordinates: { lat: 43.7684, lng: 11.2557 },
-        universalId: 'uffizi-gentile-magi',
-      },
-      {
-        type: 'Artwork',
-        name: 'Maestà di Ognissanti',
-        author: 'Giotto',
-        year: '1310',
-        coordinates: { lat: 43.7686, lng: 11.2551 },
-        universalId: 'uffizi-giotto-maesta',
-      },
-      {
-        type: 'Artist',
-        name: 'Sandro Botticelli',
-        year: '1445-1510',
-        coordinates: { lat: 43.7683, lng: 11.2554 },
-        universalId: 'uffizi-artist-botticelli',
-      },
-      {
-        type: 'Artist',
-        name: 'Leonardo da Vinci',
-        year: '1452-1519',
-        coordinates: { lat: 43.7684, lng: 11.2552 },
-        universalId: 'uffizi-artist-leonardo',
-      },
-      {
-        type: 'Movement',
-        name: 'Rinascimento Fiorentino',
-        year: 'XV-XVI secolo',
-        coordinates: { lat: 43.7682, lng: 11.2554 },
-        universalId: 'uffizi-movement-rinascimento',
-      },
-    ];
-
-    const contents = await Content.create(
-      artworksData.map((art) => ({
-        ...art,
-        museumId: museum._id,
-        qrCode: `QR-${art.universalId}`,
-      }))
-    );
-    console.log(`Created ${contents.length} contents`);
-
-    // =====================
-    // 4. CREATE ITEMS
+    // 3. CREATE ITEMS
     // =====================
     const createDescriptions = (contentName, contentAuthor = '') => {
       const authorText = contentAuthor ? ` di ${contentAuthor}` : '';
@@ -262,12 +126,12 @@ async function seed() {
               language: 'it',
             },
             {
-              text: `L'opera ${contentName}${authorText} rappresenta un esempio significativo del periodo rinascimentale italiano, caratterizzato da innovazioni tecniche e tematiche.`,
+              text: `L'opera ${contentName}${authorText} rappresenta un esempio significativo della storia dell'arte italiana, caratterizzato da innovazioni tecniche e tematiche.`,
               lengthCategory: '15s',
               language: 'it',
             },
             {
-              text: `${contentName}${authorText} costituisce uno dei vertici dell'arte rinascimentale. L'opera si distingue per la raffinata esecuzione tecnica, la sapiente composizione spaziale e l'uso magistrale del colore. La scena rappresentata riflette i valori estetici e culturali dell'epoca, integrando elementi simbolici e riferimenti alla tradizione classica.`,
+              text: `${contentName}${authorText} costituisce uno dei vertici della storia dell'arte. L'opera si distingue per la raffinata esecuzione tecnica, la sapiente composizione spaziale e l'uso magistrale del colore. La scena rappresentata riflette i valori estetici e culturali dell'epoca, integrando elementi simbolici e riferimenti alla tradizione.`,
               lengthCategory: '45s',
               language: 'it',
             },
@@ -276,23 +140,39 @@ async function seed() {
       ];
     };
 
-    const items = [];
-    for (const content of contents.filter((c) => c.type === 'Artwork')) {
+    // Create items for Uffizi artworks
+    const uffiziItems = [];
+    for (const content of uffiziContents) {
       const item = await Item.create({
         contentId: content.universalId,
         creatorId: autore._id,
         targetAudience: 'tourist',
         descriptions: createDescriptions(content.name, content.author),
-        price: Math.floor(Math.random() * 10) * 5, // 0, 5, 10, ... 45
+        price: Math.floor(Math.random() * 10) * 5,
         license: 'CC-BY',
         isPublic: true,
       });
-      items.push(item);
+      uffiziItems.push(item);
     }
-    console.log(`Created ${items.length} items`);
+
+    // Create items for MAMbo artworks
+    const mamboItems = [];
+    for (const content of mamboContents) {
+      const item = await Item.create({
+        contentId: content.universalId,
+        creatorId: autore._id,
+        targetAudience: 'tourist',
+        descriptions: createDescriptions(content.name, content.author),
+        price: Math.floor(Math.random() * 10) * 5,
+        license: 'CC-BY',
+        isPublic: true,
+      });
+      mamboItems.push(item);
+    }
+    console.log(`Created ${uffiziItems.length + mamboItems.length} items`);
 
     // =====================
-    // 5. CREATE VISITS
+    // 4. CREATE VISITS
     // =====================
     const createVisitSequence = (itemList, startIndex, count) => {
       const sequence = [];
@@ -322,13 +202,14 @@ async function seed() {
     };
 
     const visits = await Visit.create([
+      // Uffizi visits
       {
         title: 'Capolavori del Rinascimento',
-        museumId: museum._id,
+        museumId: uffizi._id,
         creatorId: autore._id,
         description:
           'Un percorso attraverso i più grandi capolavori del Rinascimento fiorentino, da Botticelli a Michelangelo.',
-        sequence: createVisitSequence(items, 0, 10),
+        sequence: createVisitSequence(uffiziItems, 0, 10),
         type: 'standard',
         length: 'deep',
         isPublic: true,
@@ -336,11 +217,11 @@ async function seed() {
       },
       {
         title: 'Botticelli e i suoi contemporanei',
-        museumId: museum._id,
+        museumId: uffizi._id,
         creatorId: autore._id,
         description:
           'Esplora l\'arte di Botticelli e degli artisti che hanno condiviso la sua epoca.',
-        sequence: createVisitSequence(items, 0, 5),
+        sequence: createVisitSequence(uffiziItems, 0, 5),
         type: 'standard',
         length: 'quick',
         isPublic: true,
@@ -348,11 +229,11 @@ async function seed() {
       },
       {
         title: 'Visita guidata scuole',
-        museumId: museum._id,
+        museumId: uffizi._id,
         creatorId: docente._id,
         description:
           'Percorso didattico per gruppi scolastici con quiz finale.',
-        sequence: createVisitSequence(items, 2, 8),
+        sequence: createVisitSequence(uffiziItems, 2, 8),
         type: 'synchronized',
         length: 'normal',
         sessionCode: 'SCUOLA_ARTE',
@@ -376,13 +257,68 @@ async function seed() {
         ],
         imageUrl: '/uploads/visits/scuole.jpg',
       },
+      // MAMbo visits
+      {
+        title: 'Arte Moderna e Contemporanea',
+        museumId: mambo._id,
+        creatorId: autore._id,
+        description:
+          'Un viaggio attraverso le correnti artistiche del Novecento italiano, da Morandi all\'Arte Povera.',
+        sequence: createVisitSequence(mamboItems, 0, 10),
+        type: 'standard',
+        length: 'deep',
+        isPublic: true,
+        imageUrl: '/uploads/visits/mambo-moderna.jpg',
+      },
+      {
+        title: 'Morandi e lo Spazialismo',
+        museumId: mambo._id,
+        creatorId: autore._id,
+        description:
+          'Dalle nature morte di Morandi ai tagli di Fontana: due visioni dell\'arte italiana.',
+        sequence: createVisitSequence(mamboItems, 0, 5),
+        type: 'standard',
+        length: 'quick',
+        isPublic: true,
+        imageUrl: '/uploads/visits/mambo-morandi.jpg',
+      },
+      {
+        title: 'Visita guidata Arte Povera',
+        museumId: mambo._id,
+        creatorId: docente._id,
+        description:
+          'Percorso didattico sul movimento dell\'Arte Povera con quiz finale.',
+        sequence: createVisitSequence(mamboItems, 4, 6),
+        type: 'synchronized',
+        length: 'normal',
+        sessionCode: 'ARTE_POVERA',
+        isPublic: false,
+        quiz: [
+          {
+            question: 'Quale artista è noto per i "tagli" sulla tela?',
+            options: ['Giorgio Morandi', 'Lucio Fontana', 'Alberto Burri', 'Emilio Vedova'],
+            correctIndex: 1,
+          },
+          {
+            question: 'Cos\'è l\'Arte Povera?',
+            options: ['Arte fatta con materiali economici', 'Movimento artistico italiano degli anni \'60', 'Arte dei paesi poveri', 'Stile minimalista'],
+            correctIndex: 1,
+          },
+          {
+            question: 'Chi ha creato la "Venere degli stracci"?',
+            options: ['Jannis Kounellis', 'Giulio Paolini', 'Michelangelo Pistoletto', 'Pino Pascali'],
+            correctIndex: 2,
+          },
+        ],
+        imageUrl: '/uploads/visits/mambo-povera.jpg',
+      },
     ]);
     console.log(`Created ${visits.length} visits`);
 
     // Link visits to users
-    autore.myVisits.push(visits[0]._id, visits[1]._id);
-    docente.myVisits.push(visits[2]._id);
-    visitatore.savedMuseums.push(museum._id);
+    autore.myVisits.push(visits[0]._id, visits[1]._id, visits[3]._id, visits[4]._id);
+    docente.myVisits.push(visits[2]._id, visits[5]._id);
+    visitatore.savedMuseums.push(uffizi._id, mambo._id);
 
     await Promise.all([autore.save(), docente.save(), visitatore.save()]);
     console.log('Updated user references');
@@ -390,15 +326,17 @@ async function seed() {
     // =====================
     // SUMMARY
     // =====================
+    const allMuseums = await Museum.find();
+    const allContents = await Content.find();
     console.log('\n=== SEED COMPLETE ===');
     console.log(`Users: ${users.length}`);
     console.log(`  - autore1 (password: 12345678)`);
     console.log(`  - visitatore1 (password: 12345678)`);
     console.log(`  - docente1 (password: 12345678)`);
-    console.log(`Museums: 1`);
-    console.log(`  - ${museum.name}`);
-    console.log(`Contents: ${contents.length}`);
-    console.log(`Items: ${items.length}`);
+    console.log(`Museums: ${allMuseums.length}`);
+    allMuseums.forEach(m => console.log(`  - ${m.name}`));
+    console.log(`Contents: ${allContents.length}`);
+    console.log(`Items: ${uffiziItems.length + mamboItems.length}`);
     console.log(`Visits: ${visits.length}`);
     console.log(`  - ${visits.map((v) => v.title).join(', ')}`);
   } catch (error) {
