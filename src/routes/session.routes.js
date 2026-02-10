@@ -7,7 +7,7 @@ const router = express.Router();
 const sessionController = require('../controllers/session.controller');
 const { requireAuth } = require('../middleware/auth');
 const validate = require('../middleware/validate');
-const { createSessionSchema, logActivitySchema } = require('../schemas/session.schema');
+const { createSessionSchema, logActivitySchema, submitQuizSchema } = require('../schemas/session.schema');
 
 // All routes require authentication
 router.use(requireAuth);
@@ -21,6 +21,10 @@ router.get('/:code', sessionController.getByCode);
 router.post('/:code/join', sessionController.join);
 router.post('/:code/leave', sessionController.leave);
 router.post('/:code/activity', validate(logActivitySchema), sessionController.logActivity);
+
+// Quiz
+router.post('/:code/quiz', validate(submitQuizSchema), sessionController.submitQuiz);
+router.get('/:code/quiz', sessionController.getQuizResults);
 
 // Teacher actions
 router.post('/:code/advance', sessionController.advance);

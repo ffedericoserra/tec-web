@@ -135,6 +135,8 @@ All session endpoints require authentication.
 | POST | `/sessions/:code/join` | Join as participant |
 | POST | `/sessions/:code/leave` | Leave session |
 | POST | `/sessions/:code/activity` | Log participant action |
+| POST | `/sessions/:code/quiz` | Submit quiz answers |
+| GET | `/sessions/:code/quiz` | Get quiz results (owner only) |
 | POST | `/sessions/:code/advance` | Next item (owner only) |
 | POST | `/sessions/:code/previous` | Previous item (owner only) |
 | POST | `/sessions/:code/end` | End session (owner only) |
@@ -155,6 +157,48 @@ All session endpoints require authentication.
 }
 ```
 **Actions:** `tellMore`, `tellLess`, `simpler`, `tooSimple`
+
+**Submit Quiz Request:**
+```json
+{
+  "answers": [
+    { "questionIndex": 0, "selectedIndex": 1 },
+    { "questionIndex": 1, "selectedIndex": 2 }
+  ]
+}
+```
+
+**Submit Quiz Response:**
+```json
+{
+  "score": 2,
+  "total": 3
+}
+```
+
+**Quiz Results Response (owner only):**
+```json
+{
+  "results": [
+    {
+      "userId": "...",
+      "username": "visitatore1",
+      "quizAnswers": [
+        { "questionIndex": 0, "selectedIndex": 1 },
+        { "questionIndex": 1, "selectedIndex": 2 }
+      ],
+      "quizScore": 2,
+      "total": 3
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Chi ha dipinto...?",
+      "options": ["A", "B", "C", "D"],
+      "correctIndex": 1
+    }
+  ]
+}
 
 ## Health Check
 

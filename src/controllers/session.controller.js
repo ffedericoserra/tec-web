@@ -285,6 +285,93 @@ exports.end = async (req, res, next) => {
 };
 
 /**
+ * Submit quiz answers (participant)
+ * POST /api/sessions/:code/quiz
+ */
+exports.submitQuiz = async (req, res, next) => {
+  try {
+    const { answers } = req.body;
+    const session = await Session.findActiveByCode(req.params.code).populate('visitId', 'quiz');
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found or inactive' });
+    }
+
+    const quiz = session.visitId.quiz;
+    if (!quiz || quiz.length === 0) {
+      return res.status(400).json({ error: 'This session has no quiz' });
+    }
+
+    // Find participant
+    const participant = session.participants.find(
+      (p) => p.userId.toString() === req.user._id.toString()
+    );
+
+    if (!participant) {
+      return res.status(403).json({ error: 'You are not a participant of this session' });
+    }
+
+    if (participant.quizScore !== null) {
+      return res.status(400).json({ error: 'Quiz already submitted' });
+    }
+
+    // Score the quiz
+    let score = 0;
+    for (const answer of answers) {
+      const question = quiz[answer.questionIndex];
+      if (question && answer.selectedIndex === question.correctIndex) {
+        score++;
+      }
+    }
+
+    participant.quizAnswers = answers;
+    participant.quizScore = score;
+    await session.save();
+
+    res.json({
+      score,
+      total: quiz.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get quiz results (owner only)
+ * GET /api/sessions/:code/quiz
+ */
+exports.getQuizResults = async (req, res, next) => {
+  try {
+    const session = await Session.findOne({ code: req.params.code.toUpperCase() })
+      .populate('visitId', 'quiz');
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    if (session.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Only session owner can view quiz results' });
+    }
+
+    const quiz = session.visitId.quiz || [];
+    const results = session.participants
+      .filter((p) => p.quizScore !== null)
+      .map((p) => ({
+        userId: p.userId,
+        username: p.username,
+        quizAnswers: p.quizAnswers,
+        quizScore: p.quizScore,
+        total: quiz.length,
+      }));
+
+    res.json({ results, quiz });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get my active sessions (as owner)
  * GET /api/sessions/my
  */

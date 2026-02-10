@@ -13,7 +13,19 @@ const logActivitySchema = z.object({
   action: z.enum(['tellMore', 'tellLess', 'simpler', 'tooSimple']),
 });
 
+const submitQuizSchema = z.object({
+  answers: z
+    .array(
+      z.object({
+        questionIndex: z.number().int().min(0),
+        selectedIndex: z.number().int().min(0),
+      })
+    )
+    .min(1, 'At least one answer is required'),
+});
+
 module.exports = {
   createSessionSchema,
   logActivitySchema,
+  submitQuizSchema,
 };

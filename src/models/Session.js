@@ -25,6 +25,20 @@ const activitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const quizAnswerSchema = new mongoose.Schema(
+  {
+    questionIndex: {
+      type: Number,
+      required: true,
+    },
+    selectedIndex: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 const participantSchema = new mongoose.Schema(
   {
     userId: {
@@ -40,6 +54,11 @@ const participantSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    quizAnswers: [quizAnswerSchema],
+    quizScore: {
+      type: Number,
+      default: null,
     },
   },
   { _id: false }

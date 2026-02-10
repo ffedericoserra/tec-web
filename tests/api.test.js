@@ -497,6 +497,136 @@ async function testSessions() {
   return allPassed;
 }
 
+async function testQuiz() {
+  console.log('\n📝 Quiz');
+  let allPassed = true;
+  let quizSessionCode = null;
+
+  // Find a synchronized visit with quiz (seeded by docente1)
+  let syncVisitId = null;
+  {
+    const { status, data } = await request('GET', '/visits/my', null, teacherToken);
+    if (status === 200 && data.visits) {
+      const syncVisit = data.visits.find((v) => v.type === 'synchronized' && v.quiz && v.quiz.length > 0);
+      if (syncVisit) syncVisitId = syncVisit._id;
+    }
+    const passed = !!syncVisitId;
+    log('Found synchronized visit with quiz', passed);
+    allPassed = allPassed && passed;
+  }
+
+  if (!syncVisitId) {
+    console.log('  ⚠ Skipping quiz tests (no sync visit with quiz found)');
+    return allPassed;
+  }
+
+  // Create session for quiz visit
+  {
+    const { status, data } = await request(
+      'POST',
+      '/sessions',
+      { visitId: syncVisitId },
+      teacherToken
+    );
+    const passed = status === 201 && data.session?.code;
+    log('Create session for quiz visit', passed);
+    if (passed) quizSessionCode = data.session.code;
+    allPassed = allPassed && passed;
+  }
+
+  // Student joins session
+  {
+    const { status } = await request(
+      'POST',
+      `/sessions/${quizSessionCode}/join`,
+      null,
+      studentToken
+    );
+    const passed = status === 200;
+    log('Student joins quiz session', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Submit quiz (student)
+  {
+    const { status, data } = await request(
+      'POST',
+      `/sessions/${quizSessionCode}/quiz`,
+      {
+        answers: [
+          { questionIndex: 0, selectedIndex: 1 },
+          { questionIndex: 1, selectedIndex: 2 },
+          { questionIndex: 2, selectedIndex: 2 },
+        ],
+      },
+      studentToken
+    );
+    const passed = status === 200 && typeof data.score === 'number' && typeof data.total === 'number';
+    log('POST /sessions/:code/quiz submits quiz', passed, `score: ${data.score}/${data.total}`);
+    allPassed = allPassed && passed;
+  }
+
+  // Submit quiz again (should fail - already submitted)
+  {
+    const { status, data } = await request(
+      'POST',
+      `/sessions/${quizSessionCode}/quiz`,
+      {
+        answers: [{ questionIndex: 0, selectedIndex: 0 }],
+      },
+      studentToken
+    );
+    const passed = status === 400 && data.error === 'Quiz already submitted';
+    log('POST /sessions/:code/quiz rejects double submission', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Get quiz results (teacher/owner)
+  {
+    const { status, data } = await request(
+      'GET',
+      `/sessions/${quizSessionCode}/quiz`,
+      null,
+      teacherToken
+    );
+    const passed = status === 200 && Array.isArray(data.results) && data.results.length > 0;
+    log('GET /sessions/:code/quiz returns results (owner)', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Get quiz results (student - should fail)
+  {
+    const { status } = await request(
+      'GET',
+      `/sessions/${quizSessionCode}/quiz`,
+      null,
+      studentToken
+    );
+    const passed = status === 403;
+    log('GET /sessions/:code/quiz rejects non-owner', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Submit quiz without auth
+  {
+    const { status } = await request(
+      'POST',
+      `/sessions/${quizSessionCode}/quiz`,
+      { answers: [{ questionIndex: 0, selectedIndex: 0 }] }
+    );
+    const passed = status === 401;
+    log('POST /sessions/:code/quiz requires auth', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // End the quiz session (cleanup)
+  {
+    await request('POST', `/sessions/${quizSessionCode}/end`, null, teacherToken);
+  }
+
+  return allPassed;
+}
+
 // Main test runner
 async function runTests() {
   console.log('═══════════════════════════════════════════');
@@ -512,6 +642,7 @@ async function runTests() {
     items: false,
     visits: false,
     sessions: false,
+    quiz: false,
   };
 
   try {
@@ -528,6 +659,7 @@ async function runTests() {
     results.items = await testItems();
     results.visits = await testVisits();
     results.sessions = await testSessions();
+    results.quiz = await testQuiz();
   } catch (error) {
     console.error('\n❌ Test error:', error.message);
   }
