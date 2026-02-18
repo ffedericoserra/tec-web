@@ -44,7 +44,7 @@ const museumSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    theme: {
+    theme: {            // Refine when building frontends
       primaryColor: {
         type: String,
         default: '#1a1a1a',
@@ -58,7 +58,7 @@ const museumSchema = new mongoose.Schema(
         default: 'Inter',
       },
     },
-    mapData: {
+    mapData: {      // Refine when testing with actual maps
       imageUrl: String,
       // For geo-referenced maps (lat/lng)
       bounds: {

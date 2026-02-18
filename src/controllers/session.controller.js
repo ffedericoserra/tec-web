@@ -1,6 +1,6 @@
 /**
  * Session Controller
- * Handles synchronized visit sessions (Tier 2)
+ * Handles synchronized visit sessions (Extension 1)
  */
 
 const Session = require('../models/Session');
@@ -21,15 +21,22 @@ exports.create = async (req, res, next) => {
       return res.status(404).json({ error: 'Visit not found' });
     }
 
-    // Generate unique code
-    let code;
-    let attempts = 0;
-    do {
-      code = Session.generateCode();
+    // Use custom name if provided, otherwise auto-generate
+    let code = req.body.code?.trim().toUpperCase();
+    if (!code) {
+      let attempts = 0;
+      do {
+        code = Session.generateCode();
+        const existing = await Session.findOne({ code, isActive: true });
+        if (!existing) break;
+        attempts++;
+      } while (attempts < 10);
+    } else {
       const existing = await Session.findOne({ code, isActive: true });
-      if (!existing) break;
-      attempts++;
-    } while (attempts < 10);
+      if (existing) {
+        return res.status(409).json({ error: 'Session code already in use' });
+      }
+    }
 
     const session = new Session({
       code,
@@ -226,12 +233,6 @@ exports.previous = async (req, res, next) => {
 exports.logActivity = async (req, res, next) => {
   try {
     const { action } = req.body;
-    const validActions = ['tellMore', 'tellLess', 'simpler', 'tooSimple'];
-
-    if (!validActions.includes(action)) {
-      return res.status(400).json({ error: 'Invalid action' });
-    }
-
     const session = await Session.findActiveByCode(req.params.code);
 
     if (!session) {
@@ -278,6 +279,93 @@ exports.end = async (req, res, next) => {
     );
 
     res.json({ message: 'Session ended' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Submit quiz answers (participant)
+ * POST /api/sessions/:code/quiz
+ */
+exports.submitQuiz = async (req, res, next) => {
+  try {
+    const { answers } = req.body;
+    const session = await Session.findActiveByCode(req.params.code).populate('visitId', 'quiz');
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found or inactive' });
+    }
+
+    const quiz = session.visitId.quiz;
+    if (!quiz || quiz.length === 0) {
+      return res.status(400).json({ error: 'This session has no quiz' });
+    }
+
+    // Find participant
+    const participant = session.participants.find(
+      (p) => p.userId.toString() === req.user._id.toString()
+    );
+
+    if (!participant) {
+      return res.status(403).json({ error: 'You are not a participant of this session' });
+    }
+
+    if (participant.quizScore !== null) {
+      return res.status(400).json({ error: 'Quiz already submitted' });
+    }
+
+    // Score the quiz
+    let score = 0;
+    for (const answer of answers) {
+      const question = quiz[answer.questionIndex];
+      if (question && answer.selectedIndex === question.correctIndex) {
+        score++;
+      }
+    }
+
+    participant.quizAnswers = answers;
+    participant.quizScore = score;
+    await session.save();
+
+    res.json({
+      score,
+      total: quiz.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Get quiz results (owner only)
+ * GET /api/sessions/:code/quiz
+ */
+exports.getQuizResults = async (req, res, next) => {
+  try {
+    const session = await Session.findOne({ code: req.params.code.toUpperCase() })
+      .populate('visitId', 'quiz');
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+
+    if (session.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Only session owner can view quiz results' });
+    }
+
+    const quiz = session.visitId.quiz || [];
+    const results = session.participants
+      .filter((p) => p.quizScore !== null)
+      .map((p) => ({
+        userId: p.userId,
+        username: p.username,
+        quizAnswers: p.quizAnswers,
+        quizScore: p.quizScore,
+        total: quiz.length,
+      }));
+
+    res.json({ results, quiz });
   } catch (error) {
     next(error);
   }

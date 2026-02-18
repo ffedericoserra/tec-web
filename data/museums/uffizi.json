@@ -1,0 +1,148 @@
+{
+  "museum": {
+    "name": "Galleria degli Uffizi",
+    "address": "Piazzale degli Uffizi, 6, 50122 Firenze FI",
+    "description": "Una delle più famose gallerie d'arte al mondo, ospita capolavori del Rinascimento italiano.",
+    "imageUrl": "/uploads/museums/uffizi.jpg",
+    "theme": {
+      "primaryColor": "#8B4513",
+      "secondaryColor": "#F5F5DC",
+      "font": "Georgia"
+    },
+    "mapData": {
+      "imageUrl": "/uploads/maps/uffizi-map.png",
+      "bounds": {
+        "north": 43.7688,
+        "south": 43.7676,
+        "east": 11.2562,
+        "west": 11.2546
+      },
+      "center": { "lat": 43.7682, "lng": 11.2554 }
+    },
+    "pointsOfInterest": [
+      { "type": "entrance", "coordinates": { "lat": 43.7677, "lng": 11.2554 }, "label": "Ingresso principale" },
+      { "type": "toilet", "coordinates": { "lat": 43.7680, "lng": 11.2558 }, "label": "Bagni Piano Terra" },
+      { "type": "toilet", "coordinates": { "lat": 43.7685, "lng": 11.2550 }, "label": "Bagni Primo Piano" },
+      { "type": "bar", "coordinates": { "lat": 43.7687, "lng": 11.2555 }, "label": "Caffetteria Terrazza" },
+      { "type": "shop", "coordinates": { "lat": 43.7678, "lng": 11.2552 }, "label": "Bookshop" },
+      { "type": "exit", "coordinates": { "lat": 43.7686, "lng": 11.2548 }, "label": "Uscita secondaria" },
+      { "type": "stairs", "coordinates": { "lat": 43.7681, "lng": 11.2556 }, "label": "Scale principali" }
+    ]
+  },
+  "contents": [
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-botticelli-venere",
+      "name": "La nascita di Venere",
+      "author": "Sandro Botticelli",
+      "year": "1485",
+      "coordinates": { "lat": 43.7683, "lng": 11.2553 },
+      "qrCode": "QR-uffizi-botticelli-venere"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-botticelli-primavera",
+      "name": "La Primavera",
+      "author": "Sandro Botticelli",
+      "year": "1482",
+      "coordinates": { "lat": 43.7683, "lng": 11.2555 },
+      "qrCode": "QR-uffizi-botticelli-primavera"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-leonardo-annunciazione",
+      "name": "Annunciazione",
+      "author": "Leonardo da Vinci",
+      "year": "1472",
+      "coordinates": { "lat": 43.7684, "lng": 11.2551 },
+      "qrCode": "QR-uffizi-leonardo-annunciazione"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-michelangelo-tondodoni",
+      "name": "Tondo Doni",
+      "author": "Michelangelo Buonarroti",
+      "year": "1507",
+      "coordinates": { "lat": 43.7685, "lng": 11.2554 },
+      "qrCode": "QR-uffizi-michelangelo-tondodoni"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-raffaello-cardellino",
+      "name": "Madonna del Cardellino",
+      "author": "Raffaello Sanzio",
+      "year": "1506",
+      "coordinates": { "lat": 43.7682, "lng": 11.2552 },
+      "qrCode": "QR-uffizi-raffaello-cardellino"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-tiziano-venere",
+      "name": "Venere di Urbino",
+      "author": "Tiziano Vecellio",
+      "year": "1538",
+      "coordinates": { "lat": 43.7681, "lng": 11.2556 },
+      "qrCode": "QR-uffizi-tiziano-venere"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-caravaggio-bacco",
+      "name": "Bacco",
+      "author": "Caravaggio",
+      "year": "1597",
+      "coordinates": { "lat": 43.7680, "lng": 11.2553 },
+      "qrCode": "QR-uffizi-caravaggio-bacco"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-caravaggio-medusa",
+      "name": "Medusa",
+      "author": "Caravaggio",
+      "year": "1597",
+      "coordinates": { "lat": 43.7680, "lng": 11.2555 },
+      "qrCode": "QR-uffizi-caravaggio-medusa"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-gentile-magi",
+      "name": "Adorazione dei Magi",
+      "author": "Gentile da Fabriano",
+      "year": "1423",
+      "coordinates": { "lat": 43.7684, "lng": 11.2557 },
+      "qrCode": "QR-uffizi-gentile-magi"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "uffizi-giotto-maesta",
+      "name": "Maestà di Ognissanti",
+      "author": "Giotto",
+      "year": "1310",
+      "coordinates": { "lat": 43.7686, "lng": 11.2551 },
+      "qrCode": "QR-uffizi-giotto-maesta"
+    },
+    {
+      "type": "Artist",
+      "universalId": "uffizi-artist-botticelli",
+      "name": "Sandro Botticelli",
+      "year": "1445-1510",
+      "coordinates": { "lat": 43.7683, "lng": 11.2554 },
+      "qrCode": "QR-uffizi-artist-botticelli"
+    },
+    {
+      "type": "Artist",
+      "universalId": "uffizi-artist-leonardo",
+      "name": "Leonardo da Vinci",
+      "year": "1452-1519",
+      "coordinates": { "lat": 43.7684, "lng": 11.2552 },
+      "qrCode": "QR-uffizi-artist-leonardo"
+    },
+    {
+      "type": "Movement",
+      "universalId": "uffizi-movement-rinascimento",
+      "name": "Rinascimento Fiorentino",
+      "year": "XV-XVI secolo",
+      "coordinates": { "lat": 43.7682, "lng": 11.2554 },
+      "qrCode": "QR-uffizi-movement-rinascimento"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 /**
  * Item Model
- * Represents a personalized presentation of a RawContent
+ * Represents a personalized presentation of a Content
  * Contains descriptions with different tones and lengths
  */
 
@@ -44,15 +44,10 @@ const descriptionSchema = new mongoose.Schema(
 
 const itemSchema = new mongoose.Schema(
   {
-    // Links to RawContent.universalId or RawContent._id
+    // Links to Content.universalId
     contentId: {
       type: String,
       required: [true, 'Content reference is required'],
-    },
-    // Reference to RawContent for population
-    rawContentRef: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'RawContent',
     },
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -86,7 +81,7 @@ const itemSchema = new mongoose.Schema(
     associatedContents: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'RawContent',
+        ref: 'Content',
       },
     ],
   },

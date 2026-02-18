@@ -15,14 +15,6 @@ exports.register = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
     // Check if user exists
     const existingUser = await User.findOne({ username });
     if (existingUser) {
@@ -30,17 +22,14 @@ exports.register = async (req, res, next) => {
     }
 
     // Create user
-    const user = new User({
-      username,
-      passwordHash: password, // Will be hashed by pre-save hook
-    });
+    const user = new User({ username, password });
     await user.save();
 
     // Generate token
     const token = jwt.sign(
-        { userId: user._id }, 
-        env.JWT_SECRET, 
-        { expiresIn: env.JWT_EXPIRES_IN,}
+        { userId: user._id },
+        env.JWT_SECRET,
+        { expiresIn: env.JWT_EXPIRES_IN }
     );
 
     res.status(201).json({
@@ -60,10 +49,6 @@ exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
-
     // Find user
     const user = await User.findOne({ username });
     if (!user) {
@@ -77,9 +62,10 @@ exports.login = async (req, res, next) => {
     }
 
     // Generate token
-    const token = jwt.sign({ userId: user._id }, env.JWT_SECRET, {
-      expiresIn: env.JWT_EXPIRES_IN,
-    });
+    const token = jwt.sign(
+      { userId: user._id },
+      env.JWT_SECRET,
+      { expiresIn: env.JWT_EXPIRES_IN });
 
     res.json({
       user: user.toJSON(),

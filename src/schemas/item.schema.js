@@ -17,8 +17,7 @@ const descriptionSchema = z.object({
 });
 
 const createItemSchema = z.object({
-  contentId: z.string().min(1, 'Content reference is required'),
-  rawContentRef: z.string().optional(),
+  contentId: z.string().min(1, 'Content ID is required'),
   targetAudience: z.string().min(1, 'Target audience is required').trim(),
   descriptions: z.array(descriptionSchema).min(1, 'At least one description is required'),
   price: z.number().min(0).default(0),

@@ -1,98 +1,51 @@
-## Tech Stack
+# API Reference
 
-- **Runtime**: Node.js 22
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT with bcryptjs
-- **Validation**: Zod
-- **Containerization**: Docker Compose
+| Base URL | Environment |
+|--------|----------|
+| `https://site242557.tw.cs.unibo.it/api` | PROD |
+| `http://localhost:8000/api` | DEV |
 
-## Quick Start
+## API summary
 
-### Prerequisites
-- Docker and Docker Compose
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /api/health | - | Health check |
+| POST | /api/auth/register | - | Create user |
+| POST | /api/auth/login | - | Get JWT |
+| GET | /api/auth/me | yes | Current user |
+| GET | /api/museums | - | List museums |
+| GET | /api/museums/:id | - | Museum details |
+| POST | /api/museums | yes | Create museum |
+| PUT | /api/museums/:id | yes | Update museum |
+| POST | /api/museums/:id/save | yes | Save to user list |
+| DELETE | /api/museums/:id/save | yes | Unsave |
+| GET | /api/museums/:id/contents | - | Museum contents |
+| POST | /api/museums/:id/contents | yes | Add content |
+| GET | /api/museums/:id/visits | - | Museum visits |
+| GET | /api/items | - | List items |
+| GET | /api/items/:id | - | Item details |
+| POST | /api/items | yes | Create item |
+| PUT | /api/items/:id | yes | Update item |
+| DELETE | /api/items/:id | yes | Delete item |
+| POST | /api/items/:id/purchase | yes | Buy from marketplace |
+| GET | /api/visits/my | yes | User's visits |
+| GET | /api/visits/:id | - | Visit details |
+| POST | /api/visits | yes | Create visit |
+| PUT | /api/visits/:id | yes | Update visit |
+| DELETE | /api/visits/:id | yes | Delete visit |
+| POST | /api/sessions | yes | Create session |
+| GET | /api/sessions/my | yes | User's sessions |
+| GET | /api/sessions/:code | yes | Session by code |
+| POST | /api/sessions/:code/join | yes | Join session |
+| POST | /api/sessions/:code/leave | yes | Leave session |
+| POST | /api/sessions/:code/activity | yes | Log activity |
+| POST | /api/sessions/:code/quiz | yes | Submit quiz answers |
+| GET | /api/sessions/:code/quiz | yes | Quiz results (teacher) |
+| POST | /api/sessions/:code/advance | yes | Next item (teacher) |
+| POST | /api/sessions/:code/previous | yes | Prev item (teacher) |
+| POST | /api/sessions/:code/end | yes | End session (teacher) |
 
-### Start Development Environment
-
-```bash
-# Start MongoDB and Node.js containers
-docker-compose up
-
-# The API will be available at http://localhost:8000
-```
-
-### Seed Database
-
-```bash
-# Install dependencies locally (for running scripts)
-npm install
-
-# Seed with sample data
-npm run seed
-```
-
-**Test Users** (password: `12345678` for all):
-- `autore1` - Content creator (500 wallet balance)
-- `visitatore1` - Visitor (100 wallet balance)
-- `docente1` - Teacher (200 wallet balance)
-
-## Project Structure
-
-```
-├── docker-compose.yml      # Development environment
-├── package.json
-├── src/
-│   ├── index.js            # Express server entry point
-│   ├── config/
-│   │   ├── db.js           # MongoDB connection
-│   │   ├── env.js          # Environment variables
-│   │   └── .env            # Local environment config
-│   ├── models/             # Mongoose schemas
-│   │   ├── User.js
-│   │   ├── Museum.js
-│   │   ├── RawContent.js
-│   │   ├── Item.js
-│   │   ├── Visit.js
-│   │   └── Session.js
-│   ├── controllers/        # Request handlers
-│   ├── routes/             # API route definitions
-│   ├── schemas/            # Zod validation schemas
-│   ├── middleware/
-│   │   ├── auth.js         # JWT authentication
-│   │   ├── validate.js     # Zod validation
-│   │   └── errorHandler.js # Global error handling
-│   └── services/           # Business logic (AI, Socket.io)
-└── scripts/
-    └── seed.js             # Database seeding
-```
-
-## Environment Variables
-
-Copy `.env.example` to `src/config/.env`:
-
-```env
-NODE_ENV=development
-PORT=8000
-
-# MongoDB
-DB_HOST=localhost          # Use 'mongo_db' in Docker
-DB_USER=site242557
-DB_PASS=your_password
-DB_NAME=mongo_site242557
-
-# JWT
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=24h
-
-# OpenAI (Tier 3)
-OPENAI_API_KEY=sk-...
-```
-
-## API Reference
-
-Base URL: `http://localhost:8000/api`
-
-### Authentication
+## Authentication
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -116,7 +69,7 @@ Base URL: `http://localhost:8000/api`
 }
 ```
 
-### Museums
+## Museums
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -126,14 +79,14 @@ Base URL: `http://localhost:8000/api`
 | PUT | `/museums/:id` | Update museum | Yes |
 | POST | `/museums/:id/save` | Save to user's list | Yes |
 | DELETE | `/museums/:id/save` | Remove from saved | Yes |
-| GET | `/museums/:id/contents` | Get RawContents | No |
-| POST | `/museums/:id/contents` | Create RawContent | Yes |
+| GET | `/museums/:id/contents` | Get Contents | No |
+| POST | `/museums/:id/contents` | Create Content | Yes |
 | GET | `/museums/:id/visits` | Get public visits | No |
 
 **Query Parameters for `/museums/:id/contents`:**
 - `type` - Filter by type: `Artwork`, `Artist`, `Movement`, `Place`
 
-### Items (Marketplace)
+## Items (Marketplace)
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -145,7 +98,7 @@ Base URL: `http://localhost:8000/api`
 | POST | `/items/:id/purchase` | Purchase from marketplace | Yes |
 
 **Query Parameters for `/items`:**
-- `contentId` - Filter by RawContent universalId
+- `contentId` - Filter by Content.universalId
 - `creatorId` - Filter by creator
 - `isPublic` - Filter by visibility (`true`/`false`)
 - `targetAudience` - Filter by target audience
@@ -175,7 +128,7 @@ Base URL: `http://localhost:8000/api`
 **Length categories:** `3s`, `15s`, `45s`
 **Licenses:** `CC-BY`, `CC-BY-SA`, `CC-BY-NC`, `Copyright`, `Public Domain`
 
-### Visits
+## Visits
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
@@ -195,6 +148,7 @@ Base URL: `http://localhost:8000/api`
     { "itemId": "...", "nextDirections": "Turn right", "prevDirections": "" }
   ],
   "type": "standard",
+  "length": "normal",
   "isPublic": true,
   "quiz": [
     {
@@ -207,8 +161,9 @@ Base URL: `http://localhost:8000/api`
 ```
 
 **Visit types:** `standard`, `synchronized`
+**Visit lengths:** `quick`, `normal`, `deep`
 
-### Sessions (Synchronized Visits)
+## Sessions (Synchronized Visits)
 
 All session endpoints require authentication.
 
@@ -220,6 +175,8 @@ All session endpoints require authentication.
 | POST | `/sessions/:code/join` | Join as participant |
 | POST | `/sessions/:code/leave` | Leave session |
 | POST | `/sessions/:code/activity` | Log participant action |
+| POST | `/sessions/:code/quiz` | Submit quiz answers |
+| GET | `/sessions/:code/quiz` | Get quiz results (owner only) |
 | POST | `/sessions/:code/advance` | Next item (owner only) |
 | POST | `/sessions/:code/previous` | Previous item (owner only) |
 | POST | `/sessions/:code/end` | End session (owner only) |
@@ -241,7 +198,49 @@ All session endpoints require authentication.
 ```
 **Actions:** `tellMore`, `tellLess`, `simpler`, `tooSimple`
 
-### Health Check
+**Submit Quiz Request:**
+```json
+{
+  "answers": [
+    { "questionIndex": 0, "selectedIndex": 1 },
+    { "questionIndex": 1, "selectedIndex": 2 }
+  ]
+}
+```
+
+**Submit Quiz Response:**
+```json
+{
+  "score": 2,
+  "total": 3
+}
+```
+
+**Quiz Results Response (owner only):**
+```json
+{
+  "results": [
+    {
+      "userId": "...",
+      "username": "visitatore1",
+      "quizAnswers": [
+        { "questionIndex": 0, "selectedIndex": 1 },
+        { "questionIndex": 1, "selectedIndex": 2 }
+      ],
+      "quizScore": 2,
+      "total": 3
+    }
+  ],
+  "quiz": [
+    {
+      "question": "Chi ha dipinto...?",
+      "options": ["A", "B", "C", "D"],
+      "correctIndex": 1
+    }
+  ]
+}
+
+## Health Check
 
 ```
 GET /api/health
@@ -253,58 +252,7 @@ GET /api/health
 }
 ```
 
-## Data Models
-
-### User
-- `username` - Unique identifier
-- `passwordHash` - Bcrypt hashed password
-- `savedMuseums` - Array of saved museum IDs
-- `myVisits` - Array of created visit IDs
-- `purchasedItems` - Array of purchased item IDs
-- `walletBalance` - Virtual currency (default: 100)
-- `activeSession` - Current session ID
-
-### Museum
-- `name`, `slug` - Identification
-- `address`, `description`, `imageUrl` - Details
-- `theme` - UI customization (primaryColor, secondaryColor, font)
-- `mapData` - Map image and geo bounds
-- `pointsOfInterest` - Logistic points (toilet, exit, bar, stairs, entrance, shop)
-
-### RawContent
-- `type` - `Artwork`, `Artist`, `Movement`, `Place`
-- `museumId` - Parent museum
-- `universalId` - External ID (e.g., Wikidata)
-- `name`, `author`, `year` - Metadata
-- `coordinates` - Location in museum
-- `qrCode` - QR code identifier
-
-### Item
-- `contentId` - Links to RawContent.universalId
-- `creatorId` - Creator user
-- `targetAudience` - Description of intended audience
-- `descriptions` - Array of tones, each with texts at different lengths
-- `price`, `license`, `isPublic` - Marketplace properties
-- `associatedContents` - Related RawContent IDs
-
-### Visit
-- `title`, `slug`, `description`, `imageUrl` - Metadata
-- `museumId`, `creatorId` - References
-- `sequence` - Ordered array of items with navigation directions
-- `type` - `standard` or `synchronized`
-- `quiz` - Optional quiz questions
-- `isPublic`, `viewCount` - Visibility and stats
-
-### Session
-- `code` - Mnemonic code (e.g., `VERDE_TIGRE_55`)
-- `owner` - Teacher user ID
-- `visitId` - Associated visit
-- `participants` - Array of joined users
-- `currentItemIndex` - Shared navigation state
-- `activities` - Log of participant actions
-- `isActive`, `startedAt`, `endedAt` - Status
-
-## Authentication
+## Authorization
 
 All protected endpoints require a Bearer token in the Authorization header:
 
@@ -354,21 +302,3 @@ Tokens expire after 24 hours (configurable via `JWT_EXPIRES_IN`).
   "message": "username already exists"
 }
 ```
-
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Start with Docker
-docker-compose up
-
-# Seed database
-npm run seed
-
-# Run server locally (requires MongoDB running)
-npm start
-```
-
-## License

@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const env = require('./env');
 
-mongoose.set('strictQuery', false);
-
 const connectDB = async () => {
     try {
         const uri = `mongodb://${env.DB_USER}:${env.DB_PASS}@${env.DB_HOST}/${env.DB_NAME}?authSource=admin`;

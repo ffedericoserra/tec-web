@@ -3,21 +3,24 @@
  * Express server with MongoDB connection
  */
 
+const http = require('http');
 const express = require('express');
 const cors = require('cors');
 const { connectDB } = require('./config/db');
 const env = require('./config/env');
 const apiRoutes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
+const { initSocket } = require('./services/socketService');
 
 const runSeed = require('../scripts/seed');
 
 const app = express();
+const server = http.createServer(app);
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.urlencoded({ extended: true }));
 
 // API routes
 app.use('/api', apiRoutes);
@@ -25,15 +28,18 @@ app.use('/api', apiRoutes);
 // Error handling
 app.use(errorHandler);
 
+// Initialize Socket.io
+initSocket(server);
+
 // Start server
 const startServer = async () => {
   try {
     await connectDB();
 
     // Seeding mongo with sample data;
-    await runSeed(); 
+    await runSeed();
 
-    app.listen(env.PORT, () => {
+    server.listen(env.PORT, () => {
       console.log(`Server running on port ${env.PORT} in ${env.NODE_ENV} mode`);
     });
   } catch (error) {

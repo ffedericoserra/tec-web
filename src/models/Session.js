@@ -25,6 +25,20 @@ const activitySchema = new mongoose.Schema(
   { _id: false }
 );
 
+const quizAnswerSchema = new mongoose.Schema(
+  {
+    questionIndex: {
+      type: Number,
+      required: true,
+    },
+    selectedIndex: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
 const participantSchema = new mongoose.Schema(
   {
     userId: {
@@ -40,6 +54,11 @@ const participantSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true,
+    },
+    quizAnswers: [quizAnswerSchema],
+    quizScore: {
+      type: Number,
+      default: null,
     },
   },
   { _id: false }
@@ -89,7 +108,7 @@ sessionSchema.index({ code: 1 });
 sessionSchema.index({ owner: 1, isActive: 1 });
 sessionSchema.index({ visitId: 1 });
 
-// Generate a mnemonic session code
+// Generate a mnemonic session code (used as fallback when no custom name is provided)
 sessionSchema.statics.generateCode = function () {
   const adjectives = ['ROSSO', 'BLU', 'VERDE', 'GIALLO', 'VIOLA', 'ARANCIO'];
   const nouns = ['LEONE', 'AQUILA', 'TIGRE', 'LUPO', 'FALCO', 'ORSO'];

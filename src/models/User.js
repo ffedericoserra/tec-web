@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
       default: 100,
       min: 0,
     },
-    // Tier 2: Synchronized mode
+    // Extension 1: Synchronized mode
     activeSession: {
       type: String,
       default: null,
@@ -53,14 +53,18 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Virtual setter for raw password
+userSchema.virtual('password').set(function (password) {
+  this._rawPassword = password;
+  this.passwordHash = password; // Will be hashed in pre-save
+});
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('passwordHash')) return next();
+  if (!this._rawPassword) return next();
 
-  // Only hash if it's not already hashed
-  if (this.passwordHash.length < 50) {
-    this.passwordHash = await bcrypt.hash(this.passwordHash, 10);
-  }
+  this.passwordHash = await bcrypt.hash(this._rawPassword, 10);
+  this._rawPassword = undefined;
   next();
 });
 
