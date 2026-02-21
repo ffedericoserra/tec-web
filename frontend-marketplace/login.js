@@ -2,8 +2,8 @@ var form=document.getElementById("login-form")
 form.addEventListener("submit", async (x)=>{
     x.preventDefault();
 
-    const user=document.getElementsByName("username")
-    const pwd=document.getElementsByName("pwd")
+    const user=document.getElementsByName("username")[0].value
+    const pwd=document.getElementsByName("pwd")[0].value
     const errMsg=document.getElementById("error-msg")
     
     errMsg.innerHTML="<p></p>"
@@ -21,7 +21,7 @@ form.addEventListener("submit", async (x)=>{
         const data=await res.json()
         if(res.ok){
             localStorage.setItem("token", data.token)
-            localStorage.setitem("user", JSON.stringify(data.user))
+            localStorage.setItem("user", JSON.stringify(data.user))
             window.location.href="editorpage.html"
         }
         else{
