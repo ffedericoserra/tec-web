@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround ~ Login</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="main-container">
+      <header class="top-bar">
+        <a href="homepage.html" class="nav-link">Go back to Home</a>
+      </header>
+
+      <main class="center-content">
+        <h1 class="title">ArtAround</h1>
+        <h2 class="subtitle">Login</h2>
+        <form id="login-form">
+          <label for="username">Username:</label>
+          <input class="input-slot" name="username" ype="text" required />
+          <br />
+          <label for="pwd">Password:</label>
+          <input class="input-slot" name="pwd" type="password" required />
+          <br />
+          <br />
+          <button class="login-btn">Login</button>
+          <div id="error-msg"></div>
+        </form>
+      </main>
+    </div>
+    <script src="login.js"></script>
+  </body>
+</html>

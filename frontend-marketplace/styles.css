@@ -127,3 +127,16 @@ body {
     40% {transform: translateY(-10px);}
     60% {transform: translateY(-5px);}
 }
+
+.input-slot {
+    size: 0.8rem;
+    border-radius: 15px;
+}
+
+#error-msg {
+    font-size: 1rem;
+    margin-top: 10px;
+    margin-bottom: 40px; /* Spazio prima del bottone */
+    font-weight: 300;
+    color: red;
+}
