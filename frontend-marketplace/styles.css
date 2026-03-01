@@ -140,3 +140,74 @@ body {
     font-weight: 300;
     color: red;
 }
+
+/* --- CONTENITORE GRIGLIA MUSEI --- */
+#museum-list {
+    display: grid;
+    /* Crea colonne reattive: larghezza minima 250px, si espandono per riempire lo spazio */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 25px; /* Spazio tra una card e l'altra */
+    width: 100%;
+    max-width: 1200px; /* Evita che la griglia diventi troppo larga su schermi grandi */
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* --- SINGOLA CARD MUSEO --- */
+.museum-icon {
+    background-color: rgba(255, 255, 255, 0.9); /* Sfondo bianco leggermente traslucido */
+    border-radius: 15px; /* Angoli arrotondati coerenti con il resto del sito */
+    padding: 15px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Leggera ombra per dare profondità */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Effetto interattivo al passaggio del mouse */
+.museum-icon:hover {
+    transform: translateY(-5px); /* Solleva leggermente la card */
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Aumenta l'ombra */
+}
+
+/* --- IMMAGINE DENTRO LA CARD --- */
+.museum-icon img {
+    width: 100%;
+    height: 160px; /* Altezza fissa per mantenere tutte le card uniformi */
+    object-fit: cover; /* Taglia l'immagine senza deformarla per riempire il riquadro */
+    border-radius: 10px; /* Arrotonda anche gli angoli dell'immagine */
+    margin-bottom: 15px;
+}
+
+/* --- TITOLO DENTRO LA CARD --- */
+.museum-icon h3 {
+    margin: 0 0 10px 0;
+    color: var(--blue); /* Utilizza la variabile del tuo blu scuro */
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+/* --- TESTO DENTRO LA CARD --- */
+.museum-icon p {
+    margin: 0;
+    color: #333; /* Grigio scuro per il testo, ben leggibile sul bianco */
+    font-size: 1rem;
+    font-weight: 400; /* Richiama il font-weight del Lato-Medium */
+    line-height: 1.4;
+}
+
+.add-btn {
+    background-color: transparent;
+    border: 2px solid #333; /* Bordo scuro */
+    border-radius: 50%;    /* Angoli arrotondati */
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-btn:hover {
+    background-color: #333;
+    color: white;
+}
