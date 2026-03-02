@@ -50,6 +50,7 @@ const createContentSchema = z.object({
   name: z.string().min(1, 'Content name is required').trim(),
   author: z.string().trim().optional(),
   year: z.string().trim().optional(),
+  imageUrl: z.string().optional(),
   imageRecognitionUrl: z.string().url().optional(),
   coordinates: coordinatesSchema.optional(),
   qrCode: z.string().optional(),
