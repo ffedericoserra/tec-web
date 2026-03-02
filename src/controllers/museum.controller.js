@@ -186,6 +186,59 @@ exports.createContent = async (req, res, next) => {
 };
 
 /**
+ * Upload museum logo
+ * POST /api/museums/:id/image
+ */
+exports.uploadImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided or file type not allowed' });
+    }
+
+    const museum = await Museum.findBySlugOrId(req.params.id);
+    if (!museum) {
+      return res.status(404).json({ error: 'Museum not found' });
+    }
+
+    museum.imageUrl = `/uploads/museums/${req.file.filename}`;
+    await museum.save();
+
+    res.json({ imageUrl: museum.imageUrl });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload content display image
+ * POST /api/museums/:id/contents/:contentId/image
+ */
+exports.uploadContentImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No image file provided or file type not allowed' });
+    }
+
+    const museum = await Museum.findBySlugOrId(req.params.id);
+    if (!museum) {
+      return res.status(404).json({ error: 'Museum not found' });
+    }
+
+    const content = await Content.findById(req.params.contentId);
+    if (!content || content.museumId.toString() !== museum._id.toString()) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+
+    content.imageUrl = `/uploads/contents/${req.file.filename}`;
+    await content.save();
+
+    res.json({ imageUrl: content.imageUrl });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Get public visits for a museum
  * GET /api/museums/:id/visits
  */
