@@ -11,7 +11,6 @@ if(!token){
 museumList.innerHTML=""
 
 async function loadMuseumsList(){
-    var defaultImg="https://aldagi.ge/images/no-photo.jpg"
     try{
         const res=await fetch(`${myApi}/museums`)
         const data=await res.json()
@@ -24,7 +23,7 @@ async function loadMuseumsList(){
             newIcon.innerHTML=`
                 <h3>${m.name}</h3>
                 <p>${m.address}</p>
-                <img src=${m.imageUrl || defaultImg}></img> 
+                <img src=${m.imageUrl}></img> 
             ` //l'imageURL come lo gestiamo?
             museumList.appendChild(newIcon)
         });
