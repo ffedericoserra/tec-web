@@ -38,6 +38,7 @@ body {
     /* Opzionale: fissa lo sfondo se scrolli la pagina */
     background-attachment: fixed;
 
+    overflow: hidden;
 }
 
 .main-container {
@@ -210,4 +211,12 @@ body {
 .add-btn:hover {
     background-color: #333;
     color: white;
+}
+
+.empty-container {
+    height: 30px;
+}
+
+.hidden-text {
+    height: 200px;
 }

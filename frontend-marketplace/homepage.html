@@ -25,8 +25,27 @@
 
       <footer class="bottom-bar">
         <div class="about-text">About</div>
-        <div class="arrow">&darr;</div>
+        <div class="arrow" id="about-arrow">&darr;</div>
       </footer>
     </div>
+
+    <div class="empty-container">    </div>
+    <a name="fragment1"></a>
+    <p class="hidden-text">ArtAround is a TW project made by Mazzetti Matteo, Serra Federico e Ziccone Andrea</p>
+
+    <script>
+      var arrow=document.getElementById("about-arrow")
+      arrow.onclick=()=>{
+        document.body.style.overflow="auto"
+        var target=document.getElementsByClassName("hidden-text")
+        target.scrollIntoView({ //gives an error---------------------------------!!!
+          behavior: "smooth"
+        })
+        window.location.href="./homepage.html#fragment1" // fai si che anche l'utente scrolli giù
+      }
+      
+    </script>
+  
   </body>
+
 </html>
