@@ -23,23 +23,27 @@ async function loadMuseumsList(){
             newIcon.innerHTML=`
                 <h3>${m.name}</h3>
                 <p>${m.address}</p>
-                <img src=${m.imageUrl}></img> 
-            ` //l'imageURL come lo gestiamo?
+                
+            ` //l'imageURL come lo gestiamo? <img src=${m.imageUrl}></img> 
             museumList.appendChild(newIcon)
         });
     }
     catch(er){
         console.error("Error while loading the museums" + er)
     }
+
+    try{
+        Array.from(document.getElementsByClassName("museum-icon")).forEach((elem)=>{
+            elem.onclick=()=>alert("prova")//~~~~~~~~~~~~~~~~~~~~~~
+            //TODO: al click mostrare due opzioni: 1.visualizza visite esistenti(con l'opzione poi di modificarle) o 2. crea nuova visita da zero 
+        })
+    }
+    catch(er){
+        console.error("errore nel clicking dei musei" + er)
+    }
+
+
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -48,3 +52,4 @@ addBtn.onclick=function(){ //addNewMuseumToTheList
     //TO DO
 }
 loadMuseumsList()
+
