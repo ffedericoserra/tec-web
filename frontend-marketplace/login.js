@@ -9,7 +9,7 @@ form.addEventListener("submit", async (x)=>{
     errMsg.innerHTML="<p></p>"
 
     try{
-        const res=await fetch("http://localhost:8000/api/auth/login", {//Da aggiotrnare URI in fase di deploy test su macchine unibo
+        const res=await fetch("/api/auth/login", {//L'uriref viene completato da solo, in deploy sarebbe https://site242557.tw.cs.unibo.it/api/auth/login altrimenti in locale http://localhost:8000/api/auth/login
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
