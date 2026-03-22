@@ -29,22 +29,27 @@
       </footer>
     </div>
 
-    <div class="empty-container">    </div>
-    <p class="hidden-text" name="fragment1">ArtAround is a TW project made by Mazzetti Matteo, Serra Federico e Ziccone Andrea</p>
+    <div class="empty-container"></div>
+    <p class="hidden-text">
+      ArtAround is a TW project made by Mazzetti Matteo, Serra Federico e
+      Ziccone Andrea
+    </p>
 
     <script>
-      var arrow=document.getElementById("about-arrow")
-      arrow.onclick=()=>{
-        document.body.style.overflow="auto"
-        var target=document.getElementsByClassName("hidden-text")
-        target.scrollIntoView({ //gives an error---------------------------------!!!
-          behavior: "smooth"
-        })
-        window.location.href="./homepage.html#fragment1" // fai si che anche l'utente scrolli giù
-      }
-      
-    </script>
-  
-  </body>
+      var arrow = document.getElementById("about-arrow");
 
+      arrow.onclick = () => {
+        document.body.style.overflow = "auto";
+
+        var target = document.querySelector(".hidden-text");
+
+        target.style.display = "block";
+
+        target.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      };
+    </script>
+  </body>
 </html>
