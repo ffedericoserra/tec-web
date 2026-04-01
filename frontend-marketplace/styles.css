@@ -1,26 +1,30 @@
-:root{
-    --lblue: #3FA7D6;
-    --blue: #044389;
+:root {
+    /* Museum Color Palette */
+    --gallery-bg: #F8F9FA;         /* Soft off-white / Alabaster */
+    --gallery-bg-darker: #EAEAEA;  /* Slightly darker for gradients */
+    --charcoal: #2C3539;           /* Deep gunmetal for elegant text */
+    --museum-gold: #B89741;        /* Elegant accent color */
+    --border-light: #DDDDDD;       /* Soft borders for framed look */
+    --pure-white: #FFFFFF;
 }
-
 
 @font-face {
     font-family: lato;
     src: url(fonts/lato/Lato-Thin.ttf) format("truetype"); 
     font-style: normal;
-    font-wheight: 100;
+    font-weight: 100; /* Fixed typo from font-wheight */
 }
 @font-face {
     font-family: lato;
     src: url(fonts/lato/Lato-Medium.ttf) format("truetype"); 
     font-style: normal;
-    font-wheight: 400;
+    font-weight: 400; /* Fixed typo */
 }
 @font-face {
     font-family: lato;
     src: url(fonts/lato/Lato-Bold.ttf) format("truetype"); 
     font-style: normal;
-    font-wheight: 700;
+    font-weight: 700; /* Fixed typo */
 }
 
 body, html {
@@ -31,96 +35,112 @@ body, html {
 }
 
 body {
-    /* Sfumatura diagonale (135 gradi) */
-    /* Parte dal bianco (0%), passa al celeste (50%) e finisce col blu scuro (100%) */
-    background: linear-gradient(135deg, #FFFFFF 0%, var(--lblue) 60%, var(--blue) 100%);
-    
-    /* Opzionale: fissa lo sfondo se scrolli la pagina */
+    /* Sfondo a galleria d'arte: radiale molto morbido e luminoso */
+    background: radial-gradient(circle at 50% 0%, var(--pure-white) 0%, var(--gallery-bg) 80%, var(--gallery-bg-darker) 100%);
     background-attachment: fixed;
-
-    overflow: hidden;
+    color: var(--charcoal);
+    overflow-x: hidden; /* Evita scroll orizzontale, ma permette quello verticale se serve */
 }
 
 .main-container {
     display: flex;
     flex-direction: column;
-    height: 100vh; /* Occupa tutta l'altezza dello schermo */
-    padding: 20px;
-    box-sizing: border-box; /* Include il padding nel calcolo dell'altezza */
+    min-height: 100vh;
+    padding: 20px 40px; /* Più respiro ai lati */
+    box-sizing: border-box;
 }
 
 /* --- PARTE ALTA --- */
 .top-bar {
-    text-align: right; /* Spinge il testo a destra */
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
     padding-top: 10px;
+    border-bottom: 1px solid var(--border-light); /* Linea di separazione elegante */
+    padding-bottom: 15px;
 }
 
-.nav-link {
+.nav-link, .about-text {
     text-decoration: none;
-    color: white; 
-    font-size: 1.2rem;
-    font-weight: 500;
+    color: var(--charcoal); 
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px; /* Spaziatura tipografica da catalogo d'arte */
 }
 
 /* --- PARTE CENTRALE --- */
 .center-content {
-    flex-grow: 1; /* Occupa tutto lo spazio disponibile, spingendo header e footer */
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Centra verticalmente */
-    align-items: center;     /* Centra orizzontalmente */
+    justify-content: flex-start; /* Spostato in alto per più naturalezza */
+    align-items: center;
     text-align: center;
+    padding-top: 60px;
 }
 
 .title {
-    font-size: 5rem; /* Molto grande come nell'immagine */
+    /* Font serif per richiamare i titoli delle mostre classiche */
+    font-family: "Playfair Display", "Georgia", "Times New Roman", serif; 
+    font-size: 4.5rem;
     margin: 0;
-    font-weight: 400; /* Non troppo grassetto */
+    font-weight: 400;
     line-height: 1.1;
+    color: var(--charcoal);
+    letter-spacing: 1px;
 }
 
 .subtitle {
-    font-size: 1.5rem;
-    margin-top: 10px;
-    margin-bottom: 40px; /* Spazio prima del bottone */
+    font-size: 1.2rem;
+    margin-top: 15px;
+    margin-bottom: 50px;
     font-weight: 300;
+    font-style: italic; /* Corsivo per eleganza */
+    color: #666;
+    letter-spacing: 1px;
 }
 
-/* --- BOTTONE --- */
+/* --- BOTTONE PRINCIPALE --- */
 .login-btn {
     background-color: transparent;
-    border: 2px solid #333; /* Bordo scuro */
-    border-radius: 15px;    /* Angoli arrotondati */
-    padding: 12px 50px;     /* Spazio interno (largo ai lati) */
-    font-size: 1.2rem;
+    border: 1px solid var(--charcoal); /* Bordo più sottile e netto */
+    border-radius: 4px; /* Angoli più spigolosi (stile architettonico) */
+    padding: 12px 40px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--charcoal);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
 }
 
 .login-btn:hover {
-    background-color: #333;
-    color: white;
+    background-color: var(--charcoal);
+    color: var(--museum-gold); /* Dettaglio dorato al passaggio del mouse */
+    border-color: var(--charcoal);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
-
 
 /* --- PARTE BASSA --- */
 .bottom-bar {
     text-align: center;
-    padding-bottom: 10px;
-    color: white; 
-}
-
-.about-text {
-    font-size: 1.1rem;
-    margin-bottom: 5px;
+    padding: 30px 0 10px 0;
+    color: var(--charcoal); 
 }
 
 .arrow {
-    font-size: 1.5rem;
+    font-size: 2rem;
+    color: var(--museum-gold); /* Freccia dorata */
+    cursor: pointer;
+    transition: color 0.3s;
 }
 
 .arrow:hover {
-    animation: bounce 2s; 
+    animation: bounce 2s infinite; 
+    color: var(--charcoal);
 }
 
 @keyframes bounce {
@@ -129,106 +149,114 @@ body {
     60% {transform: translateY(-5px);}
 }
 
-.input-slot {
-    size: 0.8rem;
-    border-radius: 15px;
-}
-
 #error-msg {
-    font-size: 1rem;
+    font-size: 0.9rem;
     margin-top: 10px;
-    margin-bottom: 40px; /* Spazio prima del bottone */
-    font-weight: 300;
-    color: red;
+    font-weight: 700;
+    color: #A93226; /* Rosso più elegante (Bordeaux) */
 }
 
 /* --- CONTENITORE GRIGLIA MUSEI --- */
 #museum-list {
     display: grid;
-    /* Crea colonne reattive: larghezza minima 250px, si espandono per riempire lo spazio */
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 25px; /* Spazio tra una card e l'altra */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Leggermente più larghe */
+    gap: 40px; /* Più spazio (respiro) tra le opere, come in un museo */
     width: 100%;
-    max-width: 1200px; /* Evita che la griglia diventi troppo larga su schermi grandi */
+    max-width: 1200px;
     padding: 20px;
     box-sizing: border-box;
 }
 
-/* --- SINGOLA CARD MUSEO --- */
+/* --- SINGOLA CARD MUSEO (Effetto Quadro/Targa) --- */
 .museum-icon {
-    background-color: rgba(255, 255, 255, 0.9); /* Sfondo bianco leggermente traslucido */
-    border-radius: 15px; /* Angoli arrotondati coerenti con il resto del sito */
-    padding: 15px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Leggera ombra per dare profondità */
+    background-color: var(--pure-white);
+    border: 1px solid var(--border-light);
+    border-radius: 4px; /* Spigoli netti */
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); /* Ombra estesissima ma quasi invisibile */
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    cursor: pointer;
 }
 
-/* Effetto interattivo al passaggio del mouse */
 .museum-icon:hover {
-    transform: translateY(-5px); /* Solleva leggermente la card */
-    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Aumenta l'ombra */
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+    border-color: var(--museum-gold); /* Bordo dorato on hover */
 }
 
 /* --- IMMAGINE DENTRO LA CARD --- */
 .museum-icon img {
     width: 100%;
-    height: 160px; /* Altezza fissa per mantenere tutte le card uniformi */
-    object-fit: cover; /* Taglia l'immagine senza deformarla per riempire il riquadro */
-    border-radius: 10px; /* Arrotonda anche gli angoli dell'immagine */
-    margin-bottom: 15px;
+    height: 180px; 
+    object-fit: cover; 
+    border-radius: 2px;
+    margin-bottom: 20px;
+    filter: contrast(1.05) grayscale(10%); /* Effetto fotografico leggermente più drammatico */
+    transition: filter 0.3s;
+}
+
+.museum-icon:hover img {
+    filter: contrast(1.1) grayscale(0%);
 }
 
 /* --- TITOLO DENTRO LA CARD --- */
 .museum-icon h3 {
     margin: 0 0 10px 0;
-    color: var(--blue); /* Utilizza la variabile del tuo blu scuro */
-    font-size: 1.4rem;
+    font-family: "Playfair Display", "Georgia", serif; /* Stile mostra */
+    color: var(--charcoal);
+    font-size: 1.5rem;
     font-weight: 700;
+    letter-spacing: 0.5px;
 }
 
 /* --- TESTO DENTRO LA CARD --- */
 .museum-icon p {
     margin: 0;
-    color: #333; /* Grigio scuro per il testo, ben leggibile sul bianco */
-    font-size: 1rem;
-    font-weight: 400; /* Richiama il font-weight del Lato-Medium */
-    line-height: 1.4;
+    color: #555; 
+    font-size: 0.95rem;
+    font-weight: 400; 
+    line-height: 1.6;
 }
 
+/* --- BOTTONE AGGIUNGI (In alto a destra) --- */
 .add-btn {
     background-color: transparent;
-    border: 2px solid #333; /* Bordo scuro */
-    border-radius: 50%;    /* Angoli arrotondati */
-    font-size: 1.2rem;
+    border: 1px solid var(--charcoal);
+    border-radius: 50%; 
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 300;
+    color: var(--charcoal);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .add-btn:hover {
-    background-color: #333;
-    color: white;
+    background-color: var(--charcoal);
+    color: var(--museum-gold);
+    transform: rotate(90deg); /* Effetto elegante al passaggio */
 }
 
-.empty-container {
-    height: 30px;
-}
+.empty-container { height: 30px; }
+.hidden-text { height: 200px; }
 
-.hidden-text {
-    height: 200px;
-}
-
-/* --- MODAL STYLES --- */
+/* --- MODAL STYLES (Sofisticata e Minimal) --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(20, 25, 30, 0.85); /* Sfondo scuro elegante (backdrop) */
+    backdrop-filter: blur(5px); /* Sfuoca il sito dietro (funziona sui browser moderni) */
     display: flex;
     justify-content: center;
     align-items: center;
@@ -236,17 +264,18 @@ body {
 }
 
 .modal-content {
-    background: #fff;
-    padding: 30px;
-    border-radius: 15px;
+    background: var(--pure-white);
+    padding: 40px;
+    border-radius: 4px;
     width: 90%;
-    max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    animation: slideIn 0.3s ease-out;
+    max-width: 450px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    border-top: 4px solid var(--museum-gold); /* Dettaglio premium in alto */
 }
 
-@keyframes slideIn {
-    from { transform: translateY(-20px); opacity: 0; }
+@keyframes slideUp {
+    from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
 }
 
@@ -254,11 +283,11 @@ body {
     display: none !important;
 }
 
-/* --- AUTHENTICATION & GENERAL FORMS (Fondamentale per la modale) --- */
+/* --- AUTHENTICATION & GENERAL FORMS --- */
 .auth-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 25px;
     width: 100%;
 }
 
@@ -270,34 +299,39 @@ body {
 }
 
 .input-group label {
-    font-size: 1.1rem;
-    margin-bottom: 5px;
-    color: var(--blue);
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    color: #666;
     font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .input-group input, 
 .input-group textarea,
 .input-group select {
-    padding: 12px;
+    padding: 12px 15px;
     font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    border-radius: 2px; /* Molto spigolosi */
+    background-color: #FAFAFA;
     font-family: inherit;
     outline: none;
-    transition: border-color 0.2s;
-    box-sizing: border-box; /* Previene che il padding allarghi l'input oltre il contenitore */
+    transition: all 0.3s ease;
+    box-sizing: border-box;
     width: 100%;
 }
 
 .input-group input:focus, 
 .input-group textarea:focus,
 .input-group select:focus {
-    border-color: var(--lblue);
+    border-color: var(--charcoal);
+    background-color: var(--pure-white);
+    box-shadow: 0 0 0 1px var(--charcoal); /* Evidenzia il bordo invece del colore blu */
 }
 
 .error-message {
-    color: #d9534f;
+    color: #A93226;
     font-size: 0.9rem;
     min-height: 1.2em;
     font-weight: bold;
