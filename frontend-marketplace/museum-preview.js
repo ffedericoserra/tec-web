@@ -8,6 +8,49 @@ if (!token) {
     window.location.href = "loginpage.html"
 }
 
+function showMuseumOptions(museumId, museumName){
+    var overlay=document.createElement("div")
+    overlay.className="modal-overlay"
+    overlay.id="visit-choice-modal"
+
+    var modalContent=document.createElement("div")
+    modalContent.className="modal-content auth-form"
+    modalContent.style.textAlign="center"
+
+    modalContent.innerHTML = `
+        <h3 style="color: var(--charcoal); font-family: 'Playfair Display', serif; margin: 0;">${museumName}</h3>
+        <p style="color: #666; margin-bottom: 25px; margin-top: 5px;">What would you like to do?</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <button class="login-btn" id="view-visits-btn">View Existing Visits</button>
+            <button class="login-btn" id="create-visit-btn" style="background: var(--charcoal); color: white;">Create New Visit</button>
+            <button id="cancel-choice-btn" style="background: transparent; border: none; color: #999; font-size: 0.9rem; margin-top: 10px; cursor: pointer; text-decoration: underline;">Cancel</button>
+        </div>
+    `
+
+    overlay.appendChild(modalContent)
+    document.body.appendChild(overlay)
+
+    //cosa fanno i bottoni: 1. => visualizza visite esisteni; 2. => crea nuova visita
+
+    var option1=document.getElementById("view-visits-btn")
+    var option2=document.getElementById("create-visit-btn")
+
+    option1.onclick= () => {
+        //manda a pag HTML inviandogli iìID museo
+        window.location.href=`visits-list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+    }
+    option2.onclick= () => {
+        window.Location.href=`create-visit.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`
+    }
+    
+    document.getElementById("cancel-choice-btn").onclick = () => {
+        document.body.removeChild(overlay)
+    }
+}
+
+
+
 async function loadMuseumsList() {
     try {
         const res = await fetch(`${myApi}/museums`)
@@ -26,8 +69,7 @@ async function loadMuseumsList() {
             ` 
             
             newIcon.onclick = () => {
-                alert("prova")
-                // TODO: al click mostrare due opzioni: 1.visualizza visite esistenti(con l'opzione poi di modificarle) o 2. crea nuova visita da zero 
+                showMuseumOptions(m._id, m.name)    
             }
             
             museumList.appendChild(newIcon)
