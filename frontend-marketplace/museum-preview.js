@@ -37,7 +37,7 @@ function showMuseumOptions(museumId, museumName){
     var option2=document.getElementById("create-visit-btn")
 
     option1.onclick= () => {
-        //manda a pag HTML inviandogli iìID museo
+        //manda a pag HTML inviandogli l'ID museo
         window.location.href=`visits-list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
     }
     option2.onclick= () => {
