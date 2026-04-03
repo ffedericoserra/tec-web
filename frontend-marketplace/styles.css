@@ -12,19 +12,19 @@
     font-family: lato;
     src: url(fonts/lato/Lato-Thin.ttf) format("truetype"); 
     font-style: normal;
-    font-weight: 100; /* Fixed typo from font-wheight */
+    font-weight: 100; 
 }
 @font-face {
     font-family: lato;
     src: url(fonts/lato/Lato-Medium.ttf) format("truetype"); 
     font-style: normal;
-    font-weight: 400; /* Fixed typo */
+    font-weight: 400; 
 }
 @font-face {
     font-family: lato;
     src: url(fonts/lato/Lato-Bold.ttf) format("truetype"); 
     font-style: normal;
-    font-weight: 700; /* Fixed typo */
+    font-weight: 700; 
 }
 
 body, html {
@@ -53,12 +53,30 @@ body {
 /* --- PARTE ALTA --- */
 .top-bar {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between; /* Spinge il logo a sinistra e i link a destra */
     align-items: center;
     gap: 15px;
     padding-top: 10px;
     border-bottom: 1px solid var(--border-light); /* Linea di separazione elegante */
     padding-bottom: 15px;
+}
+
+/* --- STILE DEL LOGO --- */
+.logo-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.logo-img {
+    height: 40px; /* Regola l'altezza in base a quanto vuoi grande il logo */
+    width: auto;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.05); /* Leggero effetto ingrandimento al passaggio del mouse */
+    opacity: 0.9;
 }
 
 .nav-link, .about-text {
@@ -168,7 +186,7 @@ body {
 }
 
 /* --- SINGOLA CARD MUSEO (Effetto Quadro/Targa) --- */
-.museum-icon .visit-icon{
+.museum-icon, .visit-icon {
     background-color: var(--pure-white);
     border: 1px solid var(--border-light);
     border-radius: 4px; /* Spigoli netti */
@@ -182,7 +200,7 @@ body {
     cursor: pointer;
 }
 
-.museum-icon:hover {
+.museum-icon:hover, .visit-icon:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
     border-color: var(--museum-gold); /* Bordo dorato on hover */
@@ -204,7 +222,7 @@ body {
 }
 
 /* --- TITOLO DENTRO LA CARD --- */
-.museum-icon h3 {
+.museum-icon h3, .visit-icon h3 {
     margin: 0 0 10px 0;
     font-family: "Playfair Display", "Georgia", serif; /* Stile mostra */
     color: var(--charcoal);
@@ -214,7 +232,7 @@ body {
 }
 
 /* --- TESTO DENTRO LA CARD --- */
-.museum-icon p {
+.museum-icon p, .visit-icon p {
     margin: 0;
     color: #555; 
     font-size: 0.95rem;
