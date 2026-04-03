@@ -168,7 +168,7 @@ body {
 }
 
 /* --- SINGOLA CARD MUSEO (Effetto Quadro/Targa) --- */
-.museum-icon {
+.museum-icon .visit-icon{
     background-color: var(--pure-white);
     border: 1px solid var(--border-light);
     border-radius: 4px; /* Spigoli netti */
@@ -336,4 +336,28 @@ body {
     min-height: 1.2em;
     font-weight: bold;
     text-align: center;
+}
+
+/* --- VISIT CARD BUTTONS ANIMATION --- */
+.start-btn, .edit-btn {
+    /* Definisce la fluidità dell'animazione per tutti i cambiamenti */
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.start-btn:hover {
+    transform: translateY(-3px); /* Solleva il bottone */
+    box-shadow: 0 6px 15px rgba(184, 151, 65, 0.35); /* Ombra dorata */
+    background-color: #CBAA4E !important; /* Oro leggermente più luminoso */
+}
+
+.edit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(44, 53, 57, 0.35); /* Ombra scura */
+    background-color: #3A454A !important; /* Charcoal leggermente più chiaro */
+}
+
+/* Effetto scatto quando si clicca effettivamente il bottone */
+.start-btn:active, .edit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
