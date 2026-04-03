@@ -35,33 +35,32 @@ body, html {
 }
 
 body {
-    /* Sfondo a galleria d'arte: radiale molto morbido e luminoso */
+    /* Sfondo a galleria d'arte */
     background: radial-gradient(circle at 50% 0%, var(--pure-white) 0%, var(--gallery-bg) 80%, var(--gallery-bg-darker) 100%);
     background-attachment: fixed;
     color: var(--charcoal);
-    overflow-x: hidden; /* Evita scroll orizzontale, ma permette quello verticale se serve */
+    overflow-x: hidden; 
 }
 
 .main-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding: 20px 40px; /* Più respiro ai lati */
+    padding: 20px 40px; 
     box-sizing: border-box;
 }
 
 /* --- PARTE ALTA --- */
 .top-bar {
     display: flex;
-    justify-content: space-between; /* Spinge il logo a sinistra e i link a destra */
+    justify-content: space-between; 
     align-items: center;
     gap: 15px;
     padding-top: 10px;
-    border-bottom: 1px solid var(--border-light); /* Linea di separazione elegante */
+    border-bottom: 1px solid var(--border-light); 
     padding-bottom: 15px;
 }
 
-/* --- STILE DEL LOGO --- */
 .logo-link {
     text-decoration: none;
     display: flex;
@@ -69,13 +68,13 @@ body {
 }
 
 .logo-img {
-    height: 40px; /* Regola l'altezza in base a quanto vuoi grande il logo */
+    height: 40px; 
     width: auto;
     transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .logo-img:hover {
-    transform: scale(1.05); /* Leggero effetto ingrandimento al passaggio del mouse */
+    transform: scale(1.05); 
     opacity: 0.9;
 }
 
@@ -85,7 +84,7 @@ body {
     font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2px; /* Spaziatura tipografica da catalogo d'arte */
+    letter-spacing: 2px; 
 }
 
 /* --- PARTE CENTRALE --- */
@@ -93,16 +92,15 @@ body {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start; /* Spostato in alto per più naturalezza */
+    justify-content: flex-start; 
     align-items: center;
     text-align: center;
     padding-top: 60px;
 }
 
 .title {
-    /* Font serif per richiamare i titoli delle mostre classiche */
     font-family: "Playfair Display", "Georgia", "Times New Roman", serif; 
-    font-size: 4.5rem;
+    font-size: 6rem; /* Aumentato per Desktop */
     margin: 0;
     font-weight: 400;
     line-height: 1.1;
@@ -111,11 +109,11 @@ body {
 }
 
 .subtitle {
-    font-size: 1.2rem;
+    font-size: 1.8rem; /* Aumentato per Desktop */
     margin-top: 15px;
     margin-bottom: 50px;
     font-weight: 300;
-    font-style: italic; /* Corsivo per eleganza */
+    font-style: italic; 
     color: #666;
     letter-spacing: 1px;
 }
@@ -123,10 +121,10 @@ body {
 /* --- BOTTONE PRINCIPALE --- */
 .login-btn {
     background-color: transparent;
-    border: 1px solid var(--charcoal); /* Bordo più sottile e netto */
-    border-radius: 4px; /* Angoli più spigolosi (stile architettonico) */
-    padding: 12px 40px;
-    font-size: 1rem;
+    border: 2px solid var(--charcoal); 
+    border-radius: 6px; 
+    padding: 16px 60px; /* Aumentato */
+    font-size: 1.2rem; /* Aumentato */
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -137,10 +135,76 @@ body {
 
 .login-btn:hover {
     background-color: var(--charcoal);
-    color: var(--museum-gold); /* Dettaglio dorato al passaggio del mouse */
+    color: var(--museum-gold); 
     border-color: var(--charcoal);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
+
+/* --- LOGIN FORM DEDICATO (Nuovo layout allineato) --- */
+#login-form {
+    display: grid;
+    /* Due colonne: la prima si adatta al testo (Username/Password), la seconda prende il resto */
+    grid-template-columns: minmax(130px, max-content) 1fr; 
+    gap: 25px 20px;
+    align-items: center;
+    width: 100%;
+    max-width: 600px; /* Più grande per il desktop */
+    margin: 0 auto;
+    padding: 40px;
+    background: var(--pure-white);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+/* Nasconde i <br> nell'HTML del login, ci pensa la Grid a impaginare */
+#login-form br {
+    display: none;
+}
+
+#login-form label {
+    text-align: right; /* Allinea i testi verso le caselle */
+    font-size: 1.2rem; /* Aumentato */
+    font-weight: 700;
+    color: var(--charcoal);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-slot {
+    width: 100%;
+    padding: 15px; /* Aumentato */
+    font-size: 1.2rem; /* Aumentato */
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    background-color: #FAFAFA;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.input-slot:focus {
+    border-color: var(--charcoal);
+    background-color: var(--pure-white);
+    box-shadow: 0 0 0 1px var(--charcoal);
+}
+
+#login-form .login-btn {
+    grid-column: 1 / -1; /* Fa espandere il bottone su entrambe le colonne */
+    justify-self: center; /* Lo centra orizzontalmente */
+    margin-top: 20px;
+}
+
+#error-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.1rem;
+    margin-top: 10px;
+    font-weight: 700;
+    color: #A93226; 
+}
+
 
 /* --- PARTE BASSA --- */
 .bottom-bar {
@@ -151,7 +215,7 @@ body {
 
 .arrow {
     font-size: 2rem;
-    color: var(--museum-gold); /* Freccia dorata */
+    color: var(--museum-gold); 
     cursor: pointer;
     transition: color 0.3s;
 }
@@ -167,31 +231,24 @@ body {
     60% {transform: translateY(-5px);}
 }
 
-#error-msg {
-    font-size: 0.9rem;
-    margin-top: 10px;
-    font-weight: 700;
-    color: #A93226; /* Rosso più elegante (Bordeaux) */
-}
-
 /* --- CONTENITORE GRIGLIA MUSEI --- */
 #museum-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Leggermente più larghe */
-    gap: 40px; /* Più spazio (respiro) tra le opere, come in un museo */
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+    gap: 40px; 
     width: 100%;
     max-width: 1200px;
     padding: 20px;
     box-sizing: border-box;
 }
 
-/* --- SINGOLA CARD MUSEO (Effetto Quadro/Targa) --- */
+/* --- SINGOLA CARD MUSEO E VISITA --- */
 .museum-icon, .visit-icon {
     background-color: var(--pure-white);
     border: 1px solid var(--border-light);
-    border-radius: 4px; /* Spigoli netti */
+    border-radius: 4px; 
     padding: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); /* Ombra estesissima ma quasi invisibile */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); 
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -203,7 +260,7 @@ body {
 .museum-icon:hover, .visit-icon:hover {
     transform: translateY(-8px);
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
-    border-color: var(--museum-gold); /* Bordo dorato on hover */
+    border-color: var(--museum-gold); 
 }
 
 /* --- IMMAGINE DENTRO LA CARD --- */
@@ -213,7 +270,7 @@ body {
     object-fit: cover; 
     border-radius: 2px;
     margin-bottom: 20px;
-    filter: contrast(1.05) grayscale(10%); /* Effetto fotografico leggermente più drammatico */
+    filter: contrast(1.05) grayscale(10%); 
     transition: filter 0.3s;
 }
 
@@ -224,7 +281,7 @@ body {
 /* --- TITOLO DENTRO LA CARD --- */
 .museum-icon h3, .visit-icon h3 {
     margin: 0 0 10px 0;
-    font-family: "Playfair Display", "Georgia", serif; /* Stile mostra */
+    font-family: "Playfair Display", "Georgia", serif; 
     color: var(--charcoal);
     font-size: 1.5rem;
     font-weight: 700;
@@ -260,21 +317,21 @@ body {
 .add-btn:hover {
     background-color: var(--charcoal);
     color: var(--museum-gold);
-    transform: rotate(90deg); /* Effetto elegante al passaggio */
+    transform: rotate(90deg); 
 }
 
 .empty-container { height: 30px; }
 .hidden-text { height: 200px; }
 
-/* --- MODAL STYLES (Sofisticata e Minimal) --- */
+/* --- MODAL STYLES --- */
 .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(20, 25, 30, 0.85); /* Sfondo scuro elegante (backdrop) */
-    backdrop-filter: blur(5px); /* Sfuoca il sito dietro (funziona sui browser moderni) */
+    background: rgba(20, 25, 30, 0.85); 
+    backdrop-filter: blur(5px); 
     display: flex;
     justify-content: center;
     align-items: center;
@@ -289,7 +346,7 @@ body {
     max-width: 450px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    border-top: 4px solid var(--museum-gold); /* Dettaglio premium in alto */
+    border-top: 4px solid var(--museum-gold); 
 }
 
 @keyframes slideUp {
@@ -301,7 +358,7 @@ body {
     display: none !important;
 }
 
-/* --- AUTHENTICATION & GENERAL FORMS --- */
+/* --- GENERAL FORMS --- */
 .auth-form {
     display: flex;
     flex-direction: column;
@@ -331,7 +388,7 @@ body {
     padding: 12px 15px;
     font-size: 1rem;
     border: 1px solid var(--border-light);
-    border-radius: 2px; /* Molto spigolosi */
+    border-radius: 2px; 
     background-color: #FAFAFA;
     font-family: inherit;
     outline: none;
@@ -345,37 +402,112 @@ body {
 .input-group select:focus {
     border-color: var(--charcoal);
     background-color: var(--pure-white);
-    box-shadow: 0 0 0 1px var(--charcoal); /* Evidenzia il bordo invece del colore blu */
-}
-
-.error-message {
-    color: #A93226;
-    font-size: 0.9rem;
-    min-height: 1.2em;
-    font-weight: bold;
-    text-align: center;
+    box-shadow: 0 0 0 1px var(--charcoal); 
 }
 
 /* --- VISIT CARD BUTTONS ANIMATION --- */
 .start-btn, .edit-btn {
-    /* Definisce la fluidità dell'animazione per tutti i cambiamenti */
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .start-btn:hover {
-    transform: translateY(-3px); /* Solleva il bottone */
-    box-shadow: 0 6px 15px rgba(184, 151, 65, 0.35); /* Ombra dorata */
-    background-color: #CBAA4E !important; /* Oro leggermente più luminoso */
+    transform: translateY(-3px); 
+    box-shadow: 0 6px 15px rgba(184, 151, 65, 0.35); 
+    background-color: #CBAA4E !important; 
 }
 
 .edit-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(44, 53, 57, 0.35); /* Ombra scura */
-    background-color: #3A454A !important; /* Charcoal leggermente più chiaro */
+    box-shadow: 0 6px 15px rgba(44, 53, 57, 0.35); 
+    background-color: #3A454A !important; 
 }
 
-/* Effetto scatto quando si clicca effettivamente il bottone */
 .start-btn:active, .edit-btn:active {
     transform: translateY(0);
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+
+/* =========================================
+   MEDIA QUERIES (RESPONSIVE DESIGN)
+   ========================================= */
+
+/* 1. TABLET (Schermi fino a 1024px) */
+@media (max-width: 1024px) {
+    .title {
+        font-size: 5rem;
+    }
+    .subtitle {
+        font-size: 1.6rem;
+    }
+    .login-btn {
+        padding: 14px 50px;
+        font-size: 1.1rem;
+    }
+    #login-form {
+        max-width: 500px;
+        padding: 30px;
+    }
+}
+
+/* 2. SMARTPHONE (Schermi fino a 768px) */
+@media (max-width: 768px) {
+    .main-container {
+        padding: 15px 20px; 
+    }
+    .title {
+        font-size: 3.8rem;
+    }
+    .subtitle {
+        font-size: 1.3rem;
+        margin-bottom: 30px;
+    }
+    
+    /* Dispone verticalmente il form di login per i telefoni */
+    #login-form {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        padding: 25px 20px;
+        max-width: 100%;
+    }
+    
+    #login-form label {
+        text-align: left;
+        font-size: 1.1rem;
+        margin-bottom: -5px; /* Avvicina l'etichetta all'input */
+    }
+    
+    .input-slot {
+        font-size: 1.1rem;
+        padding: 12px;
+    }
+    
+    #login-form .login-btn {
+        margin-top: 15px;
+        align-self: center;
+    }
+
+    /* Griglia musei passa a una singola colonna centrata */
+    #museum-list {
+        grid-template-columns: 1fr;
+        gap: 25px;
+        padding: 10px;
+    }
+}
+
+/* 3. PICCOLI SMARTPHONE (Schermi fino a 480px) */
+@media (max-width: 480px) {
+    .title {
+        font-size: 3rem;
+    }
+    .subtitle {
+        font-size: 1.1rem;
+    }
+    .login-btn {
+        padding: 12px 40px;
+        font-size: 1rem;
+        width: 100%; /* Il bottone prende tutto lo spazio sul telefono */
+    }
 }
