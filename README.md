@@ -19,7 +19,7 @@
 **Development (local Docker):**
 ```bash
 # First setup the '.env' file in the project root 
-docker-compose up
+docker compose up
 ```
 
 **Production (department machines):**
