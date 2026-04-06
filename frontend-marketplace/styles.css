@@ -118,26 +118,53 @@ body {
     letter-spacing: 1px;
 }
 
-/* --- BOTTONE PRINCIPALE --- */
-.login-btn {
-    background-color: transparent;
-    border: 2px solid var(--charcoal); 
-    border-radius: 6px; 
-    padding: 16px 60px; /* Aumentato */
-    font-size: 1.2rem; /* Aumentato */
+/* --- BOTTONI PRINCIPALI (LOGIN E SIGN UP) --- */
+.login-btn, .register-btn {
+    width: 200px; /* Larghezza identica garantita per entrambi */
+    padding: 15px 0; /* Padding verticale uguale */
+    font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    color: var(--charcoal);
+    border-radius: 6px;
     cursor: pointer;
+    text-align: center;
+    box-sizing: border-box; /* Forza il browser a rispettare esattamente i 200px */
+}
+
+/* STILE SPECIFICO: LOGIN */
+.login-btn {
+    background-color: transparent;
+    border: 2px solid var(--charcoal);
+    color: var(--charcoal);
     transition: all 0.4s ease;
 }
 
 .login-btn:hover {
     background-color: var(--charcoal);
-    color: var(--museum-gold); 
+    color: var(--museum-gold);
     border-color: var(--charcoal);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* STILE SPECIFICO: SIGN UP */
+.register-btn {
+    background-color: var(--museum-gold);
+    border: 2px solid var(--museum-gold);
+    color: var(--pure-white);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.register-btn:hover {
+    background-color: transparent;
+    color: var(--museum-gold);
+    box-shadow: 0 8px 20px rgba(184, 151, 65, 0.3);
+    transform: translateY(-3px);
+}
+
+.register-btn:active, .login-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 /* --- LOGIN FORM DEDICATO (Nuovo layout allineato) --- */
@@ -190,7 +217,8 @@ body {
     box-shadow: 0 0 0 1px var(--charcoal);
 }
 
-#login-form .login-btn {
+#login-form .login-btn,
+#login-form .register-btn {
     grid-column: 1 / -1; /* Fa espandere il bottone su entrambe le colonne */
     justify-self: center; /* Lo centra orizzontalmente */
     margin-top: 20px;
@@ -440,8 +468,9 @@ body {
     .subtitle {
         font-size: 1.6rem;
     }
-    .login-btn {
-        padding: 14px 50px;
+    .login-btn, .register-btn {
+        width: 180px; /* Ridotti leggermente sui tablet */
+        padding: 14px 0;
         font-size: 1.1rem;
     }
     #login-form {
@@ -484,7 +513,8 @@ body {
         padding: 12px;
     }
     
-    #login-form .login-btn {
+    #login-form .login-btn,
+    #login-form .register-btn {
         margin-top: 15px;
         align-self: center;
     }
@@ -505,9 +535,9 @@ body {
     .subtitle {
         font-size: 1.1rem;
     }
-    .login-btn {
-        padding: 12px 40px;
+    .login-btn, .register-btn {
+        padding: 12px 0;
         font-size: 1rem;
-        width: 100%; /* Il bottone prende tutto lo spazio sul telefono */
+        width: 100%; /* I bottoni prendono tutto lo spazio sul telefono */
     }
 }

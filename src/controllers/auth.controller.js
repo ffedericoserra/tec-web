@@ -13,19 +13,28 @@ const env = require('../config/env');
  */
 exports.register = async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    // 1. Aggiungiamo l'email ai dati ricevuti dal frontend
+    const { username, email, password } = req.body;
 
-    // Check if user exists
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(409).json({ error: 'Username already exists' });
+    // 2. Controllo sicurezza: verifichiamo che i campi non siano vuoti
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email and password are required' });
     }
 
-    // Create user
-    const user = new User({ username, password });
+    // 3. Controlliamo se esiste già un utente con lo STESSO username o la STESSA email
+    const existingUser = await User.findOne({ 
+        $or: [{ username }, { email }] 
+    });
+    
+    if (existingUser) {
+      return res.status(409).json({ error: 'Username or email already exists' });
+    }
+
+    // 4. Creiamo l'utente passandogli anche l'email
+    const user = new User({ username, email, password });
     await user.save();
 
-    // Generate token
+    // 5. Generiamo il token (esattamente come lo avevi scritto tu)
     const token = jwt.sign(
         { userId: user._id },
         env.JWT_SECRET,

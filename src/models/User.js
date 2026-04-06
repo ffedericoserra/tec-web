@@ -15,9 +15,17 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [3, 'Username must be at least 3 characters'],
     },
+    // Manteniamo l'email per la registrazione classica
+    email: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
     passwordHash: {
       type: String,
-      required: [true, 'Password is required'],
+      required: [true, 'Password is required'], // Rimesso l'obbligo della password
     },
     savedMuseums: [
       {

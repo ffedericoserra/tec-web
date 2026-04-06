@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround ~ Login</title>
+    <title>ArtAround ~ Register</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -20,34 +20,32 @@
 
       <main class="center-content">
         <h1 class="title">ArtAround</h1>
-        <h2 class="subtitle">Login</h2>
+        <h2 class="subtitle">Create a New Account</h2>
 
         <form id="login-form">
           <label for="username">Username:</label>
-          <input class="input-slot" name="username" type="text" required />
+          <input class="input-slot" id="reg-username" type="text" required />
+
+          <label for="email">Email:</label>
+          <input class="input-slot" id="reg-email" type="email" required />
 
           <label for="pwd">Password:</label>
-          <input class="input-slot" name="pwd" type="password" required />
+          <input class="input-slot" id="reg-pwd" type="password" required />
 
-          <button class="login-btn" type="submit">Login</button>
+          <button class="login-btn" type="submit">Sign Up</button>
 
           <div id="error-msg"></div>
         </form>
 
-        <p style="margin-top: 30px; font-size: 1.1rem">
-          <span style="color: #666">Don't have an account?</span>
+        <p style="margin-top: 20px">
           <a
-            href="registerpage.html"
-            style="
-              color: var(--charcoal);
-              font-weight: 700;
-              text-decoration: underline;
-            "
-            >Create one here</a
+            href="loginpage.html"
+            style="color: var(--charcoal); font-weight: bold"
+            >Already have an account? Log in</a
           >
         </p>
       </main>
     </div>
-    <script src="login.js"></script>
+    <script src="register.js"></script>
   </body>
 </html>
