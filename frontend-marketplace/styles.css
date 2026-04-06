@@ -100,7 +100,7 @@ body {
 
 .title {
     font-family: "Playfair Display", "Georgia", "Times New Roman", serif; 
-    font-size: 6rem; /* Aumentato per Desktop */
+    font-size: 6rem;
     margin: 0;
     font-weight: 400;
     line-height: 1.1;
@@ -109,7 +109,7 @@ body {
 }
 
 .subtitle {
-    font-size: 1.8rem; /* Aumentato per Desktop */
+    font-size: 1.8rem;
     margin-top: 15px;
     margin-bottom: 50px;
     font-weight: 300;
@@ -120,8 +120,8 @@ body {
 
 /* --- BOTTONI PRINCIPALI (LOGIN E SIGN UP) --- */
 .login-btn, .register-btn {
-    width: 200px; /* Larghezza identica garantita per entrambi */
-    padding: 15px 0; /* Padding verticale uguale */
+    width: 200px; 
+    padding: 15px 0; 
     font-size: 1.2rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -129,7 +129,7 @@ body {
     border-radius: 6px;
     cursor: pointer;
     text-align: center;
-    box-sizing: border-box; /* Forza il browser a rispettare esattamente i 200px */
+    box-sizing: border-box; 
 }
 
 /* STILE SPECIFICO: LOGIN */
@@ -167,15 +167,14 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* --- LOGIN FORM DEDICATO (Nuovo layout allineato) --- */
+/* --- LOGIN FORM DEDICATO --- */
 #login-form {
     display: grid;
-    /* Due colonne: la prima si adatta al testo (Username/Password), la seconda prende il resto */
     grid-template-columns: minmax(130px, max-content) 1fr; 
     gap: 25px 20px;
     align-items: center;
     width: 100%;
-    max-width: 600px; /* Più grande per il desktop */
+    max-width: 600px;
     margin: 0 auto;
     padding: 40px;
     background: var(--pure-white);
@@ -184,14 +183,13 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
 }
 
-/* Nasconde i <br> nell'HTML del login, ci pensa la Grid a impaginare */
 #login-form br {
     display: none;
 }
 
 #login-form label {
-    text-align: right; /* Allinea i testi verso le caselle */
-    font-size: 1.2rem; /* Aumentato */
+    text-align: right; 
+    font-size: 1.2rem; 
     font-weight: 700;
     color: var(--charcoal);
     text-transform: uppercase;
@@ -200,8 +198,8 @@ body {
 
 .input-slot {
     width: 100%;
-    padding: 15px; /* Aumentato */
-    font-size: 1.2rem; /* Aumentato */
+    padding: 15px; 
+    font-size: 1.2rem; 
     border: 1px solid var(--border-light);
     border-radius: 4px;
     background-color: #FAFAFA;
@@ -219,8 +217,8 @@ body {
 
 #login-form .login-btn,
 #login-form .register-btn {
-    grid-column: 1 / -1; /* Fa espandere il bottone su entrambe le colonne */
-    justify-self: center; /* Lo centra orizzontalmente */
+    grid-column: 1 / -1; 
+    justify-self: center; 
     margin-top: 20px;
 }
 
@@ -232,7 +230,6 @@ body {
     font-weight: 700;
     color: #A93226; 
 }
-
 
 /* --- PARTE BASSA --- */
 .bottom-bar {
@@ -377,6 +374,20 @@ body {
     border-top: 4px solid var(--museum-gold); 
 }
 
+/* Layout specifico per i bottoni all'interno del Modal */
+.modal-content .login-btn,
+.modal-content .register-btn,
+.modal-content button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 15px; 
+    width: max-content;  
+    min-width: 250px;    
+    padding: 15px 40px;  
+    white-space: nowrap; 
+}
+
 @keyframes slideUp {
     from { transform: translateY(40px); opacity: 0; }
     to { transform: translateY(0); opacity: 1; }
@@ -469,7 +480,7 @@ body {
         font-size: 1.6rem;
     }
     .login-btn, .register-btn {
-        width: 180px; /* Ridotti leggermente sui tablet */
+        width: 180px; 
         padding: 14px 0;
         font-size: 1.1rem;
     }
@@ -492,7 +503,6 @@ body {
         margin-bottom: 30px;
     }
     
-    /* Dispone verticalmente il form di login per i telefoni */
     #login-form {
         display: flex;
         flex-direction: column;
@@ -505,7 +515,7 @@ body {
     #login-form label {
         text-align: left;
         font-size: 1.1rem;
-        margin-bottom: -5px; /* Avvicina l'etichetta all'input */
+        margin-bottom: -5px; 
     }
     
     .input-slot {
@@ -519,7 +529,6 @@ body {
         align-self: center;
     }
 
-    /* Griglia musei passa a una singola colonna centrata */
     #museum-list {
         grid-template-columns: 1fr;
         gap: 25px;
@@ -535,9 +544,15 @@ body {
     .subtitle {
         font-size: 1.1rem;
     }
-    .login-btn, .register-btn {
+    
+    /* Regole fluide per tutti i bottoni (inclusi quelli dentro il modal) */
+    .login-btn, 
+    .register-btn, 
+    .modal-content button {
         padding: 12px 0;
         font-size: 1rem;
-        width: 100%; /* I bottoni prendono tutto lo spazio sul telefono */
+        width: 100%; 
+        min-width: unset;      /* Annulla il vincolo di 250px per evitare overflow */
+        white-space: normal;   /* Permette al testo di andare a capo se lo schermo è troppo stretto */
     }
 }
