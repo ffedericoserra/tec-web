@@ -1,3 +1,5 @@
+const myApi = "http://localhost:8000/api"
+
 var form=document.getElementById("login-form")
 form.addEventListener("submit", async (x)=>{
     x.preventDefault();
@@ -9,7 +11,7 @@ form.addEventListener("submit", async (x)=>{
     errMsg.innerHTML="<p></p>"
 
     try{
-        const res=await fetch("http://localhost:8000/api/auth/login", {//L'uriref in deploy viene completato da solo, in deploy sarebbe https://site242557.tw.cs.unibo.it/api/auth/login altrimenti in locale 
+        const res=await fetch(`${myApi}/auth/login`, {//L'uriref in deploy viene completato da solo, in deploy sarebbe https://site242557.tw.cs.unibo.it/api/auth/login altrimenti in locale 
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
