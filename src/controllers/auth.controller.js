@@ -13,6 +13,9 @@ const env = require('../config/env');
  */
 exports.register = async (req, res, next) => {
   try {
+
+    console.log("DATI RICEVUTI DA EXPRESS:", req.body);//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     // 1. Aggiungiamo l'email ai dati ricevuti dal frontend
     const { username, email, password } = req.body;
 
@@ -58,8 +61,15 @@ exports.login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
 
-    // Find user
-    const user = await User.findOne({ username });
+    // Cerca un utente in cui il campo "username" O il campo "email"
+    // corrisponda al testo inserito dall'utente nel form di login
+    const user = await User.findOne({ 
+        $or: [
+            { username: username }, 
+            { email: username }
+        ] 
+    });
+
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -74,7 +84,8 @@ exports.login = async (req, res, next) => {
     const token = jwt.sign(
       { userId: user._id },
       env.JWT_SECRET,
-      { expiresIn: env.JWT_EXPIRES_IN });
+      { expiresIn: env.JWT_EXPIRES_IN }
+    );
 
     res.json({
       user: user.toJSON(),
