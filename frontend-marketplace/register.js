@@ -23,7 +23,7 @@ if (registerForm) {
         };
 
         // Stampa i dati nella console del browser (F12) per verificare che non siano vuoti
-        console.log("Dati in invio al backend:", payload);
+        //console.log("Dati in invio al backend:", payload);
 
         try {
             const res = await fetch(`${myApi}/auth/register`, {
@@ -41,7 +41,7 @@ if (registerForm) {
                 // Salviamo il token
                 localStorage.setItem("token", data.token)
                 // Rimandiamo l'utente al marketplace
-                window.location.href = "mmuseum-preview.html"
+                window.location.href = "museum-preview.html"
             } else {
                 errorMsg.innerHTML = data.error || "Registration failed"
                 errorMsg.style.color = "#A93226"

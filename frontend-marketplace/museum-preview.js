@@ -73,9 +73,15 @@ async function loadMuseumsList() {
             }
             
             museumList.appendChild(newIcon)
+            
         })
     } catch(er) {
         console.error("Error while loading the museums " + er)
+        erMessage=document.createElement("div")
+        erMessage.innerHTML="<p id='error-msg'>The server could not load the museum list. Please try again later.</p>"
+        
+        museumList.append(erMessage)
+        
     }
 }
 
