@@ -41,7 +41,7 @@ function showMuseumOptions(museumId, museumName){
         window.location.href=`visits-list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
     }
     option2.onclick= () => {
-        window.Location.href=`create-visit.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`
+        window.location.href=`create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`
     }
     
     document.getElementById("cancel-choice-btn").onclick = () => {

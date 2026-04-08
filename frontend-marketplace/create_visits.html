@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtAround - Crea Visita</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* CSS Specifico per allineare gli elementi della scaletta e i contatori */
+        .draggable-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #fcfcfc;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: grab;
+        }
+        
+        /* Contenitore di sinistra (Hamburger, Numero, Titolo) */
+        .item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        /* Contenitore di destra (Prezzo, Bottone X) */
+        .item-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .drag-handle {
+            color: #888;
+            font-size: 1.2rem;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+        }
+
+        .item-counter {
+            background: var(--blue);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #d9534f;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 5px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+        .delete-btn:hover {
+            color: #c9302c;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <header class="top-bar">
+            <a href="homepage.html" class="logo-link">
+                <img src="../imgs/artaround/logo.png" alt="ArtAround Logo" class="logo-img" />
+            </a>
+        </header>
+
+        <main class="center-content">
+            <div class="modal-content auth-form" style="width: 100%; max-width: 600px; margin: auto; position: relative;">
+                
+                <button id="exit-btn" class="login-btn" style="position: absolute; top: 20px; right: 20px; background: transparent; color: var(--charcoal); border: 1px solid #ccc; padding: 5px 15px; width: auto; font-size: 0.9rem;">Esci</button>
+
+                <h2 class="title" style="color: var(--blue); margin-bottom: 5px;">Crea la tua Visita</h2>
+                
+                <h3 class="subtitle" style="margin-top: 0; margin-bottom: 20px; color: #666; font-size: 1.1rem; padding-right: 70px;">
+                    Museo selezionato: <strong id="display-museum-name" style="color: var(--charcoal);">...</strong>
+                </h3>
+
+                <h3 class="subtitle" style="margin-top: 20px; font-size: 1.2rem;">Scaletta Opere</h3>
+                <ul id="visit-list" class="vertical-list" style="list-style: none; padding: 0; min-height: 40px;">
+                </ul>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="add-item-btn" class="login-btn" style="flex: 1; background-color: var(--blue); color: white;">+ Aggiungi Item</button>
+                    <button id="save-visit-btn" class="login-btn" style="flex: 1;">Salva Visita</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="select-item-modal" class="modal-overlay hidden">
+        <div class="modal-content auth-form">
+            <h3 class="subtitle" style="margin-top: 0;">Scegli un'opera dal DB</h3>
+            <div id="items-container" style="max-height: 300px; overflow-y: auto; margin: 15px 0;">
+            </div>
+            <button type="button" class="login-btn" id="close-item-modal" style="width: 100%; border-color: #d9534f; color: #d9534f; background: transparent;">Annulla</button>
+        </div>
+    </div>
+
+    <script src="create-visit.js"></script>
+</body>
+</html>
