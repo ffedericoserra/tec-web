@@ -466,6 +466,34 @@ body {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+/* --- AZIONI FORM MODAL (Bottoni affiancati) --- */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+    width: 100%;
+}
+
+/* Sovrascrive le regole globali del modal per i bottoni affiancati */
+.modal-content .form-actions button,
+.modal-content .form-actions .login-btn {
+    min-width: 0;       /* Annulla il limite dei 250px */
+    width: 100%;        /* I bottoni si dividono lo spazio in modo equo */
+    margin: 0;          /* Rimuove la centratura forzata */
+    padding: 12px 10px; 
+    white-space: nowrap;
+}
+
+/* Stile specifico per il bottone Cancel */
+.cancel-btn {
+    border-color: #d9534f !important;
+    color: #d9534f !important;
+}
+
+.cancel-btn:hover {
+    background-color: #d9534f !important;
+    color: var(--pure-white) !important;
+}
 
 /* =========================================
    MEDIA QUERIES (RESPONSIVE DESIGN)
