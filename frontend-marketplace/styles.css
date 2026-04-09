@@ -346,7 +346,26 @@ body {
 }
 
 .empty-container { height: 30px; }
-.hidden-text { height: 200px; }
+/* --- ABOUT SECTION (Hidden Text) --- */
+.hidden-text {
+    display: none; /* Nasconde il testo finché non si clicca la freccia col JS */
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #555;
+    line-height: 1.8;
+    padding: 60px 20px;
+    background-color: var(--pure-white); /* Sfondo bianco per staccare dal gradiente */
+    border-top: 3px solid var(--museum-gold); /* Riga dorata elegante in alto */
+    margin: 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03); /* Leggera ombra superiore */
+}
+
+/* Stile per dare risalto ai nomi degli autori */
+.hidden-text strong {
+    color: var(--charcoal);
+    font-weight: 700;
+}
 
 /* --- MODAL STYLES --- */
 .modal-overlay {
