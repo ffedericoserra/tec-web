@@ -92,3 +92,11 @@ async function loadList(){
 
 setUpMuseumDatas()
 loadList()
+
+const addNewVisitBtn = document.getElementById("add-visit-btn"); 
+
+if (addNewVisitBtn) {
+    addNewVisitBtn.addEventListener('click', () => {
+        window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}`;
+    });
+}

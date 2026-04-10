@@ -6,151 +6,253 @@ if (!token) {
     window.location.href = "loginpage.html";
 }
 
-// 1. Recupero parametri URL
 const urlParams = new URLSearchParams(window.location.search);
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
 
 const displayMuseumEl = document.getElementById('display-museum-name');
-if (displayMuseumEl) {
-    displayMuseumEl.innerText = museumName || "Nessun museo selezionato";
-}
+if (displayMuseumEl) displayMuseumEl.innerText = museumName || "Nessun museo";
 
-// Azione tasto Esci
-document.getElementById('exit-btn').addEventListener('click', () => {
+// --- LOGICA MODALE ANNULLA / ESCI ---
+const cancelModal = document.getElementById('cancel-confirm-modal');
+document.getElementById('cancel-btn').addEventListener('click', () => {
+    cancelModal.classList.remove('hidden');
+});
+document.getElementById('confirm-exit-btn').addEventListener('click', () => {
     window.location.href = `museum-preview.html`; 
 });
+document.getElementById('confirm-save-btn').addEventListener('click', () => {
+    cancelModal.classList.add('hidden');
+    document.getElementById('save-visit-btn').click(); 
+});
+document.getElementById('close-cancel-modal').addEventListener('click', () => {
+    cancelModal.classList.add('hidden');
+});
 
-const visitList = document.getElementById('visit-list');
-const addItemBtn = document.getElementById('add-item-btn');
 const itemModal = document.getElementById('select-item-modal');
-const closeItemModalBtn = document.getElementById('close-item-modal');
 const itemsContainer = document.getElementById('items-container');
+let activeBlockList = null; 
 
-// 2. Apri modale e fai Fetch filtrata per Museo
-addItemBtn.addEventListener('click', async () => {
-    if(!museumId) {
-        alert("Nessun museo selezionato. Impossibile caricare gli item.");
-        return;
+function toRoman(num) {
+    const roman = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
+    let str = '';
+    for (let i of Object.keys(roman)) {
+        let q = Math.floor(num / roman[i]);
+        num -= q * roman[i];
+        str += i.repeat(q);
     }
+    return str;
+}
 
+const blocksContainer = document.getElementById('blocks-container');
+const addBlockBtnWrapper = document.getElementById('add-block-btn');
+let blockCounter = 0;
+
+function createNewBlock(defaultTitle) {
+    blockCounter++;
+    const block = document.createElement('div');
+    block.className = 'visit-block';
+    block.innerHTML = `
+        <div class="block-header">
+            <span class="block-number">${blockCounter}</span>
+            <input type="text" class="block-title-input" value="${defaultTitle}">
+            <span class="block-count">0 opere</span>
+            <button class="delete-block-btn" title="Elimina sezione">✖</button>
+        </div>
+        <ul class="block-list"></ul>
+        <div style="display: flex; justify-content: center; margin-top: auto; padding-top: 15px;">
+            <button class="add-btn add-item-to-block" title="Aggiungi opera a questa sezione">+</button>
+        </div>
+    `;
+
+    const ulList = block.querySelector('.block-list');
+    
+    block.querySelector('.add-item-to-block').addEventListener('click', () => {
+        activeBlockList = ulList; 
+        apriModaleOpere();
+    });
+
+    block.querySelector('.delete-block-btn').addEventListener('click', () => {
+        if(confirm("Vuoi davvero eliminare questa colonna? Tutte le opere verranno rimosse.")) {
+            block.remove();
+            aggiornaContatoriBlocchi();
+        }
+    });
+
+    setupDragAndDropForList(ulList);
+    blocksContainer.insertBefore(block, addBlockBtnWrapper);
+    aggiornaContatoriBlocchi();
+}
+
+addBlockBtnWrapper.addEventListener('click', () => {
+    const nextNum = document.querySelectorAll('.visit-block').length + 1;
+    createNewBlock(` ${toRoman(nextNum)} `);
+});
+
+// Crea il primo blocco
+createNewBlock(" I ");
+
+// --- LOGICA ESPANSIONE CARTE ARCHIDEKT ---
+function aggiornaStatoCarte() {
+    document.querySelectorAll('.block-list').forEach(list => {
+        const items = Array.from(list.children);
+        
+        // Rimuovi la classe a tutte
+        items.forEach(item => {
+            if (item.classList) item.classList.remove('is-last-item');
+        });
+        
+        // Trova le carte reali
+        const validItems = items.filter(item => 
+            item.classList.contains('draggable-item') && !item.classList.contains('dragging')
+        );
+        
+        if (validItems.length > 0) {
+            const lastChild = items[items.length - 1];
+            if (!lastChild.classList.contains('placeholder')) {
+                // Assegna is-last-item all'ultima carta per permettere al CSS di gestirla
+                validItems[validItems.length - 1].classList.add('is-last-item');
+            }
+        }
+    });
+}
+
+function aggiornaContatoriBlocchi() {
+    const blocks = document.querySelectorAll('.visit-block');
+    blocks.forEach((block, index) => {
+        block.querySelector('.block-number').textContent = index + 1;
+        const itemCount = block.querySelectorAll('.draggable-item').length;
+        block.querySelector('.block-count').textContent = `${itemCount} opere`;
+    });
+    aggiornaStatoCarte(); 
+}
+
+// --- LOGICA RECUPERO OPERE ---
+async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
-    itemsContainer.innerHTML = '<p style="text-align:center;">Caricamento item dal server...</p>';
+    itemsContainer.innerHTML = '<p style="text-align:center;">Caricamento opere dal server...</p>';
 
     try {
-        // Passiamo il museumId alla rotta backend
-        const res = await fetch(`${myApi}/items?museumId=${museumId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const contentsData = await contentsRes.json();
+        const validContentIds = new Set();
+        (contentsData.contents || []).forEach(c => {
+            if (c.universalId) validContentIds.add(c.universalId);
+            validContentIds.add(c._id.toString());
         });
-        const data = await res.json();
-        
+
+        const itemsRes = await fetch(`${myApi}/items`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const itemsData = await itemsRes.json();
+        const museumItems = (itemsData.items || []).filter(item => validContentIds.has(item.contentId));
+
         itemsContainer.innerHTML = '';
-        
-        // Applichiamo anche un filtro locale di sicurezza, qualora la rotta del backend 
-        // non sia ancora stata aggiornata per recepire "?museumId="
-        const allItems = data.items || [];
-        const filteredItems = allItems.filter(item => {
-            // Se nel DB c'è un campo museumId associato all'item, mostra solo quelli corrispondenti
-            return item.museumId === museumId || !item.museumId; 
-        });
-        
-        if (filteredItems.length > 0) {
-            filteredItems.forEach(item => {
+        if (museumItems.length > 0) {
+            museumItems.forEach(item => {
+                const itemTitle = (item.descriptions && item.descriptions[0]?.title) ? item.descriptions[0].title : `Opera (${item.contentId})`;
                 const itemDiv = document.createElement('div');
-                itemDiv.style.padding = '10px';
-                itemDiv.style.borderBottom = '1px solid #ddd';
-                itemDiv.style.cursor = 'pointer';
-                itemDiv.style.display = 'flex';
-                itemDiv.style.justifyContent = 'space-between';
-                
-                const itemTitle = (item.descriptions && item.descriptions[0]?.title) ? item.descriptions[0].title : `Item (${item.contentId || item._id})`;
-                const priceText = item.price > 0 ? `${item.price}€` : 'Gratis';
-                
-                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color:#666;">${priceText}</span>`;
+                itemDiv.style.padding = '12px'; itemDiv.style.borderBottom = '1px solid #e2e8f0'; itemDiv.style.cursor = 'pointer'; itemDiv.style.display = 'flex'; itemDiv.style.justifyContent = 'space-between';
+                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: #64748b;">${item.price > 0 ? item.price+'€' : 'Gratis'}</span>`;
                 
                 itemDiv.onclick = () => {
-                    creaEdAggiungiItem(itemTitle, item._id, priceText);
+                    creaEdAggiungiItem(itemTitle, item._id, activeBlockList);
                     itemModal.classList.add('hidden');
                 };
                 itemsContainer.appendChild(itemDiv);
             });
         } else {
-            itemsContainer.innerHTML = '<p style="text-align:center; color: #666;">Nessun item trovato per questo museo.</p>';
+            itemsContainer.innerHTML = '<p style="text-align:center; color: #666;">Nessuna opera trovata.</p>';
         }
     } catch (err) {
-        itemsContainer.innerHTML = '<p style="text-align:center; color: #d9534f;">Errore nel recupero degli item.</p>';
-        console.error("Fetch items error:", err);
+        itemsContainer.innerHTML = '<p style="text-align:center; color: red;">Errore di connessione.</p>';
     }
-});
-
-closeItemModalBtn.addEventListener('click', () => {
-    itemModal.classList.add('hidden');
-});
-
-// Funzione fondamentale: Ricalcola i numeri della scaletta in ordine
-function updateItemNumbers() {
-    const listItems = visitList.querySelectorAll('.draggable-item');
-    listItems.forEach((item, index) => {
-        const counterSpan = item.querySelector('.item-counter');
-        if (counterSpan) {
-            counterSpan.textContent = index + 1; // 1, 2, 3...
-        }
-    });
 }
 
-// 3. Creazione fisica dell'elemento nella lista
-function creaEdAggiungiItem(titoloOpera, itemId, priceText) {
+document.getElementById('close-item-modal').addEventListener('click', () => itemModal.classList.add('hidden'));
+
+// --- DRAG & DROP INCROCIATO & CARTA CLICCABILE ---
+let draggedItem = null;
+let placeholder = document.createElement('li');
+placeholder.className = 'placeholder';
+
+function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
     li.dataset.itemId = itemId; 
 
-    // Struttura Flexbox allineata
     li.innerHTML = `
-        <div class="item-left">
-            <span class="drag-handle">☰</span>
-            <span class="item-counter">0</span>
-            <span style="font-weight: bold; color: var(--charcoal);">${titoloOpera}</span>
+        <div class="card-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="drag-handle" title="Trascina">☰</span>
+                <strong style="color: var(--charcoal); font-size: 1.05rem;">${titoloOpera}</strong>
+            </div>
+            <button class="delete-btn" title="Rimuovi">✖</button>
         </div>
-        <div class="item-right">
-            <span style="color:#888; font-size: 0.9em;">${priceText}</span>
-            <button class="delete-btn">X</button>
+        <div class="card-details">
+            <div class="card-image-placeholder">IMG</div>
+            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                <p style="margin: 0; font-size: 0.9rem;"><strong>Clicca per modificare</strong></p>
+                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Apri i dettagli di quest'opera.</p>
+            </div>
         </div>
     `;
 
-    // Eliminazione Item
-    li.querySelector('.delete-btn').addEventListener('click', () => {
-        li.remove();
-        updateItemNumbers(); // Ricalcola dopo aver cancellato
+    // 1. EVENTO CLICK: Naviga al file create_items.html
+    li.addEventListener('click', function(e) {
+        // Ignora il click se premiamo il tasto X o la barra per trascinare
+        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
+            return;
+        }
+        // Naviga passando ID opera e ID museo!
+        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}`;
     });
 
-    // Drag & Drop
-    li.addEventListener('dragstart', function() {
-        setTimeout(() => this.classList.add('dragging'), 0);
+    // 2. EVENTO ELIMINAZIONE
+    li.querySelector('.delete-btn').addEventListener('click', () => {
+        li.remove();
+        aggiornaContatoriBlocchi();
     });
-    li.addEventListener('dragend', function() {
+
+    // 3. EVENTI TRASCINAMENTO
+    li.addEventListener('dragstart', function(e) {
+        draggedItem = this;
+        placeholder.style.height = `${this.offsetHeight}px`;
         setTimeout(() => {
-            this.classList.remove('dragging');
-            updateItemNumbers(); // Ricalcola dopo lo spostamento
+            this.classList.add('dragging');
+            this.parentNode.insertBefore(placeholder, this.nextSibling);
+            aggiornaContatoriBlocchi(); 
         }, 0);
     });
 
-    visitList.appendChild(li);
-    updateItemNumbers(); // Calcola all'inserimento
+    li.addEventListener('dragend', function() {
+        this.classList.remove('dragging');
+        if (placeholder.parentNode) {
+            placeholder.parentNode.insertBefore(this, placeholder);
+            placeholder.parentNode.removeChild(placeholder);
+        }
+        draggedItem = null;
+        aggiornaContatoriBlocchi(); 
+    });
+
+    targetList.appendChild(li);
+    aggiornaContatoriBlocchi();
 }
 
-// Eventi Contenitore Drag&Drop
-visitList.addEventListener('dragover', function(e) {
-    e.preventDefault();
-    const draggingElement = document.querySelector('.dragging');
-    if (!draggingElement) return;
-    const afterElement = getDragAfterElement(visitList, e.clientY);
-    if (afterElement == null) {
-        visitList.appendChild(draggingElement);
-    } else {
-        visitList.insertBefore(draggingElement, afterElement);
-    }
-});
+function setupDragAndDropForList(listElement) {
+    listElement.addEventListener('dragover', function(e) {
+        e.preventDefault(); 
+        if (!draggedItem) return;
+
+        const afterElement = getDragAfterElement(listElement, e.clientY);
+        if (afterElement == null) {
+            listElement.appendChild(placeholder);
+        } else {
+            listElement.insertBefore(placeholder, afterElement);
+        }
+        
+        aggiornaStatoCarte(); 
+    });
+}
 
 function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.draggable-item:not(.dragging)')];
@@ -164,3 +266,54 @@ function getDragAfterElement(container, y) {
         }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
+
+// --- SALVATAGGIO DATABASE ---
+document.getElementById('save-visit-btn').addEventListener('click', async () => {
+    const title = document.getElementById('v-title').value;
+    const desc = document.getElementById('v-desc').value;
+    
+    if (!title.trim()) { alert("Inserisci un titolo per la visita."); return; }
+
+    const structurData = [];
+    let flatSequence = []; 
+
+    document.querySelectorAll('.visit-block').forEach(block => {
+        const blockTitle = block.querySelector('.block-title-input').value;
+        const itemsNodes = block.querySelectorAll('.draggable-item');
+        const itemsIds = Array.from(itemsNodes).map(node => node.dataset.itemId);
+        
+        structurData.push({ blockName: blockTitle, items: itemsIds });
+        flatSequence = flatSequence.concat(itemsIds);
+    });
+
+    if (flatSequence.length === 0) { alert("Aggiungi almeno un'opera alla visita."); return; }
+
+    const payload = {
+        title: title,
+        description: desc + "\n\n[Struttura Blocchi Salvata: " + JSON.stringify(structurData) + "]",
+        museumId: museumId,
+        sequence: flatSequence,
+        isPublic: false
+    };
+
+    console.log("Oggetto JSON pronto per l'invio:", payload);
+    
+    try {
+        const res = await fetch(`${myApi}/visits`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            alert("Visita salvata con successo!");
+            window.location.href = "visits-list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName);
+        } else {
+            alert("Errore nel salvataggio. Controlla la console.");
+        }
+    } catch(err) {
+        console.error(err);
+    }
+});

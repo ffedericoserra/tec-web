@@ -47,6 +47,12 @@ function showMuseumOptions(museumId, museumName){
     document.getElementById("cancel-choice-btn").onclick = () => {
         document.body.removeChild(overlay)
     }
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            document.body.removeChild(overlay);
+        }
+    });
 }
 
 
@@ -107,6 +113,14 @@ function setupModalListeners() {
         
         if (cancelBtn) {
             cancelBtn.addEventListener("click", closeModal)
+        }
+
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
         }
 
         if (form) {
