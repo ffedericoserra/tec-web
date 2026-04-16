@@ -1,6 +1,7 @@
 const myApi = "http://localhost:8000/api"
 const token = localStorage.getItem("token")
 const visitsContainer = document.getElementById("museum-list")
+const searchBar=document.querySelector("#search-bar")
 
 // query specifiche del museo selezionati
 const urlParams = new URLSearchParams(window.location.search);
@@ -9,6 +10,8 @@ const currMuseumName = urlParams.get('museumName');
 
 console.log("Stiamo lavorando sul museo:", currMuseumName, "con ID:", currMuseumId);
 
+let allTours=[]
+
 
 
 function setUpMuseumDatas(){
@@ -16,34 +19,14 @@ function setUpMuseumDatas(){
     if(titolo && currMuseumName) titolo.innerHTML=currMuseumName
 }
 
-async function loadList(){
-    if(!currMuseumId){
-        visitsContainer.innerHTML="<p style='color: red;'>Errore: ID museo mancante.</p>"
+function renderVisitsList(visitsArr) {
+    visitsContainer.innerHTML=""
+
+    if(visitsArr.length===0){
+        visitsContainer.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--chill-grey); font-size: 1.1rem;">No visits found.</p>`
         return;
     }
-    try{
-        const res=await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        })
-
-        var data=await res.json()
-        var visitsArr=data.visits || []
-
-        visitsContainer.innerHTML=""
-
-        if(visitsArr.length===0){
-            visitsContainer.innerHTML=`
-                <div style="grid-column: 1 / -1; padding: 40px;">
-                    <p style="color: #666; font-style: italic;">No visits available for this museum yet. Create the first one!</p>
-                </div>
-            `
-
-            return;
-        }
-        else{
-            visitsArr.forEach(v =>{
+    visitsArr.forEach(v =>{
                 var visitIcon=document.createElement("div")
                 visitIcon.className="visit-icon"
 
@@ -82,21 +65,62 @@ async function loadList(){
 
                 visitsContainer.appendChild(visitIcon)
             })
-        }
-    }catch(err){
+    
+}
+
+async function loadList(){
+    if(!currMuseumId){
+        visitsContainer.innerHTML="<p style='color: red;'>Errore: ID museo mancante.</p>"
+        return;
+    }
+    try{
+        const res=await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+
+        var data=await res.json()
+
+        allTours=data.visits || []
+        renderVisitsList(allTours)
+        
+    }
+    catch(err){
         console.error("Errore durante il caricamento delle visite: " + err)
-        visitsContainer.innerHTML = "<p style='color: #A93226; grid-column: 1 / -1;'>Server error while loading visits.</p>"
+        visitsContainer.innerHTML = "<p style='color: var(--error-red); grid-column: 1 / -1;'>Server error while loading visits.</p>"
     }
 
 }
 
-setUpMuseumDatas()
-loadList()
+function setupSearchListeners() {
+    if(!searchBar) return;
+    searchBar.addEventListener("input", (e)=>{
+        var searchTerm = e.target.value.toLowerCase().trim();
+        var filteredArr=allTours.filter(visit=>{
+            var matchingName=visit.title &&  visit.title.toLowerCase().includes(searchTerm)
+            matchingAddr=visit.description && visit.description.toLowerCase().includes(searchTerm)
 
-const addNewVisitBtn = document.getElementById("add-visit-btn"); 
+            return matchingName || matchingAddr
+        })
+
+        renderVisitsList(filteredArr)
+    })
+}
+
+
+function setupAddVisitBtn(){
+    var addNewVisitBtn = document.getElementById("add-visit-btn");
 
 if (addNewVisitBtn) {
     addNewVisitBtn.addEventListener('click', () => {
-        window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}`;
+        window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}`
     });
 }
+}
+
+// Avviamo tutto
+setUpMuseumDatas()
+loadList()
+setupSearchListeners()
+setupAddVisitBtn()

@@ -61,7 +61,7 @@ function showMuseumOptions(museumId, museumName){
 function renderMuseumsList(museumArr) {
     museumList.innerHTML = ""
     if(museumArr.length===0){
-        museumList.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--chill-grey); font-size: 1.1rem;">Nessun museo trovato.</p>`
+        museumList.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--chill-grey); font-size: 1.1rem;">No museums found.</p>`
         return;
     }
 

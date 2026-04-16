@@ -18,7 +18,7 @@
         </a>
 
         <div style="display: flex; align-items: center; gap: 15px">
-         <span class="about-text" style="margin: 0">Add a new visit</span>
+          <span class="about-text" style="margin: 0">Add a new visit</span>
           <button id="add-visit-btn" class="add-btn">+</button>
         </div>
       </header>
@@ -26,6 +26,20 @@
       <main class="center-content">
         <h1 class="title">Museo</h1>
         <h2 class="subtitle">Start, edit or add a new visit</h2>
+        <div class="research-bar">
+          <input
+            type="text"
+            id="search-bar"
+            class="input-slot"
+            placeholder="Search for an artistic movement, an author or a period..."
+            style="
+              border-radius: 30px;
+              padding: 15px 25px;
+              text-align: center;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            "
+          />
+        </div>
         <div id="museum-list"></div>
       </main>
 
