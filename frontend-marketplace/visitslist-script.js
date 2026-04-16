@@ -1,6 +1,6 @@
 const myApi = "http://localhost:8000/api"
 const token = localStorage.getItem("token")
-const visitsContainer = document.getElementById("museum-list")
+const visitsContainer = document.getElementById("tours-list")
 const searchBar=document.querySelector("#search-bar")
 
 // query specifiche del museo selezionati
