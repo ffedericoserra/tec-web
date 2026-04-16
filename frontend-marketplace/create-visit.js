@@ -2,7 +2,7 @@ const myApi = "http://localhost:8000/api";
 const token = localStorage.getItem("token");
 
 if (!token) {
-    alert("Devi effettuare l'accesso per creare una visita.");
+    alert("You must be logged in to access this page.");
     window.location.href = "loginpage.html";
 }
 
@@ -11,7 +11,7 @@ const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
 
 const displayMuseumEl = document.getElementById('display-museum-name');
-if (displayMuseumEl) displayMuseumEl.innerText = museumName || "Nessun museo";
+if (displayMuseumEl) displayMuseumEl.innerText = museumName || "No museums";
 
 // --- LOGICA MODALE ANNULLA / ESCI ---
 const cancelModal = document.getElementById('cancel-confirm-modal');
@@ -33,7 +33,7 @@ const itemModal = document.getElementById('select-item-modal');
 const itemsContainer = document.getElementById('items-container');
 let activeBlockList = null; 
 
-function toRoman(num) {
+function toRoman(num) { //Vogliamo tenerla, c'è già il contatore a sx. Magari integriamola lì
     const roman = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
     let str = '';
     for (let i of Object.keys(roman)) {
@@ -56,12 +56,12 @@ function createNewBlock(defaultTitle) {
         <div class="block-header">
             <span class="block-number">${blockCounter}</span>
             <input type="text" class="block-title-input" value="${defaultTitle}">
-            <span class="block-count">0 opere</span>
-            <button class="delete-block-btn" title="Elimina sezione">✖</button>
+            <span class="block-count">0 artworks</span>
+            <button class="delete-block-btn" title="Remove section">✖</button>
         </div>
         <ul class="block-list"></ul>
         <div style="display: flex; justify-content: center; margin-top: auto; padding-top: 15px;">
-            <button class="add-btn add-item-to-block" title="Aggiungi opera a questa sezione">+</button>
+            <button class="add-btn add-item-to-block" title="Add an artwork to this section">+</button>
         </div>
     `;
 
@@ -73,7 +73,7 @@ function createNewBlock(defaultTitle) {
     });
 
     block.querySelector('.delete-block-btn').addEventListener('click', () => {
-        if(confirm("Vuoi davvero eliminare questa colonna? Tutte le opere verranno rimosse.")) {
+        if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) {
             block.remove();
             aggiornaContatoriBlocchi();
         }
@@ -130,7 +130,7 @@ function aggiornaContatoriBlocchi() {
 // --- LOGICA RECUPERO OPERE ---
 async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
-    itemsContainer.innerHTML = '<p style="text-align:center;">Caricamento opere dal server...</p>';
+    itemsContainer.innerHTML = '<p style="text-align:center;">Loading for server...</p>';
 
     try {
         const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -151,7 +151,7 @@ async function apriModaleOpere() {
                 const itemTitle = (item.descriptions && item.descriptions[0]?.title) ? item.descriptions[0].title : `Opera (${item.contentId})`;
                 const itemDiv = document.createElement('div');
                 itemDiv.style.padding = '12px'; itemDiv.style.borderBottom = '1px solid #e2e8f0'; itemDiv.style.cursor = 'pointer'; itemDiv.style.display = 'flex'; itemDiv.style.justifyContent = 'space-between';
-                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: #64748b;">${item.price > 0 ? item.price+'€' : 'Gratis'}</span>`;
+                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: #64748b;">${item.price > 0 ? item.price+'€' : 'Free'}</span>`;
                 
                 itemDiv.onclick = () => {
                     creaEdAggiungiItem(itemTitle, item._id, activeBlockList);
@@ -160,10 +160,10 @@ async function apriModaleOpere() {
                 itemsContainer.appendChild(itemDiv);
             });
         } else {
-            itemsContainer.innerHTML = '<p style="text-align:center; color: #666;">Nessuna opera trovata.</p>';
+            itemsContainer.innerHTML = '<p style="text-align:center; color: #666;">No artworks found.</p>';
         }
     } catch (err) {
-        itemsContainer.innerHTML = '<p style="text-align:center; color: red;">Errore di connessione.</p>';
+        itemsContainer.innerHTML = '<p style="text-align:center; color: var(--error-red);">Connection error.</p>';
     }
 }
 
@@ -183,16 +183,16 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
     li.innerHTML = `
         <div class="card-header">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="drag-handle" title="Trascina">☰</span>
+                <span class="drag-handle" title="Drag">☰</span>
                 <strong style="color: var(--charcoal); font-size: 1.05rem;">${titoloOpera}</strong>
             </div>
-            <button class="delete-btn" title="Rimuovi">✖</button>
+            <button class="delete-btn" title="Remove">✖</button>
         </div>
         <div class="card-details">
             <div class="card-image-placeholder">IMG</div>
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <p style="margin: 0; font-size: 0.9rem;"><strong>Clicca per modificare</strong></p>
-                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Apri i dettagli di quest'opera.</p>
+                <p style="margin: 0; font-size: 0.9rem;"><strong>Click here to edit</strong></p>
+                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">See this artwork's details.</p>
             </div>
         </div>
     `;

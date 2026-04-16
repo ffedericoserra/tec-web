@@ -20,15 +20,15 @@
           onclick="window.location.href = 'museum-preview.html'"
           class="secondary-btn header-back-btn"
         >
-          Torna al Marketplace
+          Go back to the Marketplace
         </button>
       </header>
 
       <main class="visit-main-content">
         <div class="visit-editor-wrapper">
-          <h2 class="title editor-title">Costruttore Visita</h2>
+          <h2 class="title editor-title">Tour Editor</h2>
           <h3 class="editor-subtitle">
-            Stai creando una visita per:
+            You are creating a fisit for:
             <strong id="display-museum-name" class="highlight-museum"
               >...</strong
             >
@@ -39,7 +39,7 @@
               <input
                 type="text"
                 id="v-title"
-                placeholder="Es. Capolavori del Rinascimento (Titolo Visita)..."
+                placeholder="Visit title"
                 required
               />
             </div>
@@ -47,7 +47,7 @@
               <textarea
                 id="v-desc"
                 rows="2"
-                placeholder="Descrizione o introduzione generale alla visita..."
+                placeholder="Description or general introduction to your tour..."
               ></textarea>
             </div>
           </div>
@@ -56,17 +56,17 @@
             <div class="add-section-wrapper" id="add-block-btn">
               <div class="add-section-content">
                 <button class="add-btn">+</button>
-                <span class="add-section-text">Aggiungi Sezione</span>
+                <span class="add-section-text">Add Section</span>
               </div>
             </div>
           </div>
 
           <div class="action-buttons">
             <button id="cancel-btn" class="main-btn cancel-visit-btn">
-              Annulla / Esci
+              Cancel / Exit
             </button>
             <button id="save-visit-btn" class="main-btn save-visit-btn">
-              Salva nel Database
+              Save
             </button>
           </div>
         </div>
@@ -75,7 +75,7 @@
 
     <div id="select-item-modal" class="modal-overlay hidden">
       <div class="modal-content auth-form">
-        <h3 class="subtitle modal-top-title">Scegli un'opera</h3>
+        <h3 class="subtitle modal-top-title">Choose an artwork</h3>
         <div id="items-container" class="items-scroll-container"></div>
         <button
           type="button"
@@ -89,20 +89,20 @@
 
     <div id="cancel-confirm-modal" class="modal-overlay hidden">
       <div class="modal-content auth-form center-text-modal">
-        <h2 class="warning-title">Attenzione!</h2>
+        <h2 class="warning-title">Pay attention!</h2>
         <p class="warning-text">
-          Stai per uscire dall'editor. Le modifiche non salvate andranno perse.
-          Vuoi salvare la visita prima di abbandonare la pagina?
+          You are leaving the editor. Le unsaved changes will be lost. Do you
+          want to save them before leaving this page?
         </p>
         <div class="modal-action-stack">
           <button id="confirm-save-btn" class="main-btn confirm-save-btn">
-            Salva Visita
+            Save Visit
           </button>
           <button id="confirm-exit-btn" class="main-btn confirm-exit-btn">
-            Esci senza salvare
+            Leave without saving
           </button>
           <button id="close-cancel-modal" class="main-btn continue-edit-btn">
-            Continua a modificare
+            Keep editing
           </button>
         </div>
       </div>
