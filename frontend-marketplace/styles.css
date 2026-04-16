@@ -6,6 +6,8 @@
     --museum-gold: #B89741;        /* Elegant accent color */
     --border-light: #DDDDDD;       /* Soft borders for framed look */
     --pure-white: #FFFFFF;
+    --error-red: #A93226;
+    --chill-grey: #555;
 }
 
 @font-face {
@@ -119,7 +121,7 @@ body {
 }
 
 /* --- BOTTONI PRINCIPALI (LOGIN E SIGN UP) --- */
-.login-btn, .register-btn {
+.main-btn, .secondary-btn {
     width: 200px; 
     padding: 15px 0; 
     font-size: 1.2rem;
@@ -133,14 +135,14 @@ body {
 }
 
 /* STILE SPECIFICO: LOGIN */
-.login-btn {
+.main-btn {
     background-color: transparent;
     border: 2px solid var(--charcoal);
     color: var(--charcoal);
     transition: all 0.4s ease;
 }
 
-.login-btn:hover {
+.main-btn:hover {
     background-color: var(--charcoal);
     color: var(--museum-gold);
     border-color: var(--charcoal);
@@ -148,23 +150,64 @@ body {
 }
 
 /* STILE SPECIFICO: SIGN UP */
-.register-btn {
+.secondary-btn {
     background-color: var(--museum-gold);
     border: 2px solid var(--museum-gold);
     color: var(--pure-white);
     transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.register-btn:hover {
+.secondary-btn:hover {
     background-color: transparent;
     color: var(--museum-gold);
     box-shadow: 0 8px 20px rgba(184, 151, 65, 0.3);
     transform: translateY(-3px);
 }
 
-.register-btn:active, .login-btn:active {
+.secondary-btn:active, .main-btn:active {
     transform: translateY(0);
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* --- PARTE BASSA --- */
+.bottom-bar {
+    text-align: center;
+    padding: 30px 0 10px 0;
+    color: var(--charcoal); 
+}
+
+.arrow {
+    font-size: 2rem;
+    color: var(--museum-gold); 
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.arrow:hover {
+    animation: bounce 2s infinite; 
+    color: var(--charcoal);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+}
+
+.empty-container { height: 30px; }
+/* --- ABOUT SECTION (Hidden Text) --- */
+.hidden-text {
+    display: none; /* Nasconde il testo finché non si clicca la freccia col JS */
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: var(--chill-grey);
+    line-height: 1.8;
+    padding: 60px 20px;
+    background-color: var(--pure-white); /* Sfondo bianco per staccare dal gradiente */
+    border-top: 3px solid var(--museum-gold); /* Riga dorata elegante in alto */
+    margin: 0;
+    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03); /* Leggera ombra superiore */
 }
 
 /* --- LOGIN FORM DEDICATO --- */
@@ -202,7 +245,7 @@ body {
     font-size: 1.2rem; 
     border: 1px solid var(--border-light);
     border-radius: 4px;
-    background-color: #FAFAFA;
+    background-color: var(--gallery-bg);
     font-family: inherit;
     outline: none;
     transition: all 0.3s ease;
@@ -215,8 +258,8 @@ body {
     box-shadow: 0 0 0 1px var(--charcoal);
 }
 
-#login-form .login-btn,
-#login-form .register-btn {
+#login-form .main-btn,
+#login-form .secondary-btn {
     grid-column: 1 / -1; 
     justify-self: center; 
     margin-top: 20px;
@@ -228,33 +271,10 @@ body {
     font-size: 1.1rem;
     margin-top: 10px;
     font-weight: 700;
-    color: #A93226; 
+    color: var(--error-red); 
 }
 
-/* --- PARTE BASSA --- */
-.bottom-bar {
-    text-align: center;
-    padding: 30px 0 10px 0;
-    color: var(--charcoal); 
-}
 
-.arrow {
-    font-size: 2rem;
-    color: var(--museum-gold); 
-    cursor: pointer;
-    transition: color 0.3s;
-}
-
-.arrow:hover {
-    animation: bounce 2s infinite; 
-    color: var(--charcoal);
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
-    40% {transform: translateY(-10px);}
-    60% {transform: translateY(-5px);}
-}
 
 /* --- CONTENITORE GRIGLIA MUSEI --- */
 #museum-list {
@@ -316,7 +336,7 @@ body {
 /* --- TESTO DENTRO LA CARD --- */
 .museum-icon p, .visit-icon p {
     margin: 0;
-    color: #555; 
+    color: var(--chill-grey); 
     font-size: 0.95rem;
     font-weight: 400; 
     line-height: 1.6;
@@ -345,21 +365,7 @@ body {
     transform: rotate(90deg); 
 }
 
-.empty-container { height: 30px; }
-/* --- ABOUT SECTION (Hidden Text) --- */
-.hidden-text {
-    display: none; /* Nasconde il testo finché non si clicca la freccia col JS */
-    text-align: left;
-    font-size: 1.2rem;
-    font-weight: 400;
-    color: #555;
-    line-height: 1.8;
-    padding: 60px 20px;
-    background-color: var(--pure-white); /* Sfondo bianco per staccare dal gradiente */
-    border-top: 3px solid var(--museum-gold); /* Riga dorata elegante in alto */
-    margin: 0;
-    box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.03); /* Leggera ombra superiore */
-}
+
 
 /* Stile per dare risalto ai nomi degli autori */
 .hidden-text strong {
@@ -394,8 +400,8 @@ body {
 }
 
 /* Layout specifico per i bottoni all'interno del Modal */
-.modal-content .login-btn,
-.modal-content .register-btn,
+.modal-content .main-btn,
+.modal-content .secondary-btn,
 .modal-content button {
     display: block;
     margin-left: auto;
@@ -434,7 +440,8 @@ body {
 .input-group label {
     font-size: 0.85rem;
     margin-bottom: 8px;
-    color: #666;
+    margin-top:8px;
+    color: var(--chill-grey);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -447,7 +454,7 @@ body {
     font-size: 1rem;
     border: 1px solid var(--border-light);
     border-radius: 2px; 
-    background-color: #FAFAFA;
+    background-color: var(--gallery-bg);
     font-family: inherit;
     outline: none;
     transition: all 0.3s ease;
@@ -495,7 +502,7 @@ body {
 
 /* Sovrascrive le regole globali del modal per i bottoni affiancati */
 .modal-content .form-actions button,
-.modal-content .form-actions .login-btn {
+.modal-content .form-actions .main-btn {
     min-width: 0;       /* Annulla il limite dei 250px */
     width: 100%;        /* I bottoni si dividono lo spazio in modo equo */
     margin: 0;          /* Rimuove la centratura forzata */
@@ -505,12 +512,12 @@ body {
 
 /* Stile specifico per il bottone Cancel */
 .cancel-btn {
-    border-color: #d9534f !important;
-    color: #d9534f !important;
+    border-color: var(--error-red) !important;
+    color: var(--error-red) !important;
 }
 
 .cancel-btn:hover {
-    background-color: #d9534f !important;
+    background-color: var(--error-red) !important;
     color: var(--pure-white) !important;
 }
 
@@ -526,7 +533,7 @@ body {
     .subtitle {
         font-size: 1.6rem;
     }
-    .login-btn, .register-btn {
+    .main-btn, .secondary-btn {
         width: 180px; 
         padding: 14px 0;
         font-size: 1.1rem;
@@ -570,8 +577,8 @@ body {
         padding: 12px;
     }
     
-    #login-form .login-btn,
-    #login-form .register-btn {
+    #login-form .main-btn,
+    #login-form .secondary-btn {
         margin-top: 15px;
         align-self: center;
     }
@@ -593,8 +600,8 @@ body {
     }
     
     /* Regole fluide per tutti i bottoni (inclusi quelli dentro il modal) */
-    .login-btn, 
-    .register-btn, 
+    .main-btn, 
+    .secondary-btn, 
     .modal-content button {
         padding: 12px 0;
         font-size: 1rem;
@@ -737,7 +744,7 @@ body {
 .delete-block-btn {
     background: none;
     border: none;
-    color: #ef4444; /* Manteniamo il rosso per un'azione distruttiva */
+    color: var(--error-red); /* Manteniamo il rosso per un'azione distruttiva */
     font-size: 1.2rem;
     cursor: pointer;
     padding: 5px;
@@ -885,4 +892,137 @@ body {
     #cancel-btn, #save-visit-btn {
         width: 100% !important;
     }
+}
+
+/* ==========================================================================
+   VISIT BUILDER - EXTRA STYLES (Extracted from HTML)
+   ========================================================================== */
+
+/* --- HEADER & MAIN --- */
+.top-bar.space-between {
+    justify-content: space-between;
+}
+
+.header-back-btn {
+    color: var(--charcoal);
+    background: transparent;
+    border: none;
+    padding: 8px 20px;
+    width: auto;
+    font-size: 0.95rem;
+}
+
+.visit-main-content {
+    padding: 20px;
+}
+
+/* --- TITLES & TEXT --- */
+.editor-title {
+    color: var(--charcoal); /* Integrato con la palette del sito */
+    margin-top: 0;
+    font-size: 2rem;
+}
+
+.editor-subtitle { 
+    margin-top: 0;
+    margin-bottom: 25px;
+    color: var(--chill-grey); 
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+.highlight-museum {
+    color: var(--charcoal);
+}
+
+/* --- ADD SECTION BLOCK --- */
+.add-section-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.add-section-text {
+    color: var(--charcoal);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* --- ACTION BUTTONS (BOTTOM) --- */
+.cancel-visit-btn {
+    background: transparent !important;
+    color: var(--error-red) !important;
+    border-color: var(--error-red) !important;
+    width: 25% !important; /* Forza la larghezza per il layout a due bottoni */
+    font-size: 1.1rem;
+}
+
+.save-visit-btn {
+    width: 75% !important; 
+    padding: 15px;
+    font-size: 1.1rem;
+    background-color: #27ae60 !important; /*COLORE???????????????????*/
+    color: var(--pure-white) !important;
+    border: none;
+}
+
+/* --- MODALS --- */
+.modal-top-title {
+    margin-top: 0;
+}
+
+.items-scroll-container {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.close-modal-btn { /*SERVE???????????????????*/
+    width: 100% !important;
+    border-color: var(--border-light) !important;
+    color: var(--chill-grey) !important;
+    background: transparent !important;
+}
+
+.center-text-modal {
+    text-align: center;
+    max-width: 450px;
+}
+
+.warning-title {
+    color: var(--error-red);
+    margin-top: 0;
+}
+
+.warning-text {
+    color: var(--charcoal);
+    font-size: 1.1rem;
+    margin-bottom: 25px;
+}
+
+.modal-action-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.confirm-save-btn { /*COLORE???????????????????*/
+    background: #27ae60 !important;
+    color: var(--pure-white) !important;
+    border: none;
+    font-size: 1.1rem;
+}
+
+.confirm-exit-btn {
+    background: var(--error-red) !important;
+    color: var(--pure-white) !important;
+    border: none;
+    font-size: 1.1rem;
+}
+
+.continue-edit-btn { /*SERVE???????????????????*/
+    background: transparent !important;
+    color: var(--chill-grey) !important;
+    border: 1px solid #cbd5e1 !important;
 }

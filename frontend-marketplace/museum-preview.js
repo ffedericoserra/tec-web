@@ -22,8 +22,8 @@ function showMuseumOptions(museumId, museumName){
         <p style="color: #666; margin-bottom: 25px; margin-top: 5px;">What would you like to do?</p>
         
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            <button class="login-btn" id="view-visits-btn">View Existing Visits</button>
-            <button class="login-btn" id="create-visit-btn" style="background: var(--charcoal); color: white;">Create New Visit</button>
+            <button class="main-btn" id="view-visits-btn">View Existing Visits</button>
+            <button class="main-btn" id="create-visit-btn" style="background: var(--charcoal); color: white;">Create New Visit</button>
             <button id="cancel-choice-btn" style="background: transparent; border: none; color: #999; font-size: 0.9rem; margin-top: 10px; cursor: pointer; text-decoration: underline;">Cancel</button>
         </div>
     `
