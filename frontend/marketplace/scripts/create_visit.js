@@ -318,3 +318,10 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     }
 });
 
+function tornaIndietro() {
+    var aTag=document.querySelector(".header-back-link")
+    aTag.innerHTML=`&larr; ${museumName}`
+    aTag.href="../pages/visits_list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName)
+}
+
+tornaIndietro()
