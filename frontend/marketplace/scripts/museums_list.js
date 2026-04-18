@@ -8,7 +8,7 @@ let allMuseums=[]
 
 if (!token) {
     alert("You must be logged in to access this page.")
-    window.location.href = "loginpage.html"
+    window.location.href = "../pages/login.html"
 }
 
 function showMuseumOptions(museumId, museumName){

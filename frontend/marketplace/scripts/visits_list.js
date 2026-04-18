@@ -8,6 +8,11 @@ const urlParams = new URLSearchParams(window.location.search);
 const currMuseumId = urlParams.get('museumId');
 const currMuseumName = urlParams.get('museumName');
 
+if (!token) {
+    alert("You must be logged in to access this page.")
+    window.location.href = "../pages/login.html"
+}
+
 console.log("Stiamo lavorando sul museo:", currMuseumName, "con ID:", currMuseumId);
 
 let allTours=[]
