@@ -19,7 +19,7 @@ document.getElementById('cancel-btn').addEventListener('click', () => {
     cancelModal.classList.remove('hidden');
 });
 document.getElementById('confirm-exit-btn').addEventListener('click', () => {
-    window.location.href = `museum-preview.html`; 
+    window.location.href = `../pages/museums_list.html`; 
 });
 document.getElementById('confirm-save-btn').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
@@ -151,7 +151,7 @@ async function apriModaleOpere() {
                 const itemTitle = (item.descriptions && item.descriptions[0]?.title) ? item.descriptions[0].title : `Opera (${item.contentId})`;
                 const itemDiv = document.createElement('div');
                 itemDiv.style.padding = '12px'; itemDiv.style.borderBottom = '1px solid #e2e8f0'; itemDiv.style.cursor = 'pointer'; itemDiv.style.display = 'flex'; itemDiv.style.justifyContent = 'space-between';
-                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: #64748b;">${item.price > 0 ? item.price+'€' : 'Free'}</span>`;
+                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: var(--chil-grey);">${item.price > 0 ? item.price+'€' : 'Free'}</span>`;
                 
                 itemDiv.onclick = () => {
                     creaEdAggiungiItem(itemTitle, item._id, activeBlockList);
@@ -160,7 +160,7 @@ async function apriModaleOpere() {
                 itemsContainer.appendChild(itemDiv);
             });
         } else {
-            itemsContainer.innerHTML = '<p style="text-align:center; color: #666;">No artworks found.</p>';
+            itemsContainer.innerHTML = '<p style="text-align:center; color: var(--chil-grey);">No artworks found.</p>';
         }
     } catch (err) {
         itemsContainer.innerHTML = '<p style="text-align:center; color: var(--error-red);">Connection error.</p>';
@@ -204,7 +204,7 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
             return;
         }
         // Naviga passando ID opera e ID museo!
-        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}`;
+        window.location.href = `../pages/create_items.html?itemId=${itemId}&museumId=${museumId}`;
     });
 
     // 2. EVENTO ELIMINAZIONE
@@ -309,7 +309,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         });
         if (res.ok) {
             alert("Visita salvata con successo!");
-            window.location.href = "visits-list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName);
+            window.location.href = "../pages/visits_list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName);
         } else {
             alert("Errore nel salvataggio. Controlla la console.");
         }
@@ -317,3 +317,4 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         console.error(err);
     }
 });
+

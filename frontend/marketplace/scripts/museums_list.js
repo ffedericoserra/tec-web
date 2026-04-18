@@ -41,7 +41,7 @@ function showMuseumOptions(museumId, museumName){
 
     option1.onclick= () => {
         //manda a pag HTML inviandogli l'ID museo
-        window.location.href=`visits-list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+        window.location.href=`visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
     }
     option2.onclick= () => {
         window.location.href=`create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`

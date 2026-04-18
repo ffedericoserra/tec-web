@@ -4,24 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArtAround - Visit Builder</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
   <body>
     <div class="main-container">
       <header class="top-bar space-between">
         <a href="homepage.html" class="logo-link">
           <img
-            src="../imgs/artaround/logo.png"
+            src="../assets/artaround/logo.png"
             alt="ArtAround Logo"
             class="logo-img"
           />
         </a>
-        <button
-          onclick="window.location.href = 'museum-preview.html'"
-          class="secondary-btn header-back-btn"
-        >
-          Go back to the Marketplace
-        </button>
+        <a href="visits_list.html" class="header-back-link">
+          &larr; Back to Museum page
+        </a>
       </header>
 
       <main class="visit-main-content">
@@ -108,6 +105,6 @@
       </div>
     </div>
 
-    <script src="create-visit.js"></script>
+    <script src="../scripts/create_visit.js"></script>
   </body>
 </html>

@@ -24,7 +24,7 @@ form.addEventListener("submit", async (x)=>{
         if(res.ok){
             localStorage.setItem("token", data.token)
             localStorage.setItem("user", JSON.stringify(data.user))
-            window.location.href="museum-preview.html"
+            window.location.href="../pages/museums_list.html"
         }
         else{
             errMsg.innerHTML=`<p>${data.error || "Login failed"}</p>`
