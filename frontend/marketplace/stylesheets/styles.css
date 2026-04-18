@@ -1066,3 +1066,60 @@ body {
     color: var(--museum-gold);
     transform: translateX(-5px); 
 }
+
+/* --- HEADER MENU ICON --- */
+.menu-btn {
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    color: var(--charcoal);
+    cursor: pointer;
+    transition: color 0.3s ease, transform 0.3s ease;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.menu-btn:hover {
+    color: var(--museum-gold);
+    transform: scale(1.1);
+}
+
+/* --- FLOATING ADD BUTTON (Bottom Right) --- */
+.floating-add-btn {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--charcoal);
+    color: var(--museum-gold);
+    border: 2px solid var(--charcoal);
+    border-radius: 50%;
+    font-size: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 1000;
+}
+
+.floating-add-btn:hover {
+    background-color: var(--museum-gold);
+    color: var(--pure-white);
+    border-color: var(--museum-gold);
+    transform: translateY(-5px) rotate(90deg); /* Lifts up and spins slightly */
+    box-shadow: 0 15px 35px rgba(184, 151, 65, 0.3);
+}
+
+/* For smaller mobile screens */
+@media (max-width: 768px) {
+    .floating-add-btn {
+        bottom: 25px;
+        right: 25px;
+        width: 55px;
+        height: 55px;
+    }
+}

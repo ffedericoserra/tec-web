@@ -17,10 +17,9 @@
           />
         </a>
 
-        <div style="display: flex; align-items: center; gap: 15px">
-          <span class="about-text" style="margin: 0">Add a new museum</span>
-          <button class="add-btn">+</button>
-        </div>
+        <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
+          &#9776;
+        </button>
       </header>
 
       <main class="center-content">
@@ -83,6 +82,14 @@
         </form>
       </div>
     </div>
+
+    <button
+      class="floating-add-btn add-btn"
+      id="add-museum-btn"
+      aria-label="Add a new museum"
+    >
+      +
+    </button>
     <script src="../scripts/museums_list.js"></script>
   </body>
 </html>

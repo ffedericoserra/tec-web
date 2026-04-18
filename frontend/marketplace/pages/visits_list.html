@@ -17,10 +17,9 @@
           />
         </a>
 
-        <div style="display: flex; align-items: center; gap: 15px">
-          <span class="about-text" style="margin: 0">Add a new visit</span>
-          <button id="add-visit-btn" class="add-btn">+</button>
-        </div>
+        <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
+          &#9776;
+        </button>
       </header>
 
       <main class="center-content">
@@ -40,6 +39,13 @@
       <footer class="bottom-bar"></footer>
     </div>
 
+    <button
+      class="floating-add-btn add-btn"
+      id="add-visit-btn"
+      aria-label="Add a new visit"
+    >
+      +
+    </button>
     <script src="../scripts/visits_list.js"></script>
   </body>
 </html>
