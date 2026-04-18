@@ -1123,3 +1123,91 @@ body {
         height: 55px;
     }
 }
+
+/* --- DROPDOWN MENU --- */
+.dropdown-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-content {
+    /* IL TRUCCO: Questo annulla l'effetto della classe .hidden se è rimasta nell'HTML */
+    display: block !important; 
+
+    position: absolute;
+    top: 100%; 
+    right: 0;
+    margin-top: 15px; 
+    background-color: var(--pure-white);
+    min-width: 200px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    z-index: 2000;
+    
+    /* Gestione della visibilità tramite opacità */
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
+    
+    /* Evita che venga cliccato per sbaglio quando è invisibile */
+    pointer-events: none; 
+}
+
+/* Quando il JS aggiunge la classe .show */
+.dropdown-content.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
+    pointer-events: auto; /* Riattiva i click */
+}
+
+/* Stile dei link nel menu */
+.dropdown-content a {
+    color: var(--charcoal);
+    padding: 15px 20px;
+    text-decoration: none;
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: var(--gallery-bg-darker);
+    color: var(--museum-gold);
+}
+
+.logout-text {
+    border-top: 1px solid var(--border-light);
+    color: #d9534f !important; 
+}
+
+.logout-text:hover {
+    background-color: #ffeaea !important; 
+    color: #c9302c !important;
+}
+
+/* Stile specifico per la text-area per rimuovere l'inline style */
+      .modal-textarea {
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border-light, #ccc);
+        font-family: inherit;
+        resize: vertical;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Stile per un elemento non cliccabile nel dropdown (es. label per la lingua) */
+      .dropdown-label {
+        color: #999;
+        font-size: 0.85rem;
+        padding: 10px 20px 5px 20px;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }

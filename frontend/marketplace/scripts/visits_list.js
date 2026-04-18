@@ -124,8 +124,41 @@ if (addNewVisitBtn) {
 }
 }
 
+
+
+function setupDropdownMenu() {
+    var menuBtn = document.getElementById("main-menu-btn")
+    var dropdown = document.getElementById("dropdown-menu")
+    var logoutBtn = document.getElementById("logout-btn")
+
+    if (!menuBtn || !dropdown) return;
+
+    
+    menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); 
+        dropdown.classList.toggle("show")
+    });
+
+    
+    document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            dropdown.classList.remove("show")
+        }
+    });
+
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.removeItem("token") 
+            window.location.href = "login.html" 
+        });
+    }
+}
+
 // Avviamo tutto
 setUpMuseumDatas()
 loadList()
 setupSearchListeners()
 setupAddVisitBtn()
+setupDropdownMenu()

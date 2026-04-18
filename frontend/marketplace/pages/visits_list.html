@@ -8,7 +8,14 @@
   </head>
   <body>
     <div class="main-container">
-      <header class="top-bar">
+      <header
+        class="top-bar space-between"
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
         <a href="homepage.html" class="logo-link">
           <img
             src="../assets/artaround/logo.png"
@@ -17,9 +24,21 @@
           />
         </a>
 
-        <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
-          &#9776;
-        </button>
+        <div class="dropdown-wrapper">
+          <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
+            &#9776;
+          </button>
+
+          <div id="dropdown-menu" class="dropdown-content">
+            <a href="../../user_profile/pages/profile.html"
+              >Your user profile</a
+            >
+            <p class="dropdown-label">Language settings</p>
+            <a href="#">🇮🇹 Italiano</a>
+            <a href="#">🇬🇧 English</a>
+            <a href="#" id="logout-btn" class="logout-text">Logout</a>
+          </div>
+        </div>
       </header>
 
       <main class="center-content">

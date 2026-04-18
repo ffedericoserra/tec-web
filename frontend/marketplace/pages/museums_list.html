@@ -3,12 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Marketplace</title>
+    <title>Marketplace - ArtAround</title>
     <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
   <body>
     <div class="main-container">
-      <header class="top-bar">
+      <header
+        class="top-bar space-between"
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
         <a href="homepage.html" class="logo-link">
           <img
             src="../assets/artaround/logo.png"
@@ -17,14 +24,27 @@
           />
         </a>
 
-        <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
-          &#9776;
-        </button>
+        <div class="dropdown-wrapper">
+          <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
+            &#9776;
+          </button>
+
+          <div id="dropdown-menu" class="dropdown-content">
+            <a href="../../user_profile/pages/profile.html"
+              >Your user profile</a
+            >
+            <p class="dropdown-label">Language settings</p>
+            <a href="#">🇮🇹 Italiano</a>
+            <a href="#">🇬🇧 English</a>
+            <a href="#" id="logout-btn" class="logout-text">Logout</a>
+          </div>
+        </div>
       </header>
 
       <main class="center-content">
         <h1 class="title">Marketplace</h1>
         <h2 class="subtitle">Select an existing museum or add a new one</h2>
+
         <div class="search-container">
           <input
             type="text"
@@ -33,14 +53,19 @@
             placeholder="Search for a museum or a city..."
           />
         </div>
+
         <div id="museum-list"></div>
       </main>
 
       <footer class="bottom-bar"></footer>
     </div>
+
     <div id="add-museum-modal" class="modal-overlay hidden">
       <div class="modal-content auth-form">
-        <h2 class="subtitle" style="margin-top: 0; color: var(--blue)">
+        <h2
+          class="subtitle"
+          style="margin-top: 0; color: var(--charcoal, #333)"
+        >
           Add New Museum
         </h2>
         <form id="add-museum-form">
@@ -57,13 +82,7 @@
             <textarea
               id="m-description"
               rows="3"
-              style="
-                padding: 10px;
-                border-radius: 8px;
-                border: 1px solid #ccc;
-                font-family: inherit;
-                resize: vertical;
-              "
+              class="modal-textarea"
             ></textarea>
           </div>
 
@@ -90,6 +109,7 @@
     >
       +
     </button>
+
     <script src="../scripts/museums_list.js"></script>
   </body>
 </html>
