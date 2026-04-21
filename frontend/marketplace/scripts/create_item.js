@@ -2,22 +2,16 @@ const myApi = "http://localhost:8000/api";
 const token = localStorage.getItem("token");
 
 if (!token) {
-    window.location.href = "loginpage.html";
+    window.location.href = "../loginpage.html"; 
 }
 
-// Parametri URL
 const urlParams = new URLSearchParams(window.location.search);
 const itemId = urlParams.get('itemId');
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
 
-// --- DATI DA SALVAGUARDARE IN BACKGROUND ---
-// Questi non possono essere modificati dall'interfaccia, 
-// ma li teniamo in memoria per rimetterli nel payload quando salviamo.
 let originalPrice = 0;
 let originalTarget = "";
-
-// --- STATO DELL'EDITOR TESTI IN MEMORIA ---
 let currentTone = 'easy';
 let currentLength = '3s';
 
@@ -27,7 +21,6 @@ const itemData = {
     complex: { enabled: false, texts: { '3s': '', '15s': '', '45s': '' } }
 };
 
-// --- LOGICA NAVIGAZIONE E MODALE ANNULLA ---
 function tornaAllaVisita() {
     window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
 }
@@ -46,25 +39,20 @@ document.getElementById('close-cancel-modal').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
 });
 
-// --- CARICAMENTO DATI DAL DATABASE ---
 async function caricaDatiItem() {
     try {
-        // 1. Fetch dell'Item
         const resItem = await fetch(`${myApi}/items?_id=${itemId}`, { headers: { 'Authorization': `Bearer ${token}` }});
         const dataItem = await resItem.json();
         const item = dataItem.items.find(i => i._id === itemId);
         
         if (!item) return;
 
-        // Salviamo in memoria i dati intoccabili
         originalPrice = item.price || 0;
         originalTarget = item.targetAudience || 'Non specificato';
 
-        // Stampa i dati dell'Item nella Carta
         document.getElementById('disp-price').innerText = originalPrice > 0 ? `${originalPrice} €` : 'Gratis';
         document.getElementById('disp-target').innerText = originalTarget;
 
-        // 2. Fetch del Content (Autore, Titolo, Anno, Immagine)
         let contentName = "Opera Senza Titolo";
         let contentAuthor = "Autore Ignoto";
         let contentYear = "Anno non specificato";
@@ -81,19 +69,25 @@ async function caricaDatiItem() {
             contentName = relatedContent.name || contentName;
             contentAuthor = relatedContent.author || contentAuthor;
             contentYear = relatedContent.year || contentYear;
-            imageUrl = relatedContent.imageUrl; // Assumendo che esista nel db
+            imageUrl = relatedContent.imageUrl; 
         }
 
-        // Stampa a schermo i dati del Content
         document.getElementById('disp-title').innerText = contentName;
         document.getElementById('disp-author').innerText = contentAuthor;
         document.getElementById('disp-year').innerText = contentYear;
         
+        // --- FIX IMMAGINE: Assicura che il path sia corretto collegandosi al server ---
         if (imageUrl) {
-            document.getElementById('disp-image').innerHTML = `<img src="${imageUrl}" alt="Immagine dell'opera">`;
+            // Se l'immagine è un link esterno (es. imgur, cloudinary), la usiamo così.
+            // Se è un link locale al server (es. /uploads/image.jpg), attacchiamo l'indirizzo base del backend
+            const finalImgUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+            
+            document.getElementById('disp-image').innerHTML = `<img src="${finalImgUrl}" alt="Immagine dell'opera" onerror="this.parentElement.innerHTML='<span style=\\'font-size:0.9rem;\\'>Immagine<br>non trovata</span>'">`;
+            document.getElementById('disp-image').style.border = "none";
+        } else {
+            document.getElementById('disp-image').innerHTML = `<span style="font-size:0.9rem;">Nessuna immagine<br>nel Database</span>`;
         }
         
-        // 3. Estrapola i testi e riempie la matrice `itemData`
         if (item.descriptions && item.descriptions.length > 0) {
             item.descriptions.forEach(desc => {
                 const tone = desc.tone; 
@@ -117,20 +111,16 @@ async function caricaDatiItem() {
     }
 }
 
-// Avvia il caricamento all'apertura
 caricaDatiItem();
 
-// --- LOGICA DELL'INTERFACCIA (Toni, Lunghezze, Testi) ---
 const textEditor = document.getElementById('main-text-editor');
 const warningDisabled = document.getElementById('warning-disabled');
 const currentToneDisplay = document.getElementById('current-tone-display');
 
-// Salva ad ogni tasto premuto
 textEditor.addEventListener('input', (e) => {
     itemData[currentTone].texts[currentLength] = e.target.value;
 });
 
-// Click sulle Spunte
 document.querySelectorAll('.tone-checkbox').forEach(checkbox => {
     checkbox.addEventListener('click', (e) => e.stopPropagation()); 
     checkbox.addEventListener('change', (e) => {
@@ -140,7 +130,6 @@ document.querySelectorAll('.tone-checkbox').forEach(checkbox => {
     });
 });
 
-// Click sulle Barre dei Toni (A sinistra)
 document.querySelectorAll('.tone-bar').forEach(bar => {
     bar.addEventListener('click', (e) => {
         document.querySelectorAll('.tone-bar').forEach(b => b.classList.remove('active'));
@@ -150,7 +139,6 @@ document.querySelectorAll('.tone-bar').forEach(bar => {
     });
 });
 
-// Click sulle Lunghezze (Sopra il testo)
 document.querySelectorAll('.length-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         document.querySelectorAll('.length-btn').forEach(b => b.classList.remove('active'));
@@ -173,9 +161,7 @@ function aggiornaEditorTesto() {
     currentToneDisplay.innerText = `Stai modificando: Tono ${toneNames[currentTone]}`;
 }
 
-// --- SALVATAGGIO FINALE NEL DATABASE ---
 document.getElementById('save-item-btn').addEventListener('click', async () => {
-    
     const descriptionsPayload = [];
     
     for (const [toneKey, toneData] of Object.entries(itemData)) {
@@ -195,7 +181,6 @@ document.getElementById('save-item-btn').addEventListener('click', async () => {
         }
     }
 
-    // Invia i testi nuovi, ma MANTIENE il prezzo e il target originali!
     const payload = {
         targetAudience: originalTarget,
         price: originalPrice,
