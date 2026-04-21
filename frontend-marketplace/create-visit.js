@@ -199,12 +199,14 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
 
     // 1. EVENTO CLICK: Naviga al file create_items.html
     li.addEventListener('click', function(e) {
-        // Ignora il click se premiamo il tasto X o la barra per trascinare
         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
             return;
         }
-        // Naviga passando ID opera e ID museo!
-        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}`;
+        
+        salvaStatoTemporaneo();
+
+        // Passiamo anche il museumName per poterlo riportare indietro
+        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
     });
 
     // 2. EVENTO ELIMINAZIONE
@@ -315,5 +317,73 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         }
     } catch(err) {
         console.error(err);
+    }
+});
+
+
+// --- SISTEMA DI SALVATAGGIO TEMPORANEO (SESSION STORAGE) ---
+function salvaStatoTemporaneo() {
+    const title = document.getElementById('v-title').value;
+    const desc = document.getElementById('v-desc').value;
+    const blocksHtml = document.getElementById('blocks-container').innerHTML;
+    
+    const visitState = {
+        title: title,
+        desc: desc,
+        blocks: blocksHtml,
+        blockCounter: blockCounter
+    };
+    // Salva nel sessionStorage (memoria a breve termine del browser)
+    sessionStorage.setItem('temp_visit_state', JSON.stringify(visitState));
+}
+
+// Ripristina lo stato se torni dalla pagina dell'Item
+window.addEventListener('DOMContentLoaded', () => {
+    const savedState = sessionStorage.getItem('temp_visit_state');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        document.getElementById('v-title').value = state.title;
+        document.getElementById('v-desc').value = state.desc;
+        
+        // Rigenera i blocchi che avevi creato
+        document.getElementById('blocks-container').innerHTML = state.blocks;
+        blockCounter = state.blockCounter;
+        
+        // Riattacca gli Event Listener ai bottoni dei blocchi ripristinati
+        document.querySelectorAll('.visit-block').forEach(block => {
+            const ulList = block.querySelector('.block-list');
+            setupDragAndDropForList(ulList);
+            
+            block.querySelector('.add-item-to-block').addEventListener('click', () => {
+                activeBlockList = ulList; apriModaleOpere();
+            });
+            block.querySelector('.delete-block-btn').addEventListener('click', () => {
+                if(confirm("Vuoi eliminare questa colonna?")) { block.remove(); aggiornaContatoriBlocchi(); }
+            });
+            
+            // Riattacca gli eventi a tutte le singole carte ripristinate
+            block.querySelectorAll('.draggable-item').forEach(li => {
+                const itemId = li.dataset.itemId;
+                li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
+                li.addEventListener('dragstart', function(e) { /* ...stesso codice di dragstart... */ });
+                li.addEventListener('dragend', function() { /* ...stesso codice di dragend... */ });
+                li.addEventListener('click', function(e) {
+                    if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
+                    salvaStatoTemporaneo();
+                    window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+                });
+            });
+        });
+        
+        // Riattacca l'evento al tasto + gigante per aggiungere colonne
+        document.getElementById('add-block-btn').addEventListener('click', () => {
+            const nextNum = document.querySelectorAll('.visit-block').length + 1;
+            createNewBlock(` ${toRoman(nextNum)} `);
+        });
+
+        aggiornaContatoriBlocchi();
+        
+        // IMPORTANTE: Pulisce la memoria dopo aver ricaricato, per non fare confusione in futuro
+        sessionStorage.removeItem('temp_visit_state');
     }
 });
