@@ -2,8 +2,8 @@ const myApi = "http://localhost:8000/api";
 const token = localStorage.getItem("token");
 
 if (!token) {
-    alert("Devi effettuare l'accesso per creare una visita.");
-    window.location.href = "loginpage.html";
+    alert("You must be logged in to access this page.");
+    window.location.href = "../pages/login.html";
 }
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -11,7 +11,7 @@ const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
 
 const displayMuseumEl = document.getElementById('display-museum-name');
-if (displayMuseumEl) displayMuseumEl.innerText = museumName || "Nessun museo";
+if (displayMuseumEl) displayMuseumEl.innerText = museumName || "No museums";
 
 // --- LOGICA MODALE ANNULLA / ESCI ---
 const cancelModal = document.getElementById('cancel-confirm-modal');
@@ -19,7 +19,7 @@ document.getElementById('cancel-btn').addEventListener('click', () => {
     cancelModal.classList.remove('hidden');
 });
 document.getElementById('confirm-exit-btn').addEventListener('click', () => {
-    window.location.href = `museum-preview.html`; 
+    window.location.href = `../pages/museums_list.html`; 
 });
 document.getElementById('confirm-save-btn').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
@@ -33,7 +33,7 @@ const itemModal = document.getElementById('select-item-modal');
 const itemsContainer = document.getElementById('items-container');
 let activeBlockList = null; 
 
-function toRoman(num) {
+function toRoman(num) { //Vogliamo tenerla, c'è già il contatore a sx. Magari integriamola lì
     const roman = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
     let str = '';
     for (let i of Object.keys(roman)) {
@@ -56,12 +56,12 @@ function createNewBlock(defaultTitle) {
         <div class="block-header">
             <span class="block-number">${blockCounter}</span>
             <input type="text" class="block-title-input" value="${defaultTitle}">
-            <span class="block-count">0 opere</span>
-            <button class="delete-block-btn" title="Elimina sezione">✖</button>
+            <span class="block-count">0 artworks</span>
+            <button class="delete-block-btn" title="Remove section">✖</button>
         </div>
         <ul class="block-list"></ul>
         <div style="display: flex; justify-content: center; margin-top: auto; padding-top: 15px;">
-            <button class="add-btn add-item-to-block" title="Aggiungi opera a questa sezione">+</button>
+            <button class="add-btn add-item-to-block" title="Add an artwork to this section">+</button>
         </div>
     `;
 
@@ -73,7 +73,7 @@ function createNewBlock(defaultTitle) {
     });
 
     block.querySelector('.delete-block-btn').addEventListener('click', () => {
-        if(confirm("Vuoi davvero eliminare questa colonna? Tutte le opere verranno rimosse.")) {
+        if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) {
             block.remove();
             aggiornaContatoriBlocchi();
         }
@@ -130,7 +130,7 @@ function aggiornaContatoriBlocchi() {
 // --- LOGICA RECUPERO OPERE ---
 async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
-    itemsContainer.innerHTML = '<p style="text-align:center;">Caricamento opere dal server...</p>';
+    itemsContainer.innerHTML = '<p style="text-align:center;">Loading for server...</p>';
 
     try {
         const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -151,7 +151,7 @@ async function apriModaleOpere() {
                 const itemTitle = (item.descriptions && item.descriptions[0]?.title) ? item.descriptions[0].title : `Opera (${item.contentId})`;
                 const itemDiv = document.createElement('div');
                 itemDiv.style.padding = '12px'; itemDiv.style.borderBottom = '1px solid #e2e8f0'; itemDiv.style.cursor = 'pointer'; itemDiv.style.display = 'flex'; itemDiv.style.justifyContent = 'space-between';
-                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: #64748b;">${item.price > 0 ? item.price+'€' : 'Gratis'}</span>`;
+                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: var(--chil-grey);">${item.price > 0 ? item.price+'€' : 'Free'}</span>`;
                 
                 itemDiv.onclick = () => {
                     creaEdAggiungiItem(itemTitle, item._id, activeBlockList);
@@ -160,10 +160,10 @@ async function apriModaleOpere() {
                 itemsContainer.appendChild(itemDiv);
             });
         } else {
-            itemsContainer.innerHTML = '<p style="text-align:center; color: #666;">Nessuna opera trovata.</p>';
+            itemsContainer.innerHTML = '<p style="text-align:center; color: var(--chil-grey);">No artworks found.</p>';
         }
     } catch (err) {
-        itemsContainer.innerHTML = '<p style="text-align:center; color: red;">Errore di connessione.</p>';
+        itemsContainer.innerHTML = '<p style="text-align:center; color: var(--error-red);">Connection error.</p>';
     }
 }
 
@@ -183,16 +183,16 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
     li.innerHTML = `
         <div class="card-header">
             <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="drag-handle" title="Trascina">☰</span>
+                <span class="drag-handle" title="Drag">☰</span>
                 <strong style="color: var(--charcoal); font-size: 1.05rem;">${titoloOpera}</strong>
             </div>
-            <button class="delete-btn" title="Rimuovi">✖</button>
+            <button class="delete-btn" title="Remove">✖</button>
         </div>
         <div class="card-details">
             <div class="card-image-placeholder">IMG</div>
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <p style="margin: 0; font-size: 0.9rem;"><strong>Clicca per modificare</strong></p>
-                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Apri i dettagli di quest'opera.</p>
+                <p style="margin: 0; font-size: 0.9rem;"><strong>Click here to edit</strong></p>
+                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">See this artwork's details.</p>
             </div>
         </div>
     `;
@@ -202,11 +202,8 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
             return;
         }
-        
-        salvaStatoTemporaneo();
-
-        // Passiamo anche il museumName per poterlo riportare indietro
-        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+        // Naviga passando ID opera e ID museo!
+        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}`;
     });
 
     // 2. EVENTO ELIMINAZIONE
@@ -311,79 +308,11 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         });
         if (res.ok) {
             alert("Visita salvata con successo!");
-            window.location.href = "visits-list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName);
+            window.location.href = "../pages/visits_list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName);
         } else {
             alert("Errore nel salvataggio. Controlla la console.");
         }
     } catch(err) {
         console.error(err);
-    }
-});
-
-
-// --- SISTEMA DI SALVATAGGIO TEMPORANEO (SESSION STORAGE) ---
-function salvaStatoTemporaneo() {
-    const title = document.getElementById('v-title').value;
-    const desc = document.getElementById('v-desc').value;
-    const blocksHtml = document.getElementById('blocks-container').innerHTML;
-    
-    const visitState = {
-        title: title,
-        desc: desc,
-        blocks: blocksHtml,
-        blockCounter: blockCounter
-    };
-    // Salva nel sessionStorage (memoria a breve termine del browser)
-    sessionStorage.setItem('temp_visit_state', JSON.stringify(visitState));
-}
-
-// Ripristina lo stato se torni dalla pagina dell'Item
-window.addEventListener('DOMContentLoaded', () => {
-    const savedState = sessionStorage.getItem('temp_visit_state');
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        document.getElementById('v-title').value = state.title;
-        document.getElementById('v-desc').value = state.desc;
-        
-        // Rigenera i blocchi che avevi creato
-        document.getElementById('blocks-container').innerHTML = state.blocks;
-        blockCounter = state.blockCounter;
-        
-        // Riattacca gli Event Listener ai bottoni dei blocchi ripristinati
-        document.querySelectorAll('.visit-block').forEach(block => {
-            const ulList = block.querySelector('.block-list');
-            setupDragAndDropForList(ulList);
-            
-            block.querySelector('.add-item-to-block').addEventListener('click', () => {
-                activeBlockList = ulList; apriModaleOpere();
-            });
-            block.querySelector('.delete-block-btn').addEventListener('click', () => {
-                if(confirm("Vuoi eliminare questa colonna?")) { block.remove(); aggiornaContatoriBlocchi(); }
-            });
-            
-            // Riattacca gli eventi a tutte le singole carte ripristinate
-            block.querySelectorAll('.draggable-item').forEach(li => {
-                const itemId = li.dataset.itemId;
-                li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
-                li.addEventListener('dragstart', function(e) { /* ...stesso codice di dragstart... */ });
-                li.addEventListener('dragend', function() { /* ...stesso codice di dragend... */ });
-                li.addEventListener('click', function(e) {
-                    if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
-                    salvaStatoTemporaneo();
-                    window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
-                });
-            });
-        });
-        
-        // Riattacca l'evento al tasto + gigante per aggiungere colonne
-        document.getElementById('add-block-btn').addEventListener('click', () => {
-            const nextNum = document.querySelectorAll('.visit-block').length + 1;
-            createNewBlock(` ${toRoman(nextNum)} `);
-        });
-
-        aggiornaContatoriBlocchi();
-        
-        // IMPORTANTE: Pulisce la memoria dopo aver ricaricato, per non fare confusione in futuro
-        sessionStorage.removeItem('temp_visit_state');
     }
 });

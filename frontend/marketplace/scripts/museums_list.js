@@ -2,10 +2,13 @@ const myApi = "http://localhost:8000/api" // da cambiare in fase di deploy
 const museumList = document.getElementById("museum-list")
 const token = localStorage.getItem("token")
 const addBtn = document.querySelector(".add-btn")
+const searchBar=document.querySelector("#search-bar")
+
+let allMuseums=[]
 
 if (!token) {
     alert("You must be logged in to access this page.")
-    window.location.href = "loginpage.html"
+    window.location.href = "../pages/login.html"
 }
 
 function showMuseumOptions(museumId, museumName){
@@ -22,8 +25,8 @@ function showMuseumOptions(museumId, museumName){
         <p style="color: #666; margin-bottom: 25px; margin-top: 5px;">What would you like to do?</p>
         
         <div style="display: flex; flex-direction: column; gap: 15px;">
-            <button class="login-btn" id="view-visits-btn">View Existing Visits</button>
-            <button class="login-btn" id="create-visit-btn" style="background: var(--charcoal); color: white;">Create New Visit</button>
+            <button class="main-btn" id="view-visits-btn">View Existing Visits</button>
+            <button class="main-btn" id="create-visit-btn" style="background: var(--charcoal); color: white;">Create New Visit</button>
             <button id="cancel-choice-btn" style="background: transparent; border: none; color: #999; font-size: 0.9rem; margin-top: 10px; cursor: pointer; text-decoration: underline;">Cancel</button>
         </div>
     `
@@ -38,7 +41,7 @@ function showMuseumOptions(museumId, museumName){
 
     option1.onclick= () => {
         //manda a pag HTML inviandogli l'ID museo
-        window.location.href=`visits-list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+        window.location.href=`visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
     }
     option2.onclick= () => {
         window.location.href=`create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`
@@ -55,32 +58,41 @@ function showMuseumOptions(museumId, museumName){
     });
 }
 
+function renderMuseumsList(museumArr) {
+    museumList.innerHTML = ""
+    if(museumArr.length===0){
+        museumList.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--chill-grey); font-size: 1.1rem;">No museums found.</p>`
+        return;
+    }
 
+    //mostriamo i musei
+    museumArr.forEach(m => {
+        const newIcon = document.createElement("div")
+        newIcon.className = "museum-icon"
+        newIcon.innerHTML = `
+            <h3>${m.name}</h3>
+            <p>${m.address || 'Address not available'}</p>
+        ` 
+            
+        newIcon.onclick = () => {
+            showMuseumOptions(m._id, m.name)    
+        }
+        
+        museumList.appendChild(newIcon)
+            
+    })
+    
+}
 
 async function loadMuseumsList() {
     try {
         const res = await fetch(`${myApi}/museums`)
         const data = await res.json()
-        const allMuseums = data.museums || []
+        allMuseums = data.museums || []
+
+        renderMuseumsList(allMuseums)
         
-        museumList.innerHTML = ""
-        
-        //mostriamo i musei
-        allMuseums.forEach(m => {
-            const newIcon = document.createElement("div")
-            newIcon.className = "museum-icon"
-            newIcon.innerHTML = `
-                <h3>${m.name}</h3>
-                <p>${m.address || 'Address not available'}</p>
-            ` 
-            
-            newIcon.onclick = () => {
-                showMuseumOptions(m._id, m.name)    
-            }
-            
-            museumList.appendChild(newIcon)
-            
-        })
+      
     } catch(er) {
         console.error("Error while loading the museums " + er)
         erMessage=document.createElement("div")
@@ -91,6 +103,20 @@ async function loadMuseumsList() {
     }
 }
 
+function setupSearchListeners() {
+    if(!searchBar) return;
+    searchBar.addEventListener("input", (e)=>{
+        var searchTerm = e.target.value.toLowerCase().trim();
+        var filteredArr=allMuseums.filter(mus=>{
+            var matchingName=mus.name &&  mus.name.toLowerCase().includes(searchTerm)
+            matchingAddr=mus.address && mus.address.toLowerCase().includes(searchTerm)
+
+            return matchingName || matchingAddr
+        })
+
+        renderMuseumsList(filteredArr)
+    })
+}
 
 function setupModalListeners() {
     try {
@@ -167,6 +193,42 @@ function setupModalListeners() {
     }
 }
 
+
+function setupDropdownMenu() {
+    var menuBtn = document.getElementById("main-menu-btn")
+    var dropdown = document.getElementById("dropdown-menu")
+    var logoutBtn = document.getElementById("logout-btn")
+
+    if (!menuBtn || !dropdown) return;
+
+    
+    menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); 
+        dropdown.classList.toggle("show")
+    });
+
+    
+    document.addEventListener("click", (e) => {
+        if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+            dropdown.classList.remove("show")
+        }
+    });
+
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            localStorage.removeItem("token") 
+            window.location.href = "login.html" 
+        });
+    }
+}
+
+
+
+
 // Avviamo tutto
 setupModalListeners()
+setupSearchListeners()
 loadMuseumsList()
+setupDropdownMenu()

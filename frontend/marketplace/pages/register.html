@@ -4,14 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArtAround ~ Register</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
   <body>
     <div class="main-container">
       <header class="top-bar">
         <a href="homepage.html" class="logo-link">
           <img
-            src="../imgs/artaround/logo.png"
+            src="../assets/artaround/logo.png"
             alt="ArtAround Logo"
             class="logo-img"
           />
@@ -32,20 +32,18 @@
           <label for="pwd">Password:</label>
           <input class="input-slot" id="reg-pwd" type="password" required />
 
-          <button class="login-btn" type="submit">Sign Up</button>
+          <button class="main-btn" type="submit">Sign Up</button>
 
           <div id="error-msg"></div>
         </form>
 
         <p style="margin-top: 20px">
-          <a
-            href="loginpage.html"
-            style="color: var(--charcoal); font-weight: bold"
+          <a href="login.html" style="color: var(--charcoal); font-weight: bold"
             >Already have an account? Log in</a
           >
         </p>
       </main>
     </div>
-    <script src="register.js"></script>
+    <script src="../scripts/register.js"></script>
   </body>
 </html>

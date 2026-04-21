@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Visit Builder</title>
+    <link rel="stylesheet" href="../stylesheets/styles.css" />
+  </head>
+  <body>
+    <div class="main-container">
+      <header class="top-bar space-between">
+        <a href="homepage.html" class="logo-link">
+          <img
+            src="../assets/artaround/logo.png"
+            alt="ArtAround Logo"
+            class="logo-img"
+          />
+        </a>
+        <a href="visits_list.html" class="header-back-link">
+          &larr; Back to Museum page
+        </a>
+      </header>
+
+      <main class="visit-main-content">
+        <div class="visit-editor-wrapper">
+          <h2 class="title editor-title">Tour Editor</h2>
+          <h3 class="editor-subtitle">
+            You are creating a fisit for:
+            <strong id="display-museum-name" class="highlight-museum"
+              >...</strong
+            >
+          </h3>
+
+          <div class="visit-meta-form">
+            <div>
+              <input
+                type="text"
+                id="v-title"
+                placeholder="Visit title"
+                required
+              />
+            </div>
+            <div>
+              <textarea
+                id="v-desc"
+                rows="2"
+                placeholder="Description or general introduction to your tour..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="blocks-wrapper" id="blocks-container">
+            <div class="add-section-wrapper" id="add-block-btn">
+              <div class="add-section-content">
+                <button class="add-btn">+</button>
+                <span class="add-section-text">Add Section</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button id="cancel-btn" class="main-btn cancel-visit-btn">
+              Cancel / Exit
+            </button>
+            <button id="save-visit-btn" class="main-btn save-visit-btn">
+              Save
+            </button>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="select-item-modal" class="modal-overlay hidden">
+      <div class="modal-content auth-form">
+        <h3 class="subtitle modal-top-title">Choose an artwork</h3>
+        <div id="items-container" class="items-scroll-container"></div>
+        <button
+          type="button"
+          class="main-btn close-modal-btn"
+          id="close-item-modal"
+        >
+          Chiudi
+        </button>
+      </div>
+    </div>
+
+    <div id="cancel-confirm-modal" class="modal-overlay hidden">
+      <div class="modal-content auth-form center-text-modal">
+        <h2 class="warning-title">Pay attention!</h2>
+        <p class="warning-text">
+          You are leaving the editor. Le unsaved changes will be lost. Do you
+          want to save them before leaving this page?
+        </p>
+        <div class="modal-action-stack">
+          <button id="confirm-save-btn" class="main-btn confirm-save-btn">
+            Save Visit
+          </button>
+          <button id="confirm-exit-btn" class="main-btn confirm-exit-btn">
+            Leave without saving
+          </button>
+          <button id="close-cancel-modal" class="main-btn continue-edit-btn">
+            Keep editing
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../scripts/create_visit.js"></script>
+  </body>
+</html>
