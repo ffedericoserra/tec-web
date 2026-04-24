@@ -9,6 +9,12 @@ const urlParams = new URLSearchParams(window.location.search);
 const itemId = urlParams.get('itemId');
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
+const passedTitle = urlParams.get('title'); // Cattura il titolo se passato!
+
+// Pre-compila istantaneamente il titolo per non far aspettare l'utente
+if (passedTitle) {
+    document.getElementById('disp-title').innerText = decodeURIComponent(passedTitle);
+}
 
 let originalPrice = 0;
 let originalTarget = "";
@@ -21,15 +27,18 @@ const itemData = {
     complex: { enabled: false, texts: { '3s': '', '15s': '', '45s': '' } }
 };
 
+// === GESTIONE MODALI E PULSANTI HEADER/BOTTOM ===
 function tornaAllaVisita() {
     window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
 }
 
 const cancelModal = document.getElementById('cancel-confirm-modal');
 
+// Apri modale sia dal bottone in alto che da quello in basso
 document.getElementById('back-to-visit-btn').addEventListener('click', () => cancelModal.classList.remove('hidden'));
 document.getElementById('cancel-btn').addEventListener('click', () => cancelModal.classList.remove('hidden'));
 
+// Azioni dentro la modale
 document.getElementById('confirm-exit-btn').addEventListener('click', tornaAllaVisita);
 document.getElementById('confirm-save-btn').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
@@ -39,11 +48,17 @@ document.getElementById('close-cancel-modal').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
 });
 
+// === CHIAMATA AL DATABASE ===
 async function caricaDatiItem() {
+    if (!itemId) return;
+
     try {
-        const resItem = await fetch(`${myApi}/items?_id=${itemId}`, { headers: { 'Authorization': `Bearer ${token}` }});
+        // 1. Fetch Item usando la rotta diretta
+        const resItem = await fetch(`${myApi}/items/${itemId}`, { headers: { 'Authorization': `Bearer ${token}` }});
+        if (!resItem.ok) return;
+        
         const dataItem = await resItem.json();
-        const item = dataItem.items.find(i => i._id === itemId);
+        const item = dataItem.item;
         
         if (!item) return;
 
@@ -53,47 +68,39 @@ async function caricaDatiItem() {
         document.getElementById('disp-price').innerText = originalPrice > 0 ? `${originalPrice} €` : 'Gratis';
         document.getElementById('disp-target').innerText = originalTarget;
 
-        let contentName = "Opera Senza Titolo";
-        let contentAuthor = "Autore Ignoto";
-        let contentYear = "Anno non specificato";
-        let imageUrl = null;
-
+        // 2. Fetch dei contenuti del museo per abbinare le info mancanti
         const resContents = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` }});
         const dataContents = await resContents.json();
         
         const relatedContent = (dataContents.contents || []).find(c => 
-            c.universalId === item.contentId || c._id.toString() === item.contentId
+            c.universalId === item.contentId || c._id === item.contentId
         );
 
         if (relatedContent) {
-            contentName = relatedContent.name || contentName;
-            contentAuthor = relatedContent.author || contentAuthor;
-            contentYear = relatedContent.year || contentYear;
-            imageUrl = relatedContent.imageUrl; 
+            // Se non era stato passato un titolo dall'URL, lo mette ora
+            if (!passedTitle) document.getElementById('disp-title').innerText = relatedContent.name || "Senza Titolo";
+            
+            document.getElementById('disp-author').innerText = relatedContent.author || "Autore Ignoto";
+            document.getElementById('disp-year').innerText = relatedContent.year || "Non specificato";
+            
+            if (relatedContent.imageUrl) {
+                const finalImgUrl = relatedContent.imageUrl.startsWith('http') ? relatedContent.imageUrl : `http://localhost:8000${relatedContent.imageUrl.startsWith('/') ? '' : '/'}${relatedContent.imageUrl}`;
+                document.getElementById('disp-image').innerHTML = `<img src="${finalImgUrl}" style="width:100%; height:100%; object-fit:cover;" onerror="this.parentElement.innerHTML='Immagine non valida'"/>`;
+                document.getElementById('disp-image').style.border = "none";
+            } else {
+                document.getElementById('disp-image').innerHTML = `<span style="font-size:0.9rem;">Nessuna immagine</span>`;
+            }
         }
 
-        document.getElementById('disp-title').innerText = contentName;
-        document.getElementById('disp-author').innerText = contentAuthor;
-        document.getElementById('disp-year').innerText = contentYear;
-        
-        // --- FIX IMMAGINE: Assicura che il path sia corretto collegandosi al server ---
-        if (imageUrl) {
-            // Se l'immagine è un link esterno (es. imgur, cloudinary), la usiamo così.
-            // Se è un link locale al server (es. /uploads/image.jpg), attacchiamo l'indirizzo base del backend
-            const finalImgUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-            
-            document.getElementById('disp-image').innerHTML = `<img src="${finalImgUrl}" alt="Immagine dell'opera" onerror="this.parentElement.innerHTML='<span style=\\'font-size:0.9rem;\\'>Immagine<br>non trovata</span>'">`;
-            document.getElementById('disp-image').style.border = "none";
-        } else {
-            document.getElementById('disp-image').innerHTML = `<span style="font-size:0.9rem;">Nessuna immagine<br>nel Database</span>`;
-        }
-        
+        // 3. Estrapola i testi dalle descrizioni e riempie l'editor
         if (item.descriptions && item.descriptions.length > 0) {
             item.descriptions.forEach(desc => {
                 const tone = desc.tone; 
                 if (itemData[tone]) {
                     itemData[tone].enabled = true; 
-                    document.getElementById(`check-${tone}`).checked = true;
+                    // Spunta visivamente la checkbox corretta
+                    const toneBar = document.querySelector(`.tone-bar[data-tone="${tone}"]`);
+                    if(toneBar) toneBar.querySelector('.tone-checkbox').checked = true;
                     
                     desc.texts.forEach(t => {
                         if (itemData[tone].texts[t.lengthCategory] !== undefined) {
@@ -113,6 +120,7 @@ async function caricaDatiItem() {
 
 caricaDatiItem();
 
+// === GESTIONE INTERFACCIA EDITOR TESTI ===
 const textEditor = document.getElementById('main-text-editor');
 const warningDisabled = document.getElementById('warning-disabled');
 const currentToneDisplay = document.getElementById('current-tone-display');
@@ -121,6 +129,7 @@ textEditor.addEventListener('input', (e) => {
     itemData[currentTone].texts[currentLength] = e.target.value;
 });
 
+// Cambia stato spunta
 document.querySelectorAll('.tone-checkbox').forEach(checkbox => {
     checkbox.addEventListener('click', (e) => e.stopPropagation()); 
     checkbox.addEventListener('change', (e) => {
@@ -130,8 +139,9 @@ document.querySelectorAll('.tone-checkbox').forEach(checkbox => {
     });
 });
 
+// Cambia Tono attivo
 document.querySelectorAll('.tone-bar').forEach(bar => {
-    bar.addEventListener('click', (e) => {
+    bar.addEventListener('click', () => {
         document.querySelectorAll('.tone-bar').forEach(b => b.classList.remove('active'));
         bar.classList.add('active');
         currentTone = bar.dataset.tone;
@@ -139,8 +149,9 @@ document.querySelectorAll('.tone-bar').forEach(bar => {
     });
 });
 
+// Cambia Lunghezza attiva
 document.querySelectorAll('.length-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', () => {
         document.querySelectorAll('.length-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentLength = btn.dataset.length;
@@ -161,6 +172,7 @@ function aggiornaEditorTesto() {
     currentToneDisplay.innerText = `Stai modificando: Tono ${toneNames[currentTone]}`;
 }
 
+// === SALVATAGGIO DATABASE ===
 document.getElementById('save-item-btn').addEventListener('click', async () => {
     const descriptionsPayload = [];
     
@@ -198,10 +210,10 @@ document.getElementById('save-item-btn').addEventListener('click', async () => {
         });
 
         if (res.ok) {
-            alert("Testi aggiornati e salvati con successo!");
+            alert("Salvato con successo!");
             tornaAllaVisita(); 
         } else {
-            alert("Errore nel salvataggio dell'opera sul database.");
+            alert("Errore nel salvataggio.");
         }
     } catch (error) {
         console.error(error);

@@ -33,7 +33,8 @@ const itemModal = document.getElementById('select-item-modal');
 const itemsContainer = document.getElementById('items-container');
 let activeBlockList = null; 
 
-function toRoman(num) { //Vogliamo tenerla, c'è già il contatore a sx. Magari integriamola lì
+// Funzione Numeri Romani
+function toRoman(num) { 
     const roman = {M:1000, CM:900, D:500, CD:400, C:100, XC:90, L:50, XL:40, X:10, IX:9, V:5, IV:4, I:1};
     let str = '';
     for (let i of Object.keys(roman)) {
@@ -48,13 +49,13 @@ const blocksContainer = document.getElementById('blocks-container');
 const addBlockBtnWrapper = document.getElementById('add-block-btn');
 let blockCounter = 0;
 
-function createNewBlock(defaultTitle) {
+function createNewBlock(defaultTitle = "New Section") {
     blockCounter++;
     const block = document.createElement('div');
     block.className = 'visit-block';
     block.innerHTML = `
         <div class="block-header">
-            <span class="block-number">${blockCounter}</span>
+            <span class="block-number">${toRoman(blockCounter)}</span>
             <input type="text" class="block-title-input" value="${defaultTitle}">
             <span class="block-count">0 artworks</span>
             <button class="delete-block-btn" title="Remove section">✖</button>
@@ -85,24 +86,20 @@ function createNewBlock(defaultTitle) {
 }
 
 addBlockBtnWrapper.addEventListener('click', () => {
-    const nextNum = document.querySelectorAll('.visit-block').length + 1;
-    createNewBlock(` ${toRoman(nextNum)} `);
+    // Non serve più passargli il numero romano come titolo, usiamo un titolo di default
+    createNewBlock("New Section");
 });
 
-// Crea il primo blocco
-createNewBlock(" I ");
 
 // --- LOGICA ESPANSIONE CARTE ARCHIDEKT ---
 function aggiornaStatoCarte() {
     document.querySelectorAll('.block-list').forEach(list => {
         const items = Array.from(list.children);
         
-        // Rimuovi la classe a tutte
         items.forEach(item => {
             if (item.classList) item.classList.remove('is-last-item');
         });
         
-        // Trova le carte reali
         const validItems = items.filter(item => 
             item.classList.contains('draggable-item') && !item.classList.contains('dragging')
         );
@@ -110,7 +107,6 @@ function aggiornaStatoCarte() {
         if (validItems.length > 0) {
             const lastChild = items[items.length - 1];
             if (!lastChild.classList.contains('placeholder')) {
-                // Assegna is-last-item all'ultima carta per permettere al CSS di gestirla
                 validItems[validItems.length - 1].classList.add('is-last-item');
             }
         }
@@ -120,9 +116,10 @@ function aggiornaStatoCarte() {
 function aggiornaContatoriBlocchi() {
     const blocks = document.querySelectorAll('.visit-block');
     blocks.forEach((block, index) => {
-        block.querySelector('.block-number').textContent = index + 1;
+        // Aggiorniamo il contatore usando la funzione toRoman
+        block.querySelector('.block-number').textContent = toRoman(index + 1);
         const itemCount = block.querySelectorAll('.draggable-item').length;
-        block.querySelector('.block-count').textContent = `${itemCount} opere`;
+        block.querySelector('.block-count').textContent = `${itemCount} artworks`;
     });
     aggiornaStatoCarte(); 
 }
@@ -130,7 +127,7 @@ function aggiornaContatoriBlocchi() {
 // --- LOGICA RECUPERO OPERE ---
 async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
-    itemsContainer.innerHTML = '<p style="text-align:center;">Loading for server...</p>';
+    itemsContainer.innerHTML = '<p style="text-align:center;">Loading from server...</p>';
 
     try {
         const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -197,22 +194,24 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
         </div>
     `;
 
-    // 1. EVENTO CLICK: Naviga al file create_items.html
+    // EVENTO CLICK: Naviga al file create_items.html
     li.addEventListener('click', function(e) {
         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
             return;
         }
-        // Naviga passando ID opera e ID museo!
-        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}`;
+        
+        // SALVA LO STATO IN MEMORIA PRIMA DI CAMBIARE PAGINA
+        salvaStatoTemporaneo();
+
+        // Naviga passando ID opera, ID museo e Titolo (così create_items si apre subito col titolo corretto)
+        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
     });
 
-    // 2. EVENTO ELIMINAZIONE
     li.querySelector('.delete-btn').addEventListener('click', () => {
         li.remove();
         aggiornaContatoriBlocchi();
     });
 
-    // 3. EVENTI TRASCINAMENTO
     li.addEventListener('dragstart', function(e) {
         draggedItem = this;
         placeholder.style.height = `${this.offsetHeight}px`;
@@ -265,6 +264,97 @@ function getDragAfterElement(container, y) {
         }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
+
+// --- SALVATAGGIO E RIPRISTINO DELLO STATO NEL SESSION STORAGE ---
+function salvaStatoTemporaneo() {
+    const title = document.getElementById('v-title') ? document.getElementById('v-title').value : '';
+    const desc = document.getElementById('v-desc') ? document.getElementById('v-desc').value : '';
+    
+    // Rimuoviamo il bottone "add-block-btn" per salvare solo i blocchi effettivi
+    const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
+    const blocksHtml = blocksHtmlNodes.map(el => el.outerHTML).join('');
+    
+    const visitState = {
+        title: title,
+        desc: desc,
+        blocks: blocksHtml,
+        blockCounter: blockCounter
+    };
+    sessionStorage.setItem('temp_visit_state', JSON.stringify(visitState));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    const savedState = sessionStorage.getItem('temp_visit_state');
+    if (savedState) {
+        const state = JSON.parse(savedState);
+        if(document.getElementById('v-title')) document.getElementById('v-title').value = state.title;
+        if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
+        
+        // Ricostruiamo i blocchi salvati prima del bottone "Add Section"
+        const addBtn = document.getElementById('add-block-btn');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = state.blocks;
+        
+        Array.from(tempDiv.children).forEach(block => {
+            blocksContainer.insertBefore(block, addBtn);
+            
+            // Riattacchiamo tutti gli eventi al blocco ripristinato
+            const ulList = block.querySelector('.block-list');
+            setupDragAndDropForList(ulList);
+            
+            block.querySelector('.add-item-to-block').addEventListener('click', () => {
+                activeBlockList = ulList; apriModaleOpere();
+            });
+            block.querySelector('.delete-block-btn').addEventListener('click', () => {
+                if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) { 
+                    block.remove(); aggiornaContatoriBlocchi(); 
+                }
+            });
+            
+            // Riattacchiamo gli eventi alle singole carte
+            block.querySelectorAll('.draggable-item').forEach(li => {
+                const itemId = li.dataset.itemId;
+                const titoloOpera = li.querySelector('strong').innerText; // Recuperiamo il titolo per l'URL
+
+                li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
+                
+                li.addEventListener('dragstart', function(e) {
+                    draggedItem = this;
+                    placeholder.style.height = `${this.offsetHeight}px`;
+                    setTimeout(() => {
+                        this.classList.add('dragging');
+                        this.parentNode.insertBefore(placeholder, this.nextSibling);
+                        aggiornaContatoriBlocchi(); 
+                    }, 0);
+                });
+                
+                li.addEventListener('dragend', function() {
+                    this.classList.remove('dragging');
+                    if (placeholder.parentNode) {
+                        placeholder.parentNode.insertBefore(this, placeholder);
+                        placeholder.parentNode.removeChild(placeholder);
+                    }
+                    draggedItem = null;
+                    aggiornaContatoriBlocchi(); 
+                });
+
+                li.addEventListener('click', function(e) {
+                    if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
+                    salvaStatoTemporaneo();
+                    window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
+                });
+            });
+        });
+        
+        blockCounter = state.blockCounter;
+        aggiornaContatoriBlocchi();
+        sessionStorage.removeItem('temp_visit_state'); // Puliamo la memoria
+    } else {
+        // Se non c'era nessuno stato salvato, creiamo il primo blocco di default
+        createNewBlock("Mainboard");
+    }
+});
+
 
 // --- SALVATAGGIO DATABASE ---
 document.getElementById('save-visit-btn').addEventListener('click', async () => {
