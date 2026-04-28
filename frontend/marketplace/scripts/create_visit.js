@@ -86,10 +86,8 @@ function createNewBlock(defaultTitle = "New Section") {
 }
 
 addBlockBtnWrapper.addEventListener('click', () => {
-    // Non serve più passargli il numero romano come titolo, usiamo un titolo di default
     createNewBlock("New Section");
 });
-
 
 // --- LOGICA ESPANSIONE CARTE ARCHIDEKT ---
 function aggiornaStatoCarte() {
@@ -116,7 +114,6 @@ function aggiornaStatoCarte() {
 function aggiornaContatoriBlocchi() {
     const blocks = document.querySelectorAll('.visit-block');
     blocks.forEach((block, index) => {
-        // Aggiorniamo il contatore usando la funzione toRoman
         block.querySelector('.block-number').textContent = toRoman(index + 1);
         const itemCount = block.querySelectorAll('.draggable-item').length;
         block.querySelector('.block-count').textContent = `${itemCount} artworks`;
@@ -124,20 +121,24 @@ function aggiornaContatoriBlocchi() {
     aggiornaStatoCarte(); 
 }
 
-// --- LOGICA RECUPERO OPERE ---
+// --- LOGICA RECUPERO OPERE ED INCROCIO CON I CONTENTS ---
 async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
     itemsContainer.innerHTML = '<p style="text-align:center;">Loading from server...</p>';
 
     try {
+        // Scarica i Contents (per avere Nomi Veri, Immagini e Autori)
         const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` } });
         const contentsData = await contentsRes.json();
+        const museumContents = contentsData.contents || [];
+        
         const validContentIds = new Set();
-        (contentsData.contents || []).forEach(c => {
+        museumContents.forEach(c => {
             if (c.universalId) validContentIds.add(c.universalId);
             validContentIds.add(c._id.toString());
         });
 
+        // Scarica gli Items (per avere i Prezzi e verificare l'esistenza dell'opera)
         const itemsRes = await fetch(`${myApi}/items`, { headers: { 'Authorization': `Bearer ${token}` } });
         const itemsData = await itemsRes.json();
         const museumItems = (itemsData.items || []).filter(item => validContentIds.has(item.contentId));
@@ -145,13 +146,27 @@ async function apriModaleOpere() {
         itemsContainer.innerHTML = '';
         if (museumItems.length > 0) {
             museumItems.forEach(item => {
-                const itemTitle = (item.descriptions && item.descriptions[0]?.title) ? item.descriptions[0].title : `Opera (${item.contentId})`;
+                
+                // INCROCIO DATI: Cerchiamo il Content corrispondente a questo Item
+                const relatedContent = museumContents.find(c => c.universalId === item.contentId || c._id.toString() === item.contentId);
+                
+                // Estraiamo i dati reali dal database
+                const contentName = relatedContent ? relatedContent.name : `Opera (${item.contentId})`;
+                const contentAuthor = relatedContent ? relatedContent.author : "Autore Ignoto";
+                const imageUrl = relatedContent ? relatedContent.imageUrl : null;
+                
+                // Usiamo il titolo personalizzato se esiste, altrimenti il nome vero dell'opera dal Content
+                const itemTitle = (item.descriptions && item.descriptions.length > 0 && item.descriptions[0].title) 
+                                  ? item.descriptions[0].title 
+                                  : contentName;
+
                 const itemDiv = document.createElement('div');
                 itemDiv.style.padding = '12px'; itemDiv.style.borderBottom = '1px solid #e2e8f0'; itemDiv.style.cursor = 'pointer'; itemDiv.style.display = 'flex'; itemDiv.style.justifyContent = 'space-between';
                 itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: var(--chil-grey);">${item.price > 0 ? item.price+'€' : 'Free'}</span>`;
                 
                 itemDiv.onclick = () => {
-                    creaEdAggiungiItem(itemTitle, item._id, activeBlockList);
+                    // Passiamo anche imageUrl e contentAuthor alla carta!
+                    creaEdAggiungiItem(itemTitle, item._id, activeBlockList, imageUrl, contentAuthor);
                     itemModal.classList.add('hidden');
                 };
                 itemsContainer.appendChild(itemDiv);
@@ -166,16 +181,24 @@ async function apriModaleOpere() {
 
 document.getElementById('close-item-modal').addEventListener('click', () => itemModal.classList.add('hidden'));
 
-// --- DRAG & DROP INCROCIATO & CARTA CLICCABILE ---
+// --- DRAG & DROP INCROCIATO & CREAZIONE CARTA ---
 let draggedItem = null;
 let placeholder = document.createElement('li');
 placeholder.className = 'placeholder';
 
-function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
+// AGGIORNATA: Ora riceve imageUrl e author per stampare la carta vera
+function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, author = "Autore Ignoto") {
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
     li.dataset.itemId = itemId; 
+
+    // Risolviamo il percorso dell'immagine
+    let imgTag = "IMG";
+    if (imageUrl) {
+        const finalImgUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+        imgTag = `<img src="${finalImgUrl}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">`;
+    }
 
     li.innerHTML = `
         <div class="card-header">
@@ -186,24 +209,21 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList) {
             <button class="delete-btn" title="Remove">✖</button>
         </div>
         <div class="card-details">
-            <div class="card-image-placeholder">IMG</div>
+            <div class="card-image-placeholder" style="overflow:hidden; border: 1px solid #e2e8f0;">
+                ${imgTag}
+            </div>
             <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <p style="margin: 0; font-size: 0.9rem;"><strong>Click here to edit</strong></p>
-                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">See this artwork's details.</p>
+                <p style="margin: 0; font-size: 0.95rem; color: var(--blue);"><strong>${author}</strong></p>
+                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Click to edit this artwork's texts.</p>
             </div>
         </div>
     `;
 
-    // EVENTO CLICK: Naviga al file create_items.html
     li.addEventListener('click', function(e) {
         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
             return;
         }
-        
-        // SALVA LO STATO IN MEMORIA PRIMA DI CAMBIARE PAGINA
         salvaStatoTemporaneo();
-
-        // Naviga passando ID opera, ID museo e Titolo (così create_items si apre subito col titolo corretto)
         window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
     });
 
@@ -270,7 +290,6 @@ function salvaStatoTemporaneo() {
     const title = document.getElementById('v-title') ? document.getElementById('v-title').value : '';
     const desc = document.getElementById('v-desc') ? document.getElementById('v-desc').value : '';
     
-    // Rimuoviamo il bottone "add-block-btn" per salvare solo i blocchi effettivi
     const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
     const blocksHtml = blocksHtmlNodes.map(el => el.outerHTML).join('');
     
@@ -290,7 +309,6 @@ window.addEventListener('DOMContentLoaded', () => {
         if(document.getElementById('v-title')) document.getElementById('v-title').value = state.title;
         if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
         
-        // Ricostruiamo i blocchi salvati prima del bottone "Add Section"
         const addBtn = document.getElementById('add-block-btn');
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = state.blocks;
@@ -298,7 +316,6 @@ window.addEventListener('DOMContentLoaded', () => {
         Array.from(tempDiv.children).forEach(block => {
             blocksContainer.insertBefore(block, addBtn);
             
-            // Riattacchiamo tutti gli eventi al blocco ripristinato
             const ulList = block.querySelector('.block-list');
             setupDragAndDropForList(ulList);
             
@@ -311,10 +328,9 @@ window.addEventListener('DOMContentLoaded', () => {
                 }
             });
             
-            // Riattacchiamo gli eventi alle singole carte
             block.querySelectorAll('.draggable-item').forEach(li => {
                 const itemId = li.dataset.itemId;
-                const titoloOpera = li.querySelector('strong').innerText; // Recuperiamo il titolo per l'URL
+                const titoloOpera = li.querySelector('strong').innerText;
 
                 li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
                 
@@ -348,13 +364,11 @@ window.addEventListener('DOMContentLoaded', () => {
         
         blockCounter = state.blockCounter;
         aggiornaContatoriBlocchi();
-        sessionStorage.removeItem('temp_visit_state'); // Puliamo la memoria
+        sessionStorage.removeItem('temp_visit_state'); 
     } else {
-        // Se non c'era nessuno stato salvato, creiamo il primo blocco di default
         createNewBlock("Mainboard");
     }
 });
-
 
 // --- SALVATAGGIO DATABASE ---
 document.getElementById('save-visit-btn').addEventListener('click', async () => {
@@ -384,8 +398,6 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         sequence: flatSequence,
         isPublic: false
     };
-
-    console.log("Oggetto JSON pronto per l'invio:", payload);
     
     try {
         const res = await fetch(`${myApi}/visits`, {
