@@ -1,4 +1,6 @@
-const myApi = "http://localhost:8000/api";
+const isLocal = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
+const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token");
 
 if (!token) {
@@ -224,7 +226,17 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
             return;
         }
         salvaStatoTemporaneo();
-        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
+        
+        // Nuova logica: passiamo anche autore e immagine
+        const params = new URLSearchParams({
+            itemId: itemId,
+            museumId: museumId,
+            museumName: museumName,
+            title: titoloOpera,
+            author: author || "Autore Ignoto",
+            image: imageUrl || ''
+        });
+        window.location.href = `create_items.html?${params.toString()}`;
     });
 
     li.querySelector('.delete-btn').addEventListener('click', () => {

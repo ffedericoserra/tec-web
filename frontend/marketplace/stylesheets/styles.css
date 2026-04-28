@@ -761,63 +761,97 @@ body {
     border-bottom: 2px solid var(--museum-gold);
 }
 
-/* --- CARTE IMPILATE (ITEMS) --- */
+/* ==========================================================================
+   CARTE IMPILATE (ITEMS) - STILE ARCHIDEKT PURO
+   ========================================================================== */
+
+/* --- CARTE IMPILATE (STILE ARCHIDEKT) --- */
+
 .block-list {
     list-style: none;
     padding: 0;
-    min-height: 150px;
-    flex-grow: 1;
-    padding-bottom: 40px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 30px;
 }
 
 .draggable-item {
     background: var(--pure-white);
     border: 1px solid var(--border-light);
-    border-radius: 8px;
-    margin-bottom: -20px; /* Effetto sovrapposizione mazzo */
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-radius: 6px;
+    
+    /* Altezza fissa quando chiusa: si vede solo l'header col titolo */
+    height: 52px; 
+    margin-bottom: -10px; /* Sovrapposizione per l'effetto mazzo */
+    
+    overflow: hidden;
     position: relative;
     z-index: 1;
     cursor: pointer;
-    box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
+    
+    /* Animazione: l'altezza si espande e il margine cambia per "spingere" le altre carte */
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                margin-bottom 0.3s ease, 
+                box-shadow 0.3s ease;
 }
 
-/* Hover carta: si solleva con lo stile ArtAround */
-.draggable-item:hover, 
-.draggable-item.dragging {
-    margin-bottom: 15px;
-    transform: translateY(-10px);
-    z-index: 20;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.12);
+/* Stato Espanso: Hover o Ultimo Item della colonna */
+.draggable-item:hover,
+.draggable-item.is-last-item {
+    height: 160px; /* Altezza necessaria per mostrare l'immagine */
+    margin-bottom: 15px; /* Si distanzia dalle altre carte */
+    z-index: 10;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     border-color: var(--museum-gold);
 }
 
-/* Espansione dettagli ArtAround style */
+/* Nascondiamo l'espansione durante il trascinamento per pulizia visiva */
+.draggable-item.dragging {
+    height: 52px !important;
+    margin-bottom: 10px !important;
+    opacity: 0.7;
+}
+
+/* Header: contiene il titolo, sempre visibile in alto */
 .card-header {
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 15px;
+    padding: 0 15px;
     background: var(--pure-white);
-    border-radius: 8px;
+    border-bottom: 1px solid transparent;
 }
 
+.draggable-item:hover .card-header,
+.draggable-item.is-last-item .card-header {
+    border-bottom-color: var(--border-light);
+}
+
+/* Dettagli: Immagine e Autore (visibili solo quando la carta si espande) */
 .card-details {
-    max-height: 0;
-    opacity: 0;
-    padding: 0 15px;
-    background: var(--gallery-bg);
     display: flex;
     gap: 15px;
-    transition: all 0.4s ease;
-    overflow: hidden;
+    padding: 12px 15px;
+    background: var(--gallery-bg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
 }
 
-.draggable-item:hover .card-details {
-    max-height: 200px;
-    padding: 15px;
+.draggable-item:hover .card-details,
+.draggable-item.is-last-item .card-details {
     opacity: 1;
-    border-top: 1px solid var(--border-light);
+}
+
+.card-image-placeholder {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    background: #fff;
 }
 
 /* --- AGGIUNTA NUOVA SEZIONE --- */
@@ -848,7 +882,7 @@ body {
 
 /* --- PLACEHOLDER DRAG & DROP --- */
 .placeholder {
-    height: 60px;
+    height: 50px; /* Ho adattato anche il placeholder all'altezza della carta compatta! */
     margin-bottom: 15px;
     background: var(--gallery-bg-darker);
     border: 2px dashed var(--museum-gold);
@@ -879,7 +913,7 @@ body {
         padding: 15px;
     }
     .blocks-wrapper {
-        flex-direction: column;
+        flex-direction: column; 
         align-items: stretch;
     }
     .visit-block, .add-section-wrapper {
@@ -1211,3 +1245,317 @@ body {
         text-transform: uppercase;
         letter-spacing: 1px;
       }
+
+      /* ==========================================================================
+   ITEM EDITOR (CREATE_ITEMS.HTML)
+   ========================================================================== */
+
+.item-editor-grid {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 40px;
+    max-width: 1400px;
+    margin: 30px auto;
+    align-items: start;
+}
+
+/* Colonna Sinistra (Preview) */
+.item-preview-panel {
+    background: var(--pure-white);
+    padding: 25px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 30px;
+}
+
+.artwork-card {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.artwork-image-wrapper {
+    width: 100%;
+    height: 250px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--gallery-bg-darker);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid var(--border-light);
+}
+
+.artwork-image-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.artwork-meta h3 {
+    margin: 0 0 5px 0;
+    color: var(--charcoal);
+    font-size: 1.4rem;
+}
+
+.artwork-author {
+    margin: 0 0 10px 0;
+    color: var(--museum-gold);
+    font-weight: 700;
+}
+
+.artwork-id-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    background: var(--gallery-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    font-size: 0.75rem;
+    color: var(--chill-grey);
+    font-family: monospace;
+}
+
+/* Colonna Destra (Descrizioni) */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.panel-header h2 {
+    margin: 0;
+    color: var(--charcoal);
+}
+
+.helper-text {
+    color: var(--chill-grey);
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+}
+
+.descriptions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Singolo blocco descrizione */
+.desc-editor-block {
+    background: var(--pure-white);
+    border: 1px solid var(--border-light);
+    border-left: 4px solid var(--museum-gold);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    transition: box-shadow 0.3s;
+}
+
+.desc-editor-block:focus-within {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    border-color: var(--museum-gold);
+}
+
+.desc-meta-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.desc-meta-row select, .desc-meta-row input {
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--gallery-bg);
+    outline: none;
+}
+
+.desc-meta-row input {
+    flex-grow: 1;
+}
+
+.desc-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 15px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+    outline: none;
+}
+
+.desc-textarea:focus {
+    border-color: var(--charcoal);
+}
+
+.remove-desc-btn {
+    background: transparent;
+    border: none;
+    color: var(--error-red);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.remove-desc-btn:hover { opacity: 1; }
+
+@media (max-width: 1024px) {
+    .item-editor-grid {
+        grid-template-columns: 1fr;
+    }
+    .item-preview-panel {
+        position: static;
+    }
+}
+
+/* ==========================================================================
+   MATRICE AUDIO (TABS E TABELLA INVISIBILE)
+   ========================================================================== */
+
+/* Design dei Tabs */
+.tone-tabs {
+    display: flex;
+    gap: 10px;
+    border-bottom: 2px solid var(--border-light);
+    margin-bottom: 25px;
+}
+
+.tone-tab {
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: var(--chill-grey);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px; /* Si allinea al bordo inferiore */
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.tone-tab:hover {
+    color: var(--charcoal);
+}
+
+.tone-tab.active {
+    color: var(--museum-gold);
+    border-bottom-color: var(--museum-gold);
+    font-weight: bold;
+}
+
+/* Contenuto dei Tabs */
+.tone-tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tone-tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tabella quasi invisibile */
+.matrix-row {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border-light);
+    align-items: flex-start;
+}
+
+.matrix-row:last-child {
+    border-bottom: none;
+}
+
+.matrix-label {
+    width: 80px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 10px;
+    color: var(--charcoal);
+}
+
+.matrix-label span {
+    font-size: 0.8rem;
+    color: var(--chill-grey);
+}
+
+.matrix-input {
+    flex-grow: 1;
+    min-height: 80px;
+    border: 1px solid transparent; /* Tabella invisibile */
+    background: var(--gallery-bg);
+    padding: 15px;
+    border-radius: 8px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.5;
+    transition: all 0.3s ease;
+}
+
+/* Quando l'utente ci clicca dentro, compare il bordo elegante */
+.matrix-input:focus {
+    outline: none;
+    border-color: var(--museum-gold);
+    background: var(--pure-white);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.clean-select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--gallery-bg);
+    outline: none;
+    font-family: inherit;
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATIONS (Pop-up fluidi)
+   ========================================================================== */
+#toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 9999;
+}
+
+.toast {
+    min-width: 250px;
+    background-color: var(--charcoal);
+    color: var(--pure-white);
+    padding: 16px 24px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.95rem;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Effetto rimbalzo fluido */
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.error { background-color: var(--error-red); }
+.toast.success { border-left: 5px solid var(--museum-gold); }
