@@ -12,6 +12,13 @@ const urlParams = new URLSearchParams(window.location.search);
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
 
+// Diamo "memoria" al pulsante Back to Museum page
+const backToMuseumBtn = document.getElementById('back-to-museum-btn');
+if (backToMuseumBtn) {
+    // Aggiorniamo l'href dinamicamente inserendo l'ID che abbiamo appena letto
+    backToMuseumBtn.href = `museums_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+}
+
 const displayMuseumEl = document.getElementById('display-museum-name');
 if (displayMuseumEl) displayMuseumEl.innerText = museumName || "No museums";
 
@@ -382,33 +389,53 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// --- SALVATAGGIO DATABASE ---
+// --- SALVATAGGIO FINALE NEL DATABASE ---
 document.getElementById('save-visit-btn').addEventListener('click', async () => {
     const title = document.getElementById('v-title').value;
     const desc = document.getElementById('v-desc').value;
     
-    if (!title.trim()) { alert("Inserisci un titolo per la visita."); return; }
+    if (!title.trim()) { 
+        alert("Inserisci un titolo per la visita."); 
+        return; 
+    }
 
     const structurData = [];
-    let flatSequence = []; 
+    let sequenceObjects = []; 
+    let globalOrder = 1;
 
+    // Raccogliamo i dati e costruiamo gli oggetti esattamente come li vuole il Backend
     document.querySelectorAll('.visit-block').forEach(block => {
         const blockTitle = block.querySelector('.block-title-input').value;
         const itemsNodes = block.querySelectorAll('.draggable-item');
         const itemsIds = Array.from(itemsNodes).map(node => node.dataset.itemId);
         
         structurData.push({ blockName: blockTitle, items: itemsIds });
-        flatSequence = flatSequence.concat(itemsIds);
+        
+        // Creiamo la sequenza con itemId, order e direzioni vuote di default
+        itemsIds.forEach(id => {
+            sequenceObjects.push({
+                itemId: id,
+                order: globalOrder++,
+                nextDirections: "",
+                prevDirections: ""
+            });
+        });
     });
 
-    if (flatSequence.length === 0) { alert("Aggiungi almeno un'opera alla visita."); return; }
+    if (sequenceObjects.length === 0) { 
+        alert("Aggiungi almeno un'opera alla visita."); 
+        return; 
+    }
 
+    // Costruiamo il payload perfetto per Zod e Mongoose
     const payload = {
         title: title,
         description: desc + "\n\n[Struttura Blocchi Salvata: " + JSON.stringify(structurData) + "]",
         museumId: museumId,
-        sequence: flatSequence,
-        isPublic: false
+        sequence: sequenceObjects, // Ora è un array di oggetti, non più stringhe!
+        isPublic: false,
+        type: "standard", // Campo richiesto dallo schema
+        length: "normal"  // Campo richiesto dallo schema
     };
     
     try {
@@ -420,13 +447,29 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             },
             body: JSON.stringify(payload)
         });
+
         if (res.ok) {
-            alert("Visita salvata con successo!");
-            window.location.href = "../pages/visits_list.html?museumId=" + museumId + "&museumName=" + encodeURIComponent(museumName);
+            // Risposta 200/201: Inserimento riuscito!
+            alert("Visita salvata con successo nel database!");
+            sessionStorage.removeItem('temp_visit_state'); // Puliamo la cache
+            
+            // TORNIA AL MARKETPLACE 
+            window.location.href = "../pages/museums_list.html"; 
         } else {
-            alert("Errore nel salvataggio. Controlla la console.");
+            // Estraiamo il testo dell'errore esatto dal backend
+            const errorText = await res.text();
+            console.error("ERRORE DI VALIDAZIONE DAL BACKEND:", errorText);
+            
+            try {
+                // Proviamo a leggerlo come JSON (tipico di Zod)
+                const errorJson = JSON.parse(errorText);
+                alert("Il Backend ha rifiutato i dati. Controlla la Console (F12) per i dettagli. Motivo: " + JSON.stringify(errorJson));
+            } catch (e) {
+                alert("Errore 400: Bad Request. Il backend ha rifiutato il formato dei dati.");
+            }
         }
     } catch(err) {
-        console.error(err);
+        console.error("Errore di rete:", err);
+        alert("Errore di connessione al server.");
     }
 });
