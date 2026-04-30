@@ -104,35 +104,37 @@ async function caricaTestiDaDB() {
     }
 }
 
-// --- SALVATAGGIO DEI DATI ---
+// --- SALVATAGGIO DEI DATI NEL DB ---
 document.getElementById('save-item-btn').addEventListener('click', async () => {
-    const isPublic = document.getElementById('item-public-toggle').value === "true";
+    // 1. Raccogliamo il valore della visibilità
+    const isPublicToggle = document.getElementById('item-public-toggle');
+    const isPublic = isPublicToggle ? isPublicToggle.value === "true" : true;
     
-    // Inizializziamo l'oggetto raggruppato per Toni
+    // 2. Inizializziamo i contenitori per i tre toni
     const groupedDescriptions = {
         easy: [],
         medium: [],
         complex: []
     };
     
-    // Leggiamo tutte le textareas della nostra matrice
+    // 3. Leggiamo tutte le caselle di testo della matrice invisibile
     const allInputs = document.querySelectorAll('.matrix-input');
     allInputs.forEach(input => {
         const tone = input.getAttribute('data-tone');
         const length = input.getAttribute('data-length');
         const text = input.value.trim();
         
-        // Salviamo solo se l'utente ha effettivamente scritto qualcosa
+        // Se l'utente ha scritto qualcosa, lo aggiungiamo al tono corrispondente
         if (text !== "") {
             groupedDescriptions[tone].push({
                 text: text,
                 lengthCategory: length,
-                language: "it" // Manteniamo default ita per ora
+                language: "it" // Puoi renderlo dinamico in futuro se serve
             });
         }
     });
 
-    // Formattiamo per il database scartando i toni rimasti completamente vuoti
+    // 4. Formattiamo i dati ESATTAMENTE come li vuole il Backend (vedi seed.js)
     const finalDescriptions = [];
     Object.keys(groupedDescriptions).forEach(tone => {
         if (groupedDescriptions[tone].length > 0) {
@@ -143,24 +145,56 @@ document.getElementById('save-item-btn').addEventListener('click', async () => {
         }
     });
 
+    const payload = {
+        isPublic: isPublic,
+        descriptions: finalDescriptions
+    };
+
+    // 5. Inviamo la richiesta PUT al backend
     try {
         const res = await fetch(`${myApi}/items/${itemId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ isPublic: isPublic, descriptions: finalDescriptions })
+            method: 'PUT', // PUT perché stiamo aggiornando un item già esistente
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
-            showToast("Modifiche salvate con successo!", "success");
-            // Ritardiamo leggermente il ritorno alla pagina precedente per far vedere il toast
+            // Successo! Usiamo il Toast fluido e torniamo indietro
+            if (typeof showToast === "function") {
+                showToast("Modifiche salvate con successo!", "success");
+            } else {
+                alert("Modifiche salvate con successo!");
+            }
+            
+            // Aspettiamo un secondo per far leggere il messaggio, poi torniamo alla visita
             setTimeout(() => {
                 window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
-            }, 1500);
+            }, 1200);
+            
         } else {
-            showToast("Impossibile salvare le modifiche.", "error");
+            // Errore 400 Bad Request: scopriamo cosa non va
+            const errorText = await res.text();
+            console.error("ERRORE DI VALIDAZIONE ITEM DAL BACKEND:", errorText);
+            
+            try {
+                const errorJson = JSON.parse(errorText);
+                if (typeof showToast === "function") {
+                    showToast("Errore di validazione. Controlla la console.", "error");
+                }
+                alert("Il Backend ha rifiutato il formato dei dati. Motivo: " + JSON.stringify(errorJson));
+            } catch (e) {
+                alert("Errore dal server. Controlla la console.");
+            }
         }
     } catch (error) {
         console.error("Save Error:", error);
-        showToast("Errore di rete.", "error");
+        if (typeof showToast === "function") {
+            showToast("Errore di rete o connessione.", "error");
+        } else {
+            alert("Errore di rete o connessione.");
+        }
     }
 });
