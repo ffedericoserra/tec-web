@@ -28,7 +28,7 @@ app.use(express.json());
 app.use('/frontend-marketplace', express.static(path.join(__dirname, '../frontend-marketplace')));
 // Facoltativo: se l'utente va sulla root del sito, rimandalo alla homepage
 app.get('/', (req, res) => {
-    res.redirect('/frontend-marketplace/homepage.html');
+    res.redirect('/frontend/marketplace/pages/homepage.html');
 });
 
 
