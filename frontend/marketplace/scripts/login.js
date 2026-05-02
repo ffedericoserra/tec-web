@@ -1,4 +1,6 @@
-const myApi = "http://localhost:8000/api"
+const isLocal = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
+const myApi = `${baseUrl}/api`;
 
 var form=document.getElementById("login-form")
 form.addEventListener("submit", async (x)=>{

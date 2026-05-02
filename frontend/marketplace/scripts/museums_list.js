@@ -1,4 +1,7 @@
-const myApi = "http://localhost:8000/api" // da cambiare in fase di deploy
+const isLocal = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
+const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
+const myApi = `${baseUrl}/api`;
+
 const museumList = document.getElementById("museum-list")
 const token = localStorage.getItem("token")
 const addBtn = document.querySelector(".add-btn")
