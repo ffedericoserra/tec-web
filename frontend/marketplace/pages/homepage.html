@@ -3,87 +3,52 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Marketplace</title>
+    <title>ArtAround - Home</title>
     <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
   <body>
     <div class="main-container">
-      <header class="top-bar">
-        <a href="homepage.html" class="logo-link">
-          <img
-            src="../assets/artaround/logo.png"
-            alt="ArtAround Logo"
-            class="logo-img"
-          />
-        </a>
+      <header class="top-nav">
+        <div class="nav-wrapper">
+          <a href="homepage.html" class="brand"><span class="logo-text">A&alpha;</span></a>
+          <ul class="nav-links">
+            <li><a href="museums_list.html">Plan your visit</a></li>
+            <li><a href="museums_list.html">Add a museum</a></li>
+            <li><a href="#about-section">About us</a></li>
+          </ul>
+          <ul class="nav-auth">
+            <li><a href="login.html">Login</a></li>
+            <li><a href="register.html">Sign-up</a></li>
+            <li id="logout-item" class="hidden"><a href="#" onclick="handleLogout()">Logout</a></li>
+          </ul>
+        </div>
       </header>
 
       <main class="center-content">
         <h1 class="title">ArtAround</h1>
-        <h2 class="subtitle">Homepage</h2>
-
-        <div
-          style="
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 20px;
-          "
-        >
-          <button
-            class="main-btn"
-            onclick="window.location.href = './login.html'"
-          >
-            Login
-          </button>
-          <button
-            class="secondary-btn"
-            onclick="window.location.href = './register.html'"
-          >
-            Sign up
-          </button>
+        <h2 class="subtitle">Your personal museum guide</h2>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px;">
+          <button class="main-btn" onclick="window.location.href = './login.html'">Login</button>
+          <button class="secondary-btn" onclick="window.location.href = './register.html'">Sign up</button>
         </div>
       </main>
 
-      <footer class="bottom-bar">
+      <footer class="bottom-bar" id="about-section">
         <div class="about-text">About</div>
         <div class="arrow" id="about-arrow">&darr;</div>
       </footer>
     </div>
+    
+    <div class="hidden-text" style="display:none; padding: 40px; line-height: 1.6;">
+       <p><strong>ArtAround</strong> is a web application made for exploring museums... (Unibo 2025/26)</p>
+    </div>
 
-    <div class="empty-container"></div>
-    <p class="hidden-text">
-      <strong>ArtAround</strong> is a web application made for exploring museums
-      all over the world. Firstly, either log in or register to access to the
-      <strong>Marketplace</strong> where you can search for the museum you
-      intend to visit. Click on the museum and choose to create a new
-      personalized tour or follow an existing one. If you choose to create a new
-      visit you will be directed to an editor page where you are free to create
-      your own custom experience. Otherwise you will be rerouted to the
-      <strong>Navigator</strong> app which will allow you to start the guided
-      tour. Navigate through the museum using vocal commands and ask the app to
-      give you insights on the artworks you are admiring or the author who
-      realized them.
-      <br />
-      <strong>ArtAround</strong> is the Unibo's Web Technologies project for the
-      academic year 2025/26 created by
-      <strong>Serra Federico, Mazzettti Matteo and Ziccone Andrea</strong>.
-    </p>
-
+    <script src="../scripts/navbar.js"></script>
     <script>
-      var arrow = document.getElementById("about-arrow");
-
-      arrow.onclick = () => {
-        document.body.style.overflow = "auto";
-
-        var target = document.querySelector(".hidden-text");
-
+      document.getElementById("about-arrow").onclick = () => {
+        const target = document.querySelector(".hidden-text");
         target.style.display = "block";
-
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+        target.scrollIntoView({ behavior: "smooth" });
       };
     </script>
   </body>

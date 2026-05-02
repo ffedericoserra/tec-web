@@ -1559,3 +1559,103 @@ body {
 
 .toast.error { background-color: var(--error-red); }
 .toast.success { border-left: 5px solid var(--museum-gold); }
+
+/* ==========================================================================
+   NAVBAR UNIFICATA (STILE ARTAROUND)
+   ========================================================================== */
+
+.top-nav {
+    width: 100%;
+    background-color: var(--pure-white, #ffffff);
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 0 20px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+}
+
+.nav-wrapper {
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Logo Aα */
+.brand {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.logo-text {
+    font-size: 2.2rem; /* Leggermente più grande come nell'immagine */
+    font-weight: 700;
+    color: var(--charcoal, #333);
+    font-family: serif; /* Per dare quel tocco accademico al simbolo alpha */
+}
+
+/* Liste di Link */
+.nav-links, .nav-auth {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 35px; /* Spaziatura generosa tra i link */
+    margin: 0;
+    padding: 0;
+}
+
+.nav-links a, .nav-auth a {
+    text-decoration: none;
+    color: var(--charcoal, #333);
+    font-size: 1.05rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 5px 0;
+    border-bottom: 2px solid transparent;
+}
+
+/* Effetto Hover dorato */
+.nav-links a:hover, .nav-auth a:hover {
+    color: var(--museum-gold, #c5a059);
+}
+
+/* Stato Attivo (per capire in che pagina ti trovi) */
+.nav-links a.active {
+    color: var(--museum-gold, #c5a059);
+    border-bottom-color: var(--museum-gold, #c5a059);
+}
+
+/* Badge Editor (per create_visits e create_items) */
+.editor-badge {
+    background: var(--gallery-bg, #f8f9fa);
+    color: var(--museum-gold, #c5a059);
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 1px solid var(--museum-gold, #c5a059);
+}
+
+/* Utility per nascondere Login/Logout dinamicamente */
+.hidden {
+    display: none !important;
+}
+
+/* --- ADATTAMENTO MOBILE --- */
+@media (max-width: 768px) {
+    .nav-links {
+        display: none; /* In produzione qui andrebbe un menu a comparsa */
+    }
+    
+    .logo-text {
+        font-size: 1.8rem;
+    }
+}

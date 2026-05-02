@@ -7,40 +7,30 @@
     <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
   <body>
-    <div class="main-container">
-      <header
-        class="top-bar space-between"
-        style="
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        "
-      >
-        <a href="homepage.html" class="logo-link">
-          <img
-            src="../assets/artaround/logo.png"
-            alt="ArtAround Logo"
-            class="logo-img"
-          />
+    <!-- NUOVA NAVBAR UNIFICATA -->
+    <header class="top-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
         </a>
 
-        <div class="dropdown-wrapper">
-          <button class="menu-btn" aria-label="Open Menu" id="main-menu-btn">
-            &#9776;
-          </button>
+        <ul class="nav-links">
+          <li><a href="museums_list.html" class="active">Plan your visit</a></li>
+          <!-- Questo link può attivare il modale add-museum tramite JS -->
+          <li><a href="#" id="nav-add-museum">Add a museum</a></li>
+          <li><a href="homepage.html#about-section">About us</a></li>
+        </ul>
 
-          <div id="dropdown-menu" class="dropdown-content">
-            <a href="../../user_profile/pages/profile.html"
-              >Your user profile</a
-            >
-            <p class="dropdown-label">Language settings</p>
-            <a href="#">🇮🇹 Italiano</a>
-            <a href="#">🇬🇧 English</a>
-            <a href="#" id="logout-btn" class="logout-text">Logout</a>
-          </div>
-        </div>
-      </header>
+        <ul class="nav-auth">
+          <li><a href="../../user_profile/pages/profile.html">Profile</a></li>
+          <li id="logout-item">
+            <a href="#" onclick="handleLogout()" class="logout-text">Logout</a>
+          </li>
+        </ul>
+      </div>
+    </header>
 
+    <div class="main-container">
       <main class="center-content">
         <h1 class="title">Marketplace</h1>
         <h2 class="subtitle">Select an existing museum or add a new one</h2>
@@ -60,12 +50,10 @@
       <footer class="bottom-bar"></footer>
     </div>
 
+    <!-- MODALE AGGIUNTA MUSEO (Invariato) -->
     <div id="add-museum-modal" class="modal-overlay hidden">
       <div class="modal-content auth-form">
-        <h2
-          class="subtitle"
-          style="margin-top: 0; color: var(--charcoal, #333)"
-        >
+        <h2 class="subtitle" style="margin-top: 0; color: var(--charcoal, #333)">
           Add New Museum
         </h2>
         <form id="add-museum-form">
@@ -79,21 +67,11 @@
           </div>
           <div class="input-group">
             <label for="m-description">Description</label>
-            <textarea
-              id="m-description"
-              rows="3"
-              class="modal-textarea"
-            ></textarea>
+            <textarea id="m-description" rows="3" class="modal-textarea"></textarea>
           </div>
-
           <div id="add-modal-error" class="error-message"></div>
-
           <div class="form-actions">
-            <button
-              type="button"
-              class="main-btn cancel-btn"
-              id="cancel-add-btn"
-            >
+            <button type="button" class="main-btn cancel-btn" id="cancel-add-btn">
               Cancel
             </button>
             <button type="submit" class="main-btn">Save</button>
@@ -110,6 +88,21 @@
       +
     </button>
 
+    <!-- Script della Navbar per gestire il Logout -->
+    <script src="../scripts/navbar.js"></script>
+    <!-- Tuo script originale per la logica dei musei -->
     <script src="../scripts/museums_list.js"></script>
+    
+    <script>
+      // Opzionale: Collega il link della navbar al modale già esistente
+      const navAddBtn = document.getElementById('nav-add-museum');
+      const mainAddBtn = document.getElementById('add-museum-btn');
+      if (navAddBtn && mainAddBtn) {
+          navAddBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              mainAddBtn.click();
+          });
+      }
+    </script>
   </body>
 </html>
