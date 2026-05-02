@@ -41,3 +41,26 @@ form.addEventListener("submit", async (x)=>{
 
 
 })
+
+function typeWriterEffect(inputElement, text, speed) {
+    let i = 0;
+    inputElement.placeholder = ""; // Svuota il placeholder iniziale
+    
+    function type() {
+        if (i < text.length) {
+            inputElement.placeholder += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        }
+    }
+    // Avvia l'animazione con un leggero ritardo
+    setTimeout(type, 500); 
+}
+
+// Quando la pagina carica, avviamo l'effetto
+document.addEventListener('DOMContentLoaded', () => {
+    const userField = document.querySelector('input[name="username"]');
+    if(userField) {
+        typeWriterEffect(userField, "Inserisci username o email...", 100);
+    }
+});

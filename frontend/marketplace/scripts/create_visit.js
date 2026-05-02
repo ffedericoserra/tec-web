@@ -11,6 +11,7 @@ if (!token) {
 const urlParams = new URLSearchParams(window.location.search);
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName');
+const visitId = urlParams.get('visitId'); 
 
 // Diamo "memoria" al pulsante Back to Museum page
 const backToMuseumBtn = document.getElementById('back-to-museum-btn');
@@ -321,75 +322,182 @@ function salvaStatoTemporaneo() {
     sessionStorage.setItem('temp_visit_state', JSON.stringify(visitState));
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-    const savedState = sessionStorage.getItem('temp_visit_state');
-    if (savedState) {
-        const state = JSON.parse(savedState);
-        if(document.getElementById('v-title')) document.getElementById('v-title').value = state.title;
-        if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
+// --- FUNZIONE PER RICOSTRUIRE IL TAVOLO ARCHIDEKT DA UNA VISITA ESISTENTE ---
+// --- FUNZIONE PER RICOSTRUIRE IL TAVOLO ARCHIDEKT (CON DEBUG) ---
+async function caricaVisitaEsistente(vId) {
+    try {
+        console.log("🔥 INIZIO CARICAMENTO VISITA ID:", vId);
+        document.querySelector('.editor-title').textContent = "Edit Tour Mode"; 
         
-        const addBtn = document.getElementById('add-block-btn');
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = state.blocks;
+        // 1. Scarichiamo i dati
+        const res = await fetch(`${myApi}/visits/${vId}`); // Se hai sbloccato la rotta pubblica
+        if (!res.ok) throw new Error("Errore nel recupero della visita dal database");
+        const data = await res.json();
+        const visit = data.visit || data;
+
+        console.log("📦 DATI GREZZI DAL DATABASE:", visit);
+
+        // 2. Separiamo la descrizione dai blocchi in modo più robusto
+        let cleanDesc = visit.description || "";
+        let structurData = null;
+        const splitTag = "[Struttura Blocchi Salvata: "; // <-- Tolti i \n\n che causavano l'errore!
         
-        Array.from(tempDiv.children).forEach(block => {
-            blocksContainer.insertBefore(block, addBtn);
+        if (cleanDesc.includes(splitTag)) {
+            console.log("✅ Trovata la stringa segreta!");
+            const parts = cleanDesc.split(splitTag);
             
-            const ulList = block.querySelector('.block-list');
-            setupDragAndDropForList(ulList);
+            // La descrizione è la parte prima del tag (pulita da eventuali a capo rimasti)
+            cleanDesc = parts[0].trim(); 
             
-            block.querySelector('.add-item-to-block').addEventListener('click', () => {
-                activeBlockList = ulList; apriModaleOpere();
-            });
-            block.querySelector('.delete-block-btn').addEventListener('click', () => {
-                if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) { 
-                    block.remove(); aggiornaContatoriBlocchi(); 
+            const jsonString = parts[1].trim().slice(0, -1); // Toglie la ']' finale
+            console.log("🧩 JSON estratto:", jsonString);
+            
+            try { 
+                structurData = JSON.parse(jsonString); 
+                console.log("🛠️ Struttura interpretata correttamente:", structurData);
+            } catch(e) { 
+                console.error("❌ Il JSON si è rotto (forse il database lo ha tagliato?):", e); 
+            }
+        } else {
+            console.warn("⚠️ Nessuna struttura trovata! Ecco cosa c'è salvato in description:", cleanDesc);
+        }
+
+        // 3. Compiliamo titolo e descrizione
+        if(document.getElementById('v-title')) document.getElementById('v-title').value = visit.title;
+        if(document.getElementById('v-desc')) document.getElementById('v-desc').value = cleanDesc;
+
+        if (!structurData || structurData.length === 0) {
+            console.log("Costruisco tavolo vuoto di default.");
+            if(typeof createNewBlock === 'function') createNewBlock("Mainboard");
+            return;
+        }
+
+        // 4. Scarichiamo le opere per stampare le carte vere
+        console.log("📥 Scarico le opere del museo per abbinare i dati...");
+        const token = localStorage.getItem("token");
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+        const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers });
+        const contentsData = await contentsRes.json();
+        const museumContents = contentsData.contents || [];
+
+        const itemsRes = await fetch(`${myApi}/items`, { headers });
+        const itemsData = await itemsRes.json();
+        const allItems = itemsData.items || [];
+
+        const itemMap = {};
+        allItems.forEach(item => {
+            const relatedContent = museumContents.find(c => c.universalId === item.contentId || c._id.toString() === item.contentId);
+            itemMap[item._id] = {
+                title: relatedContent ? relatedContent.name : "Opera",
+                author: relatedContent ? relatedContent.author : "Autore Ignoto",
+                imageUrl: relatedContent ? relatedContent.imageUrl : null
+            };
+        });
+
+        // 5. Ricreiamo i blocchi
+        console.log("🔨 Inizio a costruire le colonne e inserire le carte...");
+        structurData.forEach(blockData => {
+            createNewBlock(blockData.blockName); 
+            
+            const blocksNodes = document.querySelectorAll('.visit-block');
+            const targetBlock = blocksNodes[blocksNodes.length - 1];
+            const targetList = targetBlock.querySelector('.block-list');
+
+            blockData.items.forEach(itemId => {
+                const info = itemMap[itemId];
+                if (info) {
+                    creaEdAggiungiItem(info.title, itemId, targetList, info.imageUrl, info.author);
+                } else {
+                    console.warn(`Opera con ID ${itemId} non trovata nel database!`);
                 }
-            });
-            
-            block.querySelectorAll('.draggable-item').forEach(li => {
-                const itemId = li.dataset.itemId;
-                const titoloOpera = li.querySelector('strong').innerText;
-
-                li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
-                
-                li.addEventListener('dragstart', function(e) {
-                    draggedItem = this;
-                    placeholder.style.height = `${this.offsetHeight}px`;
-                    setTimeout(() => {
-                        this.classList.add('dragging');
-                        this.parentNode.insertBefore(placeholder, this.nextSibling);
-                        aggiornaContatoriBlocchi(); 
-                    }, 0);
-                });
-                
-                li.addEventListener('dragend', function() {
-                    this.classList.remove('dragging');
-                    if (placeholder.parentNode) {
-                        placeholder.parentNode.insertBefore(this, placeholder);
-                        placeholder.parentNode.removeChild(placeholder);
-                    }
-                    draggedItem = null;
-                    aggiornaContatoriBlocchi(); 
-                });
-
-                li.addEventListener('click', function(e) {
-                    if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
-                    salvaStatoTemporaneo();
-                    window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
-                });
             });
         });
         
-        blockCounter = state.blockCounter;
-        aggiornaContatoriBlocchi();
-        sessionStorage.removeItem('temp_visit_state'); 
-    } else {
-        createNewBlock("Mainboard");
+        console.log("🎉 CARICAMENTO FINITO CON SUCCESSO!");
+
+    } catch(err) {
+        console.error("❌ ERRORE CRITICO in caricaVisitaEsistente:", err);
+        if(typeof createNewBlock === 'function') createNewBlock("Mainboard"); 
     }
+}
+
+window.addEventListener('DOMContentLoaded', async () => {
+
+    if (visitId && !sessionStorage.getItem('temp_visit_state')) {
+        await caricaVisitaEsistente(visitId);
+    } else {
+        const savedState = sessionStorage.getItem('temp_visit_state');
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            if(document.getElementById('v-title')) document.getElementById('v-title').value = state.title;
+            if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
+            
+            const addBtn = document.getElementById('add-block-btn');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = state.blocks;
+            
+            Array.from(tempDiv.children).forEach(block => {
+                blocksContainer.insertBefore(block, addBtn);
+                
+                const ulList = block.querySelector('.block-list');
+                setupDragAndDropForList(ulList);
+                
+                block.querySelector('.add-item-to-block').addEventListener('click', () => {
+                    activeBlockList = ulList; apriModaleOpere();
+                });
+                block.querySelector('.delete-block-btn').addEventListener('click', () => {
+                    if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) { 
+                        block.remove(); aggiornaContatoriBlocchi(); 
+                    }
+                });
+                
+                block.querySelectorAll('.draggable-item').forEach(li => {
+                    const itemId = li.dataset.itemId;
+                    const titoloOpera = li.querySelector('strong').innerText;
+
+                    li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
+                    
+                    li.addEventListener('dragstart', function(e) {
+                        draggedItem = this;
+                        placeholder.style.height = `${this.offsetHeight}px`;
+                        setTimeout(() => {
+                            this.classList.add('dragging');
+                            this.parentNode.insertBefore(placeholder, this.nextSibling);
+                            aggiornaContatoriBlocchi(); 
+                        }, 0);
+                    });
+                    
+                    li.addEventListener('dragend', function() {
+                        this.classList.remove('dragging');
+                        if (placeholder.parentNode) {
+                            placeholder.parentNode.insertBefore(this, placeholder);
+                            placeholder.parentNode.removeChild(placeholder);
+                        }
+                        draggedItem = null;
+                        aggiornaContatoriBlocchi(); 
+                    });
+
+                    li.addEventListener('click', function(e) {
+                        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
+                        salvaStatoTemporaneo();
+                        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
+                    });
+                });
+            });
+            
+            blockCounter = state.blockCounter;
+            aggiornaContatoriBlocchi();
+            sessionStorage.removeItem('temp_visit_state'); 
+        } else {
+            createNewBlock("Mainboard");
+        }
+    }
+    
 });
 
 // --- SALVATAGGIO FINALE NEL DATABASE ---
+
 document.getElementById('save-visit-btn').addEventListener('click', async () => {
     const title = document.getElementById('v-title').value;
     const desc = document.getElementById('v-desc').value;
@@ -403,7 +511,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     let sequenceObjects = []; 
     let globalOrder = 1;
 
-    // Raccogliamo i dati e costruiamo gli oggetti esattamente come li vuole il Backend
+    // Raccogliamo i dati e costruiamo gli oggetti
     document.querySelectorAll('.visit-block').forEach(block => {
         const blockTitle = block.querySelector('.block-title-input').value;
         const itemsNodes = block.querySelectorAll('.draggable-item');
@@ -411,7 +519,6 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         
         structurData.push({ blockName: blockTitle, items: itemsIds });
         
-        // Creiamo la sequenza con itemId, order e direzioni vuote di default
         itemsIds.forEach(id => {
             sequenceObjects.push({
                 itemId: id,
@@ -427,20 +534,24 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         return; 
     }
 
-    // Costruiamo il payload perfetto per Zod e Mongoose
+    // Costruiamo il payload perfetto
     const payload = {
         title: title,
         description: desc + "\n\n[Struttura Blocchi Salvata: " + JSON.stringify(structurData) + "]",
         museumId: museumId,
-        sequence: sequenceObjects, // Ora è un array di oggetti, non più stringhe!
+        sequence: sequenceObjects,
         isPublic: false,
-        type: "standard", // Campo richiesto dallo schema
-        length: "normal"  // Campo richiesto dallo schema
+        type: "standard", 
+        length: "normal"  
     };
     
     try {
-        const res = await fetch(`${myApi}/visits`, {
-            method: 'POST',
+        // Se c'è un visitId sovrascriviamo (PUT), altrimenti creiamo nuovo (POST)
+        const method = visitId ? 'PUT' : 'POST';
+        const url = visitId ? `${myApi}/visits/${visitId}` : `${myApi}/visits`;
+
+        const res = await fetch(url, {
+            method: method,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
@@ -449,24 +560,15 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         });
 
         if (res.ok) {
-            // Risposta 200/201: Inserimento riuscito!
             alert("Visita salvata con successo nel database!");
-            sessionStorage.removeItem('temp_visit_state'); // Puliamo la cache
+            sessionStorage.removeItem('temp_visit_state');
             
-            // TORNIA AL MARKETPLACE 
-            window.location.href = "../pages/museums_list.html"; 
+            // Reindirizziamo al Marketplace
+            window.location.href = "museums_list.html"; 
         } else {
-            // Estraiamo il testo dell'errore esatto dal backend
             const errorText = await res.text();
-            console.error("ERRORE DI VALIDAZIONE DAL BACKEND:", errorText);
-            
-            try {
-                // Proviamo a leggerlo come JSON (tipico di Zod)
-                const errorJson = JSON.parse(errorText);
-                alert("Il Backend ha rifiutato i dati. Controlla la Console (F12) per i dettagli. Motivo: " + JSON.stringify(errorJson));
-            } catch (e) {
-                alert("Errore 400: Bad Request. Il backend ha rifiutato il formato dei dati.");
-            }
+            console.error("Errore Backend:", errorText);
+            alert("Impossibile salvare. Controlla la console per i dettagli.");
         }
     } catch(err) {
         console.error("Errore di rete:", err);

@@ -2,166 +2,263 @@ const isLocal = window.location.origin.includes('localhost') || window.location.
 const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
 
-const token = localStorage.getItem("token")
-const visitsContainer = document.getElementById("tours-list")
-const searchBar=document.querySelector("#search-bar")
+const visitsContainer = document.getElementById("tours-list");
+const searchBar = document.querySelector("#search-bar");
 
-// query specifiche del museo selezionati
+// Query specifiche del museo selezionato dall'URL
 const urlParams = new URLSearchParams(window.location.search);
 const currMuseumId = urlParams.get('museumId');
 const currMuseumName = urlParams.get('museumName');
 
-if (!token) {
-    alert("You must be logged in to access this page.")
-    window.location.href = "../pages/login.html"
-}
-
 console.log("Stiamo lavorando sul museo:", currMuseumName, "con ID:", currMuseumId);
 
-let allTours=[]
-
-
+let allTours = [];
 
 function setUpMuseumDatas(){
-    var titolo=document.querySelector(".title")
-    if(titolo && currMuseumName) titolo.innerHTML=currMuseumName
+    const titolo = document.getElementById("museum-title-display") || document.querySelector(".title");
+    if(titolo && currMuseumName) titolo.innerHTML = currMuseumName;
 }
 
 function renderVisitsList(visitsArr) {
-    visitsContainer.innerHTML=""
+    visitsContainer.innerHTML = "";
 
-    if(visitsArr.length===0){
-        visitsContainer.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--chill-grey); font-size: 1.1rem;">No visits found.</p>`
+    if(visitsArr.length === 0){
+        visitsContainer.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--chill-grey); font-size: 1.1rem; padding: 40px;">No visits found for this museum.</p>`;
         return;
     }
-    visitsArr.forEach(v =>{
-                var visitIcon=document.createElement("div")
-                visitIcon.className="visit-icon"
-
-                visitIcon.style.display="flex"
-                visitIcon.style.flexDirection="column"
-                visitIcon.style.justifyContent="space-between"
-
-
-                visitIcon.innerHTML=`
-                    <div style="border: 1px solid var(--border-light); border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #FAFAFA; flex-grow: 1;">
-                        <h3 style="color: var(--charcoal); margin-top: 0; margin-bottom: 10px; font-size: 1.3rem;">${v.title}</h3>
-                        <p style="color: #666; font-size: 0.95rem; line-height: 1.4; margin: 0;">${v.description || 'No description provided.'}</p>
-                    </div>
-
-                    <div style="display: flex; gap: 10px; width: 100%;">
-                        <button class="start-btn" style="flex: 1; background-color: var(--museum-gold); color: white; border: none; border-radius: 4px; padding: 12px 0; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;">
-                            Start Tour &rarr;
-                        </button>
-                        <button class="edit-btn" style="flex: 1; background-color: var(--charcoal); color: white; border: none; border-radius: 4px; padding: 12px 0; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.85rem;">
-                            Edit Tour &rarr;
-                        </button>
-                    </div>
-                `
-
-                var editBtn=visitIcon.querySelector(".edit-btn")
-                var startBtn=visitIcon.querySelector(".start-btn")
-
-                startBtn.onclick= (e) => {
-                    e.stopPropagation()
-                    window.location.href=`navigator.html?museumId=${currMuseumId}&visitId=${v._id}`
-                }
-                editBtn.onclick= (e) => {
-                    e.stopPropagation()
-                    window.location.href=`editor.html?museumId=${currMuseumId}&visitId=${v._id}`
-                }
-
-                visitsContainer.appendChild(visitIcon)
-            })
     
+    visitsArr.forEach(v => {
+        // 1. LA MAGIA: Puliamo la descrizione nascondendo i dati tecnici
+        let cleanDesc = v.description || "";
+        const splitTag = "[Struttura Blocchi Salvata: ";
+        if (cleanDesc.includes(splitTag)) {
+            cleanDesc = cleanDesc.split(splitTag)[0].trim();
+        }
+        if (!cleanDesc) cleanDesc = "Nessuna descrizione fornita per questo tour.";
+
+        // 2. Creiamo il blocco card
+        const visitIcon = document.createElement("div");
+        visitIcon.className = "visit-card-modern"; 
+        
+        // Stile della card (più moderno, angoli più morbidi e ombra leggera)
+        visitIcon.style.display = "flex";
+        visitIcon.style.flexDirection = "column";
+        visitIcon.style.background = "var(--pure-white, #FFFFFF)";
+        visitIcon.style.border = "1px solid var(--border-light, #E2E8F0)";
+        visitIcon.style.borderRadius = "16px";
+        visitIcon.style.padding = "24px";
+        visitIcon.style.boxShadow = "0 2px 10px rgba(0,0,0,0.02)";
+        visitIcon.style.transition = "transform 0.2s ease, box-shadow 0.2s ease";
+        visitIcon.style.minHeight = "220px";
+
+        // Effetto hover per farla "sollevare" quando ci passi sopra
+        visitIcon.onmouseover = () => {
+            visitIcon.style.transform = "translateY(-4px)";
+            visitIcon.style.boxShadow = "0 12px 24px rgba(0,0,0,0.08)";
+        };
+        visitIcon.onmouseout = () => {
+            visitIcon.style.transform = "translateY(0)";
+            visitIcon.style.boxShadow = "0 2px 10px rgba(0,0,0,0.02)";
+        };
+
+        // Struttura HTML interna
+        // Struttura HTML interna con il nuovo Overlay animato
+        visitIcon.innerHTML = `
+            <!-- Sfondo finto per simulare l'immagine della visita -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=600&q=80') center/cover; opacity: 0.15; z-index: 0;"></div>
+
+            <!-- Contenuto base sempre visibile (Titolo in evidenza) -->
+            <div style="flex-grow: 1; position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <span style="background: var(--charcoal); color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px;">Tour</span>
+                <h3 style="color: var(--charcoal); margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.2; text-shadow: 0 2px 4px rgba(255,255,255,0.8);">${v.title}</h3>
+            </div>
+
+            <!-- OVERLAY A SCOMPARSA (Slide-in dal basso + Blur) -->
+            <div class="visit-card-overlay">
+                <h3 style="color: var(--charcoal); margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid var(--museum-gold); padding-bottom: 5px; display: inline-block;">${v.title}</h3>
+                <p style="color: #333; font-size: 0.95rem; line-height: 1.5; margin-top: 10px; overflow-y: auto; max-height: 100px;">
+                    ${cleanDesc}
+                </p>
+                
+                <div style="display: flex; gap: 10px; width: 100%; margin-top: auto; padding-top: 15px;">
+                    <button class="start-btn" style="flex: 2; background-color: var(--museum-gold); color: white; border: none; border-radius: 8px; padding: 10px 0; font-weight: 700; cursor: pointer; text-transform: uppercase;">
+                        Start
+                    </button>
+                    <button class="edit-btn" style="flex: 1; background-color: var(--charcoal); color: white; border: none; border-radius: 8px; padding: 10px 0; font-weight: 700; cursor: pointer; text-transform: uppercase;">
+                        Edit
+                    </button>
+                    <button class="delete-btn" style="flex: 0.5; background-color: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; border-radius: 8px; cursor: pointer; font-size: 1.1rem;">
+                        🗑️
+                    </button>
+                </div>
+            </div>
+        `;
+
+        const editBtn = visitIcon.querySelector(".edit-btn");
+        const startBtn = visitIcon.querySelector(".start-btn");
+        const deleteBtn = visitIcon.querySelector(".delete-btn");
+
+        // START TOUR (Pubblico)
+        startBtn.onclick = (e) => {
+            e.stopPropagation();
+            window.location.href = `navigator.html?museumId=${currMuseumId}&visitId=${v._id}`;
+        };
+
+        // EDIT TOUR (Richiede Login)
+        editBtn.onclick = (e) => {
+            e.stopPropagation();
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Devi effettuare il login per modificare una visita.");
+                window.location.href = "login.html";
+                return;
+            }
+            window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}&visitId=${v._id}`;
+        };
+
+        // DELETE TOUR (Richiede Login + Modale Custom)
+        deleteBtn.onclick = (e) => {
+            e.stopPropagation();
+            const token = localStorage.getItem("token");
+            
+            if (!token) {
+                alert("Devi effettuare il login per eliminare una visita.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // 1. Peschiamo il modale e i suoi elementi
+            const deleteModal = document.getElementById("delete-confirm-modal");
+            const deleteText = document.getElementById("delete-modal-text");
+            const confirmBtn = document.getElementById("confirm-delete-btn");
+            const cancelBtn = document.getElementById("cancel-delete-btn");
+
+            // 2. Personalizziamo il testo col nome della visita e mostriamo il modale
+            deleteText.innerHTML = `Sei sicuro di voler eliminare la visita<br><strong style="color: var(--charcoal); font-size: 1.2rem;">"${v.title}"</strong>?<br><span style="font-size: 0.9rem; color: #64748b; display: block; margin-top: 10px;">Questa azione è irreversibile.</span>`;
+            deleteModal.classList.remove("hidden");
+
+            // 3. Azione: Se l'utente clicca Annulla
+            cancelBtn.onclick = () => {
+                deleteModal.classList.add("hidden");
+            };
+
+            // 4. Azione: Se l'utente clicca Elimina
+            confirmBtn.onclick = async () => {
+                try {
+                    // Cambiamo il testo del bottone per dare feedback visivo
+                    confirmBtn.innerHTML = "Eliminazione...";
+                    confirmBtn.style.opacity = "0.7";
+                    confirmBtn.disabled = true;
+
+                    const res = await fetch(`${myApi}/visits/${v._id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (res.ok) {
+                        deleteModal.classList.add("hidden"); // Nascondi modale
+                        loadList(); // Ricarica la lista silenziosamente
+                    } else {
+                        const errorData = await res.json();
+                        alert(`Impossibile eliminare: ${errorData.error || "Non sei autorizzato"}`);
+                        deleteModal.classList.add("hidden");
+                    }
+                } catch (err) {
+                    console.error("Errore eliminazione:", err);
+                    alert("Errore di rete.");
+                    deleteModal.classList.add("hidden");
+                } finally {
+                    // Ripristiniamo il bottone rosso allo stato originale
+                    confirmBtn.innerHTML = "Elimina";
+                    confirmBtn.style.opacity = "1";
+                    confirmBtn.disabled = false;
+                }
+            };
+        };
+
+        visitsContainer.appendChild(visitIcon);
+    });
 }
 
+// CARICAMENTO PUBBLICO DAL DATABASE
 async function loadList(){
     if(!currMuseumId){
-        visitsContainer.innerHTML="<p style='color: red;'>Errore: ID museo mancante.</p>"
+        visitsContainer.innerHTML = "<p style='color: red; text-align: center;'>Errore: ID museo mancante.</p>";
         return;
     }
-    try{
-        const res=await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
+
+    // 1. Recuperiamo il token
+    const token = localStorage.getItem("token");
+
+    // 2. Se l'utente non è loggato, mostriamo un invito al login invece di fare la chiamata che fallirebbe
+    if (!token) {
+        visitsContainer.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--gallery-bg); border-radius: 12px;">
+                <h3 style="color: var(--charcoal); margin-bottom: 15px;">Vuoi esplorare le visite?</h3>
+                <p style="color: var(--chill-grey); margin-bottom: 20px;">Devi effettuare il login per visualizzare o creare i tour di questo museo.</p>
+                <button class="main-btn" onclick="window.location.href='login.html'">Vai al Login</button>
+            </div>
+        `;
+        return; // Interrompiamo la funzione qui
+    }
+    
+    // 3. Se l'utente è loggato, facciamo la chiamata protetta originale
+    try {
+        const res = await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
             headers: {
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}` // Ripristiniamo l'invio del token
             }
-        })
+        });
 
-        var data=await res.json()
+        if (!res.ok) throw new Error("Errore dal server o token scaduto");
 
-        allTours=data.visits || []
-        renderVisitsList(allTours)
+        const data = await res.json();
+        allTours = data.visits || data || [];
+        renderVisitsList(allTours);
         
+    } catch(err){
+        console.error("Errore durante il caricamento delle visite: " + err);
+        visitsContainer.innerHTML = "<p style='color: var(--error-red); grid-column: 1 / -1; text-align: center;'>Errore di connessione. Prova a effettuare nuovamente il login.</p>";
     }
-    catch(err){
-        console.error("Errore durante il caricamento delle visite: " + err)
-        visitsContainer.innerHTML = "<p style='color: var(--error-red); grid-column: 1 / -1;'>Server error while loading visits.</p>"
-    }
-
 }
 
 function setupSearchListeners() {
     if(!searchBar) return;
-    searchBar.addEventListener("input", (e)=>{
-        var searchTerm = e.target.value.toLowerCase().trim();
-        var filteredArr=allTours.filter(visit=>{
-            var matchingName=visit.title &&  visit.title.toLowerCase().includes(searchTerm)
-            matchingAddr=visit.description && visit.description.toLowerCase().includes(searchTerm)
+    searchBar.addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const filteredArr = allTours.filter(visit => {
+            const matchingName = visit.title && visit.title.toLowerCase().includes(searchTerm);
+            const matchingDesc = visit.description && visit.description.toLowerCase().includes(searchTerm);
 
-            return matchingName || matchingAddr
-        })
+            return matchingName || matchingDesc;
+        });
 
-        renderVisitsList(filteredArr)
-    })
+        renderVisitsList(filteredArr);
+    });
 }
-
 
 function setupAddVisitBtn(){
-    var addNewVisitBtn = document.getElementById("add-visit-btn");
+    const addNewVisitBtn = document.getElementById("add-visit-btn");
 
-if (addNewVisitBtn) {
-    addNewVisitBtn.addEventListener('click', () => {
-        window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}`
-    });
-}
-}
-
-
-
-function setupDropdownMenu() {
-    var menuBtn = document.getElementById("main-menu-btn")
-    var dropdown = document.getElementById("dropdown-menu")
-    var logoutBtn = document.getElementById("logout-btn")
-
-    if (!menuBtn || !dropdown) return;
-
-    
-    menuBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); 
-        dropdown.classList.toggle("show")
-    });
-
-    
-    document.addEventListener("click", (e) => {
-        if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
-            dropdown.classList.remove("show")
-        }
-    });
-
-    
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            localStorage.removeItem("token") 
-            window.location.href = "login.html" 
+    if (addNewVisitBtn) {
+        addNewVisitBtn.addEventListener('click', () => {
+            const token = localStorage.getItem("token");
+            
+            // CONTROLLO LOGIN
+            if (!token) {
+                alert("Devi registrarti o effettuare il login per creare una nuova visita!");
+                window.location.href = "login.html";
+                return;
+            }
+            
+            // Se loggato, vai all'editor
+            window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}`;
         });
     }
 }
 
 // Avviamo tutto
-setUpMuseumDatas()
-loadList()
-setupSearchListeners()
-setupAddVisitBtn()
-setupDropdownMenu()
+setUpMuseumDatas();
+loadList();
+setupSearchListeners();
+setupAddVisitBtn();

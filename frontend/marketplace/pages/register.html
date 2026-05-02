@@ -7,19 +7,27 @@
     <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
   <body>
-    <div class="main-container">
-      <header class="top-bar">
-        <a href="homepage.html" class="logo-link">
-          <img
-            src="../assets/artaround/logo.png"
-            alt="ArtAround Logo"
-            class="logo-img"
-          />
-        </a>
-      </header>
+    <!-- Navbar Universale -->
+    <header class="top-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand"><span class="logo-text">A&alpha;</span></a>
+        <ul class="nav-links">
+          <li><a href="homepage.html" id="nav-plan">Plan your visit</a></li>
+          <li><a href="#" id="nav-add-museum">Add a museum</a></li>
+          <li><a href="about.html" id="nav-about">About us</a></li>
+        </ul>
+        <ul class="nav-auth">
+          <li class="guest-only"><a href="login.html">Login</a></li>
+          <li class="guest-only"><a href="register.html">Sign-up</a></li>
+          <li class="user-only hidden"><a href="../../user_profile/pages/profile.html">Your Account</a></li>
+          <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+        </ul>
+      </div>
+    </header>
 
+    <div class="main-container">
       <main class="center-content">
-        <h1 class="title">ArtAround</h1>
+        <h1 class="title" style="margin-top: 40px;">ArtAround</h1>
         <h2 class="subtitle">Create a New Account</h2>
 
         <form id="login-form">
@@ -44,6 +52,8 @@
         </p>
       </main>
     </div>
+    
+    <script src="../scripts/navbar.js"></script>
     <script src="../scripts/register.js"></script>
   </body>
 </html>

@@ -3,53 +3,64 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Home</title>
+    <title>ArtAround - Esplora l'Arte</title>
     <link rel="stylesheet" href="../stylesheets/styles.css" />
   </head>
-  <body>
-    <div class="main-container">
-      <header class="top-nav">
-        <div class="nav-wrapper">
-          <a href="homepage.html" class="brand"><span class="logo-text">A&alpha;</span></a>
-          <ul class="nav-links">
-            <li><a href="museums_list.html">Plan your visit</a></li>
-            <li><a href="museums_list.html">Add a museum</a></li>
-            <li><a href="#about-section">About us</a></li>
-          </ul>
-          <ul class="nav-auth">
-            <li><a href="login.html">Login</a></li>
-            <li><a href="register.html">Sign-up</a></li>
-            <li id="logout-item" class="hidden"><a href="#" onclick="handleLogout()">Logout</a></li>
-          </ul>
-        </div>
-      </header>
+  <body class="home-body">
+    <header class="top-nav">
+  <div class="nav-wrapper">
+    <!-- LOGO -->
+    <a href="homepage.html" class="brand"><span class="logo-text">A&alpha;</span></a>
 
-      <main class="center-content">
-        <h1 class="title">ArtAround</h1>
-        <h2 class="subtitle">Your personal museum guide</h2>
-        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 20px;">
-          <button class="main-btn" onclick="window.location.href = './login.html'">Login</button>
-          <button class="secondary-btn" onclick="window.location.href = './register.html'">Sign up</button>
-        </div>
-      </main>
+    <!-- LINK CENTRALI -->
+    <ul class="nav-links">
+      <li><a href="homepage.html" id="nav-plan">Plan your visit</a></li>
+      <li><a href="#" id="nav-add-museum">Add a museum</a></li>
+      <li><a href="about.html" id="nav-about">About us</a></li>
+    </ul>
 
-      <footer class="bottom-bar" id="about-section">
-        <div class="about-text">About</div>
-        <div class="arrow" id="about-arrow">&darr;</div>
-      </footer>
-    </div>
-    
-    <div class="hidden-text" style="display:none; padding: 40px; line-height: 1.6;">
-       <p><strong>ArtAround</strong> is a web application made for exploring museums... (Unibo 2025/26)</p>
-    </div>
+    <!-- LINK AUTENTICAZIONE (Destra) -->
+    <ul class="nav-auth">
+      <!-- Visibili solo se NON sei loggato -->
+      <li class="guest-only"><a href="login.html">Login</a></li>
+      <li class="guest-only"><a href="register.html">Sign-up</a></li>
+
+      <!-- Visibili solo se SEI loggato -->
+      <li class="user-only hidden"><a href="../../user_profile/pages/profile.html">Your Account</a></li>
+      <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+    </ul>
+  </div>
+</header>
+
+    <!-- NUOVA SEZIONE HERO CON IMMAGINE -->
+    <section class="hero-banner">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">Esplora l'Arte nel Mondo</h1>
+        <p class="hero-subtitle">La tua guida museale intelligente. Scopri, crea e condividi tour personalizzati in pochi clic.</p>
+        
+        <div class="hero-search-wrapper">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="search-bar"
+            placeholder="Cerca un museo, una città o una destinazione..."
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- SEZIONE GRIGLIA MUSEI -->
+    <section class="museums-section">
+      <div class="nav-wrapper" style="flex-direction: column; align-items: flex-start;">
+        <h2 class="section-heading">Destinazioni in Evidenza</h2>
+        <div id="museum-list" class="modern-grid">
+          <!-- I musei verranno generati qui dal JS -->
+        </div>
+      </div>
+    </section>
 
     <script src="../scripts/navbar.js"></script>
-    <script>
-      document.getElementById("about-arrow").onclick = () => {
-        const target = document.querySelector(".hidden-text");
-        target.style.display = "block";
-        target.scrollIntoView({ behavior: "smooth" });
-      };
-    </script>
+    <script src="../scripts/homepage.js"></script>
   </body>
 </html>

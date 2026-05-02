@@ -1659,3 +1659,147 @@ body {
         font-size: 1.8rem;
     }
 }
+
+/* ==========================================================================
+   HOMEPAGE RESTYLING ARTISTICO
+   ========================================================================== */
+
+.home-body {
+    background-color: var(--gallery-bg, #f8f9fa);
+}
+
+/* --- Hero Banner --- */
+.hero-banner {
+    position: relative;
+    width: 100%;
+    min-height: 65vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Immagine di sfondo (placeholder di un museo reale da Unsplash) */
+    background: url('https://images.unsplash.com/photo-1541830602878-8314ba6dc4cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
+}
+
+/* Filtro scuro sull'immagine per far leggere bene il testo bianco */
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(15, 23, 42, 0.8));
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.hero-title {
+    font-size: 4.5rem;
+    font-family: serif; /* Font classico per l'arte */
+    margin: 0 0 15px 0;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+    font-size: 1.3rem;
+    font-weight: 300;
+    opacity: 0.9;
+    margin-bottom: 40px;
+    letter-spacing: 0.5px;
+}
+
+/* --- Barra di Ricerca Fluttuante --- */
+.hero-search-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border-radius: 50px;
+    padding: 8px 25px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hero-search-wrapper:focus-within {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.search-icon {
+    font-size: 1.2rem;
+    color: #94a3b8;
+    margin-right: 15px;
+}
+
+.hero-search-wrapper input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    font-size: 1.15rem;
+    padding: 12px 0;
+    color: var(--charcoal);
+    background: transparent;
+}
+
+/* --- Sezione Musei --- */
+.museums-section {
+    padding: 80px 20px;
+}
+
+.section-heading {
+    font-size: 2.2rem;
+    color: var(--charcoal);
+    margin: 0 0 40px 0;
+    font-family: serif;
+    position: relative;
+}
+
+/* Griglia per le card */
+.modern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    width: 100%;
+}
+
+/* Pulsante Sign Up in evidenza nella Navbar */
+.signup-btn {
+    background: var(--charcoal);
+    color: white !important;
+    padding: 8px 20px !important;
+    border-radius: 20px;
+}
+.signup-btn:hover {
+    background: var(--museum-gold);
+    color: white !important;
+}
+
+/* --- Effetto Blur Card Visite --- */
+.visit-card-modern {
+    position: relative;
+    overflow: hidden; /* Fondamentale per non far uscire l'overlay */
+}
+
+.visit-card-overlay {
+    position: absolute;
+    inset: 0; /* Copre tutta la carta */
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px); /* L'effetto sfocatura in stile iOS */
+    -webkit-backdrop-filter: blur(8px);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* Inizialmente è nascosto in basso */
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+}
+
+/* Quando si passa sopra col mouse, l'overlay sale */
+.visit-card-modern:hover .visit-card-overlay {
+    transform: translateY(0);
+}
