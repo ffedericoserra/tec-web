@@ -15,6 +15,16 @@ const pointOfInterestSchema = z.object({
   label: z.string().min(1, 'Label is required'),
 });
 
+const openingHoursSchema = z.object({
+  mon: z.string().optional(),
+  tue: z.string().optional(),
+  wed: z.string().optional(),
+  thu: z.string().optional(),
+  fri: z.string().optional(),
+  sat: z.string().optional(),
+  sun: z.string().optional(),
+});
+
 const themeSchema = z.object({
   primaryColor: z.string().optional(),
   secondaryColor: z.string().optional(),
@@ -36,10 +46,14 @@ const createMuseumSchema = z.object({
   name: z.string().min(1, 'Museum name is required').trim(),
   address: z.string().trim().optional(),
   description: z.string().trim().optional(),
+  website: z.string().url('Inserisci un URL valido').optional().or(z.literal('')),
+  email: z.string().email('Inserisci un email valida').optional().or(z.literal('')),
+  phone: z.string().trim().optional(),
+  openingHours: openingHoursSchema.optional(),
   theme: themeSchema,
   mapData: mapDataSchema,
   pointsOfInterest: z.array(pointOfInterestSchema).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
 });
 
 const updateMuseumSchema = createMuseumSchema.partial();
