@@ -1880,3 +1880,207 @@ body {
         font-size: 2rem;
     }
 }
+
+/* ==========================================================================
+   ADD MUSEUM PAGE STYLES (EDITORIAL STYLE)
+   ========================================================================== */
+
+/* --- Contenitore e Intestazione --- */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.add-museum-header {
+    margin-top: 60px;
+    margin-bottom: 40px;
+}
+
+/* --- Tipografia Editoriale --- */
+.text-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    color: var(--chill-grey, #555);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.text-display {
+    font-family: "Playfair Display", "Georgia", serif;
+    font-size: 3.5rem;
+    color: var(--charcoal, #2C3539);
+    margin: 0;
+    line-height: 1.1;
+}
+
+.horizontal-line {
+    width: 100%;
+    height: 1px;
+    background-color: var(--charcoal, #2C3539);
+    margin: 30px 0;
+}
+
+.editorial-form {
+    margin-bottom: 80px;
+}
+
+/* --- Input Minimale (Testi Volanti) --- */
+.input-group {
+    margin-bottom: 30px;
+}
+
+.input-minimal {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--border-light, #DDDDDD);
+    padding: 10px 0;
+    font-size: 1.2rem;
+    color: var(--charcoal, #2C3539);
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-minimal:focus {
+    border-color: var(--museum-gold, #B89741);
+}
+
+.input-minimal.text-display {
+    font-size: 3rem;
+    padding: 15px 0;
+}
+
+.input-minimal::placeholder {
+    color: #cccccc;
+    font-weight: 300;
+}
+
+/* --- Layout a Griglia (Orari e Dettagli) --- */
+.form-grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 60px;
+    align-items: start;
+    margin-top: 40px;
+}
+
+/* --- Sezione Orari di Apertura --- */
+.hours-grid {
+    display: flex;
+    flex-direction: column;
+    margin-top: 15px;
+}
+
+.hours-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-light, #DDDDDD);
+}
+
+.hours-row span {
+    font-weight: 700;
+    color: var(--charcoal, #2C3539);
+    width: 50px;
+}
+
+.hours-row input {
+    border: none;
+    background: transparent;
+    text-align: right;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--chill-grey, #555);
+    outline: none;
+    width: 100%;
+}
+
+/* --- Sezione Contatti e Textarea --- */
+.contacts-box {
+    margin-top: 40px;
+    padding-top: 40px;
+    border-top: 1px solid var(--charcoal, #2C3539);
+}
+
+.matrix-input {
+    width: 100%;
+    min-height: 200px;
+    background: transparent;
+    border: 1px solid var(--border-light, #DDDDDD);
+    border-radius: 4px;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-family: inherit;
+    color: var(--charcoal, #2C3539);
+    outline: none;
+    resize: vertical;
+    transition: border-color 0.3s ease;
+    margin-top: 10px;
+}
+
+.matrix-input:focus {
+    border-color: var(--museum-gold, #B89741);
+}
+
+/* --- Bottoni di Azione (Fondo Pagina) --- */
+.form-actions-fixed {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid var(--charcoal, #2C3539);
+}
+
+.btn-primary {
+    background-color: var(--charcoal, #2C3539);
+    color: var(--pure-white, #FFFFFF);
+    border: none;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 30px; /* Arrotondato per abbinarsi alla navbar */
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--museum-gold, #B89741);
+    transform: translateY(-2px);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--chill-grey, #555);
+    border: none;
+    font-size: 1.1rem;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.btn-ghost:hover {
+    color: var(--error-red, #A93226);
+}
+
+/* --- Responsive Layout --- */
+@media (max-width: 900px) {
+    .form-grid-layout {
+        grid-template-columns: 1fr; /* Le colonne si impilano nei tablet/smartphone */
+        gap: 40px;
+    }
+    
+    .input-minimal.text-display {
+        font-size: 2.2rem;
+    }
+    
+    .text-display {
+        font-size: 2.8rem;
+    }
+}

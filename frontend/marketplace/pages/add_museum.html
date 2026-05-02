@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Configurazione Museo</title>
+    <link rel="stylesheet" href="../stylesheets/styles.css" />
+  </head>
+  <body class="home-body">
+    <header class="top-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+        <ul class="nav-links">
+          <li><a href="homepage.html">Plan your visit</a></li>
+          <li><a href="add_museum.html" class="active">Add a museum</a></li>
+          <li><a href="about.html">About us</a></li>
+        </ul>
+        <ul class="nav-auth">
+          <li class="user-only">
+            <a href="../../user_profile/pages/profile.html">Your Account</a>
+          </li>
+          <li class="user-only"><a href="#" id="logout-btn">Log out</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="add-museum-header">
+        <p class="text-label">Gestione Istituzione</p>
+        <h1 class="text-display">Configura il tuo Museo</h1>
+        <div class="horizontal-line"></div>
+      </section>
+
+      <form id="add-museum-form" class="editorial-form">
+        <div class="input-group">
+          <label for="m-name" class="text-label">Nome Ufficiale *</label>
+          <input
+            type="text"
+            id="m-name"
+            class="input-minimal text-display"
+            placeholder="Es: Museo del Novecento"
+            required
+          />
+        </div>
+
+        <div class="input-group">
+          <label for="m-address" class="text-label">Indirizzo Fisico</label>
+          <input
+            type="text"
+            id="m-address"
+            class="input-minimal"
+            placeholder="Via, Città, CAP"
+          />
+        </div>
+
+        <div class="form-grid-layout">
+          <div class="opening-hours-section">
+            <p class="text-label">Orari di Apertura</p>
+            <div class="hours-grid">
+              <div class="hours-row">
+                <span>Mon</span
+                ><input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <span>Tue</span><input type="text" placeholder="Chiuso" />
+              </div>
+              <div class="hours-row">
+                <span>Wed</span
+                ><input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <span>Thu</span
+                ><input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <span>Fri</span
+                ><input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <span>Sat</span
+                ><input type="text" placeholder="10:00 - 20:00" />
+              </div>
+              <div class="hours-row">
+                <span>Sun</span
+                ><input type="text" placeholder="10:00 - 20:00" />
+              </div>
+            </div>
+
+            <div
+              class="contacts-box"
+              style="border-top: none; margin-top: 50px"
+            >
+              <p class="text-label">Visual Identity (Theme)</p>
+              <div class="matrix-row">
+                <div class="matrix-label"><span>Colore Primario</span></div>
+                <input
+                  type="color"
+                  id="m-primary-color"
+                  value="#1a1a1a"
+                  style="
+                    height: 40px;
+                    border: none;
+                    background: none;
+                    cursor: pointer;
+                  "
+                />
+              </div>
+              <div class="matrix-row">
+                <div class="matrix-label"><span>Colore Secondario</span></div>
+                <input
+                  type="color"
+                  id="m-secondary-color"
+                  value="#ffffff"
+                  style="
+                    height: 40px;
+                    border: none;
+                    background: none;
+                    cursor: pointer;
+                  "
+                />
+              </div>
+              <div class="matrix-row">
+                <div class="matrix-label"><span>Font</span></div>
+                <select id="m-font" class="clean-select">
+                  <option value="Inter">Inter (Modern)</option>
+                  <option value="Playfair Display">Playfair (Classic)</option>
+                  <option value="Nunito">Nunito (Soft)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="details-section">
+            <div class="input-group">
+              <label for="m-description" class="text-label"
+                >Descrizione del Museo</label
+              >
+              <textarea
+                id="m-description"
+                class="matrix-input"
+                placeholder="Una breve introduzione per i visitatori..."
+              ></textarea>
+            </div>
+
+            <div class="input-group">
+              <label for="m-image" class="text-label"
+                >URL Immagine di Copertina</label
+              >
+              <input
+                type="url"
+                id="m-image"
+                class="input-minimal"
+                placeholder="https://link-immagine-copertina.jpg"
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="m-map-image" class="text-label"
+                >URL Mappa Digitale (SVG consigliato)</label
+              >
+              <input
+                type="url"
+                id="m-map-image"
+                class="input-minimal"
+                placeholder="https://link-mappa-museo.svg"
+              />
+            </div>
+
+            <div class="contacts-box">
+              <p class="text-label">Contatti e Web</p>
+              <input
+                type="url"
+                id="m-website"
+                class="input-minimal"
+                placeholder="Sito Web Ufficiale"
+                style="margin-bottom: 15px"
+              />
+              <input
+                type="email"
+                id="m-email"
+                class="input-minimal"
+                placeholder="Email per informazioni"
+                style="margin-bottom: 15px"
+              />
+              <input
+                type="tel"
+                id="m-phone"
+                class="input-minimal"
+                placeholder="Telefono Biglietteria"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions-fixed">
+          <button
+            type="button"
+            class="btn-ghost cancel-btn"
+            onclick="window.history.back()"
+          >
+            Annulla
+          </button>
+          <button type="submit" class="btn-primary">
+            Salva Configurazione
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <script src="../scripts/navbar.js"></script>
+  </body>
+</html>
