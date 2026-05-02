@@ -1803,3 +1803,80 @@ body {
 .visit-card-modern:hover .visit-card-overlay {
     transform: translateY(0);
 }
+
+/* ==========================================================================
+   ABOUT PAGE STYLES
+   ========================================================================== */
+
+/* Contenitore principale della pagina About */
+.about-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 20px;
+}
+
+/* Griglia asimmetrica: 2/3 per il testo principale, 1/3 per la card laterale */
+.about-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 60px;
+    align-items: start;
+}
+
+/* --- Cella Grande (Main Column) --- */
+.about-main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.about-heading {
+    font-size: 2.5rem;
+    color: var(--charcoal, #2C3539);
+    font-family: "Playfair Display", "Georgia", serif;
+    margin: 0 0 10px 0;
+    line-height: 1.2;
+}
+
+.about-paragraph {
+    font-size: 1.15rem;
+    color: var(--chill-grey, #555);
+    line-height: 1.8;
+    margin: 0;
+}
+
+/* --- Cella Piccola (Side Column) --- */
+.about-side-column {
+    background-color: var(--pure-white, #FFFFFF);
+    padding: 35px;
+    border-radius: 8px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.04);
+    border-top: 4px solid var(--museum-gold, #B89741);
+}
+
+.about-subheading {
+    font-size: 1.3rem;
+    color: var(--charcoal, #2C3539);
+    margin: 0 0 15px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.about-small-text {
+    font-size: 1rem;
+    color: var(--chill-grey, #555);
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* --- Responsive per Mobile --- */
+@media (max-width: 900px) {
+    .about-grid {
+        grid-template-columns: 1fr; /* Le colonne si impilano una sotto l'altra */
+        gap: 40px;
+    }
+
+    .about-heading {
+        font-size: 2rem;
+    }
+}
