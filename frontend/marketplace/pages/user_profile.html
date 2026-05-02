@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Il Mio Profilo</title>
+    <link rel="stylesheet" href="../stylesheets/styles.css" />
+  </head>
+  <body class="home-body">
+    <header class="top-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+        <ul class="nav-links">
+          <li>
+            <a href="homepage.html">Plan your visit</a>
+          </li>
+          <li>
+            <a href="add_museum.html">Add a museum</a>
+          </li>
+          <li><a href="about.html">About us</a></li>
+        </ul>
+        <ul class="nav-auth">
+          <li class="user-only">
+            <a href="profile.html" class="active">Your Account</a>
+          </li>
+          <li class="user-only"><a href="#" id="logout-btn">Log out</a></li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="container profile-page-wrapper">
+      <div class="profile-grid">
+        <aside class="profile-sidebar">
+          <div class="avatar-container">
+            <img
+              src="https://c8.alamy.com/compit/d3nnwt/spagnolo-di-formula-uno-pilota-fernando-alonso-del-team-renault-f1-festeggia-dopo-aver-vinto-il-gran-premio-di-gran-bretagna-a-silverstone-race-track-nel-northamptonshire-gran-bretagna-domenica-11-giugno-2006-foto-jens-buettner-d3nnwt.jpg"
+              alt="Avatar Utente"
+              class="profile-avatar"
+            />
+          </div>
+
+          <h2 class="text-display profile-name">Matteo M.</h2>
+          <p class="text-label profile-role">Premium Curator</p>
+
+          <div class="horizontal-line"></div>
+
+          <div class="wallet-box">
+            <span class="text-label">Account Balance</span>
+            <div class="wallet-balance">
+              <span class="balance-amount">150</span>
+              <span class="balance-currency">A&alpha;</span>
+            </div>
+            <button class="btn-ghost small-btn">Ricarica Saldo</button>
+          </div>
+
+          <div class="profile-actions">
+            <button class="btn-primary w-100">Modifica Profilo</button>
+            <button class="btn-ghost w-100 logout-text">Disconnetti</button>
+          </div>
+        </aside>
+
+        <section class="profile-main-content">
+          <nav class="profile-tabs">
+            <button class="tab-btn active" data-target="tab-museums">
+              I Miei Musei
+            </button>
+            <button class="tab-btn" data-target="tab-visits">
+              Le Mie Visite
+            </button>
+            <button class="tab-btn" data-target="tab-saved">Salvati</button>
+            <button class="tab-btn" data-target="tab-settings">
+              Impostazioni
+            </button>
+          </nav>
+
+          <div id="tab-museums" class="tab-content active">
+            <div class="tab-header flex-between">
+              <h3 class="tab-title">Musei Gestiti</h3>
+              <a href="add_museum.html" class="btn-ghost">+ Nuovo Museo</a>
+            </div>
+
+            <div class="profile-list">
+              <div class="profile-list-item flex-between">
+                <div class="item-info">
+                  <h4>MAMbo - Museo d'Arte Moderna</h4>
+                  <span class="text-label">Bologna, IT</span>
+                </div>
+                <div class="item-actions">
+                  <a href="#" class="btn-ghost">Modifica</a>
+                </div>
+              </div>
+
+              <div class="profile-list-item flex-between">
+                <div class="item-info">
+                  <h4>Galleria degli Uffizi</h4>
+                  <span class="text-label">Firenze, IT</span>
+                </div>
+                <div class="item-actions">
+                  <a href="#" class="btn-ghost">Modifica</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="tab-visits" class="tab-content hidden">
+            <div class="tab-header flex-between">
+              <h3 class="tab-title">Visite Create</h3>
+              <a href="create_visits.html" class="btn-ghost">+ Crea Visita</a>
+            </div>
+            <div class="profile-list">
+              <div class="profile-list-item flex-between">
+                <div class="item-info">
+                  <h4>Capolavori del Rinascimento</h4>
+                  <span class="text-label">Standard • Deep • Pubblica</span>
+                </div>
+                <div class="item-actions">
+                  <a href="#" class="btn-ghost">Modifica</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="../scripts/user_profile.js"></script>
+  </body>
+</html>

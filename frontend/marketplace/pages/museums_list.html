@@ -15,14 +15,16 @@
         </a>
 
         <ul class="nav-links">
-          <li><a href="museums_list.html" class="active">Plan your visit</a></li>
+          <li>
+            <a href="museums_list.html" class="active">Plan your visit</a>
+          </li>
           <!-- Questo link può attivare il modale add-museum tramite JS -->
           <li><a href="#" id="nav-add-museum">Add a museum</a></li>
           <li><a href="homepage.html#about-section">About us</a></li>
         </ul>
 
         <ul class="nav-auth">
-          <li><a href="../../user_profile/pages/profile.html">Profile</a></li>
+          <li><a href="user_profile.html">Your Account</a></li>
           <li id="logout-item">
             <a href="#" onclick="handleLogout()" class="logout-text">Logout</a>
           </li>
@@ -53,7 +55,10 @@
     <!-- MODALE AGGIUNTA MUSEO (Invariato) -->
     <div id="add-museum-modal" class="modal-overlay hidden">
       <div class="modal-content auth-form">
-        <h2 class="subtitle" style="margin-top: 0; color: var(--charcoal, #333)">
+        <h2
+          class="subtitle"
+          style="margin-top: 0; color: var(--charcoal, #333)"
+        >
           Add New Museum
         </h2>
         <form id="add-museum-form">
@@ -67,11 +72,19 @@
           </div>
           <div class="input-group">
             <label for="m-description">Description</label>
-            <textarea id="m-description" rows="3" class="modal-textarea"></textarea>
+            <textarea
+              id="m-description"
+              rows="3"
+              class="modal-textarea"
+            ></textarea>
           </div>
           <div id="add-modal-error" class="error-message"></div>
           <div class="form-actions">
-            <button type="button" class="main-btn cancel-btn" id="cancel-add-btn">
+            <button
+              type="button"
+              class="main-btn cancel-btn"
+              id="cancel-add-btn"
+            >
               Cancel
             </button>
             <button type="submit" class="main-btn">Save</button>
@@ -92,16 +105,16 @@
     <script src="../scripts/navbar.js"></script>
     <!-- Tuo script originale per la logica dei musei -->
     <script src="../scripts/museums_list.js"></script>
-    
+
     <script>
       // Opzionale: Collega il link della navbar al modale già esistente
-      const navAddBtn = document.getElementById('nav-add-museum');
-      const mainAddBtn = document.getElementById('add-museum-btn');
+      const navAddBtn = document.getElementById("nav-add-museum");
+      const mainAddBtn = document.getElementById("add-museum-btn");
       if (navAddBtn && mainAddBtn) {
-          navAddBtn.addEventListener('click', (e) => {
-              e.preventDefault();
-              mainAddBtn.click();
-          });
+        navAddBtn.addEventListener("click", (e) => {
+          e.preventDefault();
+          mainAddBtn.click();
+        });
       }
     </script>
   </body>

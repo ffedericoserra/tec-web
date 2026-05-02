@@ -10,7 +10,9 @@
     <!-- Navbar Universale -->
     <header class="top-nav">
       <div class="nav-wrapper">
-        <a href="homepage.html" class="brand"><span class="logo-text">A&alpha;</span></a>
+        <a href="homepage.html" class="brand"
+          ><span class="logo-text">A&alpha;</span></a
+        >
         <ul class="nav-links">
           <li><a href="homepage.html" id="nav-plan">Plan your visit</a></li>
           <li><a href="#" id="nav-add-museum">Add a museum</a></li>
@@ -19,8 +21,12 @@
         <ul class="nav-auth">
           <li class="guest-only"><a href="login.html">Login</a></li>
           <li class="guest-only"><a href="register.html">Sign-up</a></li>
-          <li class="user-only hidden"><a href="../../user_profile/pages/profile.html">Your Account</a></li>
-          <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+          <li class="user-only hidden">
+            <a href="user_profile.html">Your Account</a>
+          </li>
+          <li class="user-only hidden">
+            <a href="#" id="logout-btn">Log out</a>
+          </li>
         </ul>
       </div>
     </header>
@@ -28,14 +34,22 @@
     <div class="main-container">
       <main class="item-editor-main">
         <!-- Tasto Indietro spostato qui -->
-        <div style="margin-bottom: 20px;">
-          <a href="#" id="back-to-visit-btn" class="header-back-link" style="color: var(--charcoal); text-decoration: none; font-weight: bold;">
+        <div style="margin-bottom: 20px">
+          <a
+            href="#"
+            id="back-to-visit-btn"
+            class="header-back-link"
+            style="
+              color: var(--charcoal);
+              text-decoration: none;
+              font-weight: bold;
+            "
+          >
             &larr; Torna all'Editor Visita
           </a>
         </div>
 
         <div class="item-editor-grid">
-          
           <div class="item-preview-panel">
             <h2 class="editor-subtitle">Dettagli Opera</h2>
             <div class="artwork-card">
@@ -48,7 +62,7 @@
                 <span id="artwork-id" class="artwork-id-badge">...</span>
               </div>
             </div>
-            
+
             <div class="item-settings">
               <label for="item-public-toggle" class="setting-label">
                 Visibilità nel Marketplace
@@ -63,73 +77,144 @@
           <div class="item-descriptions-panel">
             <div class="panel-header">
               <h2>Matrice Audio AI</h2>
-              <p class="helper-text" style="margin-top: 5px;">
-                Compila le varianti. L'AI sceglierà automaticamente il tono e la durata perfetti per ogni visitatore.
+              <p class="helper-text" style="margin-top: 5px">
+                Compila le varianti. L'AI sceglierà automaticamente il tono e la
+                durata perfetti per ogni visitatore.
               </p>
             </div>
 
             <div class="tone-tabs">
-              <button class="tone-tab active" data-target="tab-easy">Bambini / Facile</button>
-              <button class="tone-tab" data-target="tab-medium">Standard / Medio</button>
-              <button class="tone-tab" data-target="tab-complex">Esperti / Avanzato</button>
+              <button class="tone-tab active" data-target="tab-easy">
+                Bambini / Facile
+              </button>
+              <button class="tone-tab" data-target="tab-medium">
+                Standard / Medio
+              </button>
+              <button class="tone-tab" data-target="tab-complex">
+                Esperti / Avanzato
+              </button>
             </div>
 
             <div class="tabs-content-container">
-              
               <div id="tab-easy" class="tone-tab-content active">
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>3s</strong><br><span>Sintesi</span></div>
-                  <textarea class="matrix-input" data-tone="easy" data-length="3s" placeholder="Scrivi una frase brevissima e semplice..."></textarea>
+                  <div class="matrix-label">
+                    <strong>3s</strong><br /><span>Sintesi</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="easy"
+                    data-length="3s"
+                    placeholder="Scrivi una frase brevissima e semplice..."
+                  ></textarea>
                 </div>
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>15s</strong><br><span>Normale</span></div>
-                  <textarea class="matrix-input" data-tone="easy" data-length="15s" placeholder="Scrivi un paragrafo di spiegazione semplice..."></textarea>
+                  <div class="matrix-label">
+                    <strong>15s</strong><br /><span>Normale</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="easy"
+                    data-length="15s"
+                    placeholder="Scrivi un paragrafo di spiegazione semplice..."
+                  ></textarea>
                 </div>
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>45s</strong><br><span>Dettagliata</span></div>
-                  <textarea class="matrix-input" data-tone="easy" data-length="45s" placeholder="Scrivi un testo più lungo, mantenendo un linguaggio comprensibile..."></textarea>
+                  <div class="matrix-label">
+                    <strong>45s</strong><br /><span>Dettagliata</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="easy"
+                    data-length="45s"
+                    placeholder="Scrivi un testo più lungo, mantenendo un linguaggio comprensibile..."
+                  ></textarea>
                 </div>
               </div>
 
               <div id="tab-medium" class="tone-tab-content">
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>3s</strong><br><span>Sintesi</span></div>
-                  <textarea class="matrix-input" data-tone="medium" data-length="3s" placeholder="Scrivi una sintesi concisa..."></textarea>
+                  <div class="matrix-label">
+                    <strong>3s</strong><br /><span>Sintesi</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="medium"
+                    data-length="3s"
+                    placeholder="Scrivi una sintesi concisa..."
+                  ></textarea>
                 </div>
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>15s</strong><br><span>Normale</span></div>
-                  <textarea class="matrix-input" data-tone="medium" data-length="15s" placeholder="Scrivi la spiegazione standard..."></textarea>
+                  <div class="matrix-label">
+                    <strong>15s</strong><br /><span>Normale</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="medium"
+                    data-length="15s"
+                    placeholder="Scrivi la spiegazione standard..."
+                  ></textarea>
                 </div>
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>45s</strong><br><span>Dettagliata</span></div>
-                  <textarea class="matrix-input" data-tone="medium" data-length="45s" placeholder="Scrivi un approfondimento per il visitatore medio..."></textarea>
+                  <div class="matrix-label">
+                    <strong>45s</strong><br /><span>Dettagliata</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="medium"
+                    data-length="45s"
+                    placeholder="Scrivi un approfondimento per il visitatore medio..."
+                  ></textarea>
                 </div>
               </div>
 
               <div id="tab-complex" class="tone-tab-content">
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>3s</strong><br><span>Sintesi</span></div>
-                  <textarea class="matrix-input" data-tone="complex" data-length="3s" placeholder="Definizione tecnica o storico-critica..."></textarea>
+                  <div class="matrix-label">
+                    <strong>3s</strong><br /><span>Sintesi</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="complex"
+                    data-length="3s"
+                    placeholder="Definizione tecnica o storico-critica..."
+                  ></textarea>
                 </div>
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>15s</strong><br><span>Normale</span></div>
-                  <textarea class="matrix-input" data-tone="complex" data-length="15s" placeholder="Analisi dell'opera con linguaggio specifico..."></textarea>
+                  <div class="matrix-label">
+                    <strong>15s</strong><br /><span>Normale</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="complex"
+                    data-length="15s"
+                    placeholder="Analisi dell'opera con linguaggio specifico..."
+                  ></textarea>
                 </div>
                 <div class="matrix-row">
-                  <div class="matrix-label"><strong>45s</strong><br><span>Dettagliata</span></div>
-                  <textarea class="matrix-input" data-tone="complex" data-length="45s" placeholder="Saggio breve sull'opera, contesto storico e tecnica..."></textarea>
+                  <div class="matrix-label">
+                    <strong>45s</strong><br /><span>Dettagliata</span>
+                  </div>
+                  <textarea
+                    class="matrix-input"
+                    data-tone="complex"
+                    data-length="45s"
+                    placeholder="Saggio breve sull'opera, contesto storico e tecnica..."
+                  ></textarea>
                 </div>
               </div>
-
             </div>
 
-            <div class="action-buttons" style="margin-top: 40px;">
-              <button id="save-item-btn" class="main-btn save-visit-btn" style="width: 100% !important;">
+            <div class="action-buttons" style="margin-top: 40px">
+              <button
+                id="save-item-btn"
+                class="main-btn save-visit-btn"
+                style="width: 100% !important"
+              >
                 Salva Modifiche Item
               </button>
             </div>
           </div>
-
         </div>
       </main>
     </div>

@@ -10,7 +10,9 @@
     <!-- Navbar Universale -->
     <header class="top-nav">
       <div class="nav-wrapper">
-        <a href="homepage.html" class="brand"><span class="logo-text">A&alpha;</span></a>
+        <a href="homepage.html" class="brand"
+          ><span class="logo-text">A&alpha;</span></a
+        >
         <ul class="nav-links">
           <li><a href="homepage.html" id="nav-plan">Plan your visit</a></li>
           <li><a href="#" id="nav-add-museum">Add a museum</a></li>
@@ -19,8 +21,12 @@
         <ul class="nav-auth">
           <li class="guest-only"><a href="login.html">Login</a></li>
           <li class="guest-only"><a href="register.html">Sign-up</a></li>
-          <li class="user-only hidden"><a href="../../user_profile/pages/profile.html">Your Account</a></li>
-          <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+          <li class="user-only hidden">
+            <a href="/user_profile.html">Your Account</a>
+          </li>
+          <li class="user-only hidden">
+            <a href="#" id="logout-btn">Log out</a>
+          </li>
         </ul>
       </div>
     </header>
@@ -28,14 +34,32 @@
     <div class="main-container">
       <main class="center-content">
         <!-- Tasto Indietro aggiunto per coerenza visiva -->
-        <div style="margin-bottom: 20px; margin-top: 20px;">
-          <a href="homepage.html" class="header-back-link" style="color: var(--charcoal); text-decoration: none; font-weight: bold;">
+        <div style="margin-bottom: 20px; margin-top: 20px">
+          <a
+            href="homepage.html"
+            class="header-back-link"
+            style="
+              color: var(--charcoal);
+              text-decoration: none;
+              font-weight: bold;
+            "
+          >
             &larr; Back to Museums
           </a>
         </div>
 
         <h1 class="title" id="museum-title-display">Museo</h1>
-        <a href="#" id="museum-info-link" style="display: block; text-align: center; color: var(--charcoal); text-decoration: underline; margin-bottom: 30px;">
+        <a
+          href="#"
+          id="museum-info-link"
+          style="
+            display: block;
+            text-align: center;
+            color: var(--charcoal);
+            text-decoration: underline;
+            margin-bottom: 30px;
+          "
+        >
           See more details about this museum &rarr;
         </a>
         <h2 class="subtitle">Start, edit or add a new visit</h2>
@@ -57,34 +81,51 @@
       class="floating-add-btn add-btn"
       id="add-visit-btn"
       aria-label="Add a new visit"
-      title="Crea una nuova visita per questo museo" 
-      >
+      title="Crea una nuova visita per questo museo"
+    >
       +
-      </button>
-    
+    </button>
+
     <!-- MODALE ELIMINAZIONE VISITA -->
     <div id="delete-confirm-modal" class="modal-overlay hidden">
-      <div class="modal-content auth-form center-text-modal" style="text-align: center; max-width: 400px;">
-        <h2 class="warning-title" style="color: #dc2626; margin-top: 0;">Attenzione!</h2>
-        
-        <p class="warning-text" id="delete-modal-text" style="margin-bottom: 25px; font-size: 1.1rem; color: var(--charcoal);">
+      <div
+        class="modal-content auth-form center-text-modal"
+        style="text-align: center; max-width: 400px"
+      >
+        <h2 class="warning-title" style="color: #dc2626; margin-top: 0">
+          Attenzione!
+        </h2>
+
+        <p
+          class="warning-text"
+          id="delete-modal-text"
+          style="margin-bottom: 25px; font-size: 1.1rem; color: var(--charcoal)"
+        >
           Sei sicuro di voler eliminare questa visita?
         </p>
-        
-        <div style="display: flex; gap: 15px; justify-content: center;">
+
+        <div style="display: flex; gap: 15px; justify-content: center">
           <!-- Bottone Annulla (Grigio) -->
-          <button id="cancel-delete-btn" class="main-btn" style="background-color: #94a3b8; flex: 1;">
+          <button
+            id="cancel-delete-btn"
+            class="main-btn"
+            style="background-color: #94a3b8; flex: 1"
+          >
             Annulla
           </button>
-          
+
           <!-- Bottone Conferma (Rosso) -->
-          <button id="confirm-delete-btn" class="main-btn" style="background-color: #dc2626; border-color: #dc2626; flex: 1;">
+          <button
+            id="confirm-delete-btn"
+            class="main-btn"
+            style="background-color: #dc2626; border-color: #dc2626; flex: 1"
+          >
             Elimina
           </button>
         </div>
       </div>
     </div>
-    
+
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/visits_list.js"></script>
   </body>
