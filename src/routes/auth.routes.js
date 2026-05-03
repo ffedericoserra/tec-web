@@ -12,8 +12,10 @@ const { requireAuth } = require('../middleware/auth');
 const validate = require('../middleware/validate');
 const { registerSchema, loginSchema } = require('../schemas/auth.schema');
 
+
+
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
 router.get('/me', requireAuth, authController.getMe);
-
+router.post('/favorites/visits/:visitId', requireAuth, authController.toggleFavoriteVisit);
 module.exports = router;
