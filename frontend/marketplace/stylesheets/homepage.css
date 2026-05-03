@@ -12,37 +12,9 @@ html { scroll-behavior: smooth; }
     background-color: #F2F1ED;
     color: #161616;
     margin: 0; padding: 0; overflow-x: hidden;
+    padding-top: 80px; 
 }
 
-/* --- Navbar --- */
-#artaround-home .editorial-nav {
-    background-color: #F2F1ED; border-bottom: 1px solid #161616; 
-    position: relative; z-index: 50; padding: 15px 40px; 
-}
-#artaround-home .nav-wrapper {
-    display: flex; justify-content: space-between; align-items: center;
-    max-width: 1400px; margin: 0 auto;
-}
-#artaround-home .brand { display: flex; align-items: center; text-decoration: none; }
-#artaround-home .logo-text { font-weight: 800; color: #161616; letter-spacing: 1px; }
-
-#artaround-home .nav-links { display: flex; list-style: none; gap: 30px; margin: 0; padding: 0; }
-#artaround-home .nav-auth-wrapper { display: flex; align-items: center; height: 100%; }
-
-#artaround-home .nav-auth { 
-    display: flex; align-items: center; justify-content: center;
-    gap: 30px; margin: 0; padding: 0; list-style: none; 
-}
-
-#artaround-home .editorial-nav a,
-#artaround-home .nav-auth a { 
-    color: #161616; font-size: 0.75rem; text-transform: uppercase; 
-    font-weight: bold; text-decoration: none; transition: color 0.3s;
-    background: transparent; border: none; padding: 0; box-shadow: none; border-radius: 0;
-}
-#artaround-home .editorial-nav a:hover, 
-#artaround-home .nav-auth a:hover,
-#artaround-home .editorial-nav a.active { color: #710014; }
 
 /* --- Hero Section & Grid --- */
 #artaround-home .hero-editorial {
@@ -121,29 +93,26 @@ html { scroll-behavior: smooth; }
     gap: 40px; 
 }
 
-/* Base della card: Trasparente con riga grigia in alto */
 #artaround-home #museum-list .museum-icon,
 #artaround-home #destinazioni .modern-grid > div {
     background-color: transparent !important; 
     background: transparent !important;
     border: none !important; 
-    border-top: 1px solid rgba(22, 22, 22, 0.2) !important; /* Riga superiore grigia */
+    border-top: 1px solid rgba(22, 22, 22, 0.2) !important; 
     border-radius: 0 !important; 
     box-shadow: none !important; 
-    padding: 30px !important; /* Padding uniforme per far respirare il blocco quando diventa rosso */
+    padding: 30px !important; 
     text-align: left !important;
-    transform: none !important; /* Evita il salto in alto su hover */
+    transform: none !important; 
     display: block !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
 }
 
-/* Nasconde eventuali immagini caricate dal Javascript */
 #artaround-home #museum-list .museum-icon img {
     display: none !important;
 }
 
-/* Titolo del Museo */
 #artaround-home #museum-list .museum-icon h3,
 #artaround-home #destinazioni .modern-grid > div h3 { 
     color: #161616 !important; 
@@ -154,7 +123,6 @@ html { scroll-behavior: smooth; }
     transition: color 0.3s ease !important; 
 }
 
-/* Sottotitolo / Destinazione */
 #artaround-home #museum-list .museum-icon p,
 #artaround-home #destinazioni .modern-grid > div p { 
     color: rgba(22, 22, 22, 0.6) !important; 
@@ -163,7 +131,6 @@ html { scroll-behavior: smooth; }
     transition: color 0.3s ease !important; 
 }
 
-/* Schiaccia la pillola gialla trasformandola in testo minimal */
 #artaround-home #museum-list .museum-icon span,
 #artaround-home #museum-list .museum-icon .badge,
 #artaround-home #destinazioni .modern-grid > div span { 
@@ -181,17 +148,14 @@ html { scroll-behavior: smooth; }
     transition: color 0.3s ease !important;
 }
 
-/* --- EFFETTO HOVER --- */
-/* L'intero box si accende di Rosso Bordeaux */
 #artaround-home #museum-list .museum-icon:hover,
 #artaround-home #destinazioni .modern-grid > div:hover { 
     border-top: 1px solid #710014 !important; 
-    background-color: #710014 !important; /* Il box diventa rosso */
+    background-color: #710014 !important; 
     transform: none !important; 
     box-shadow: none !important;
 }
 
-/* Tutti i testi si invertono diventando color Panna/Bianco */
 #artaround-home #museum-list .museum-icon:hover h3, 
 #artaround-home #museum-list .museum-icon:hover p,
 #artaround-home #museum-list .museum-icon:hover span,
@@ -199,5 +163,5 @@ html { scroll-behavior: smooth; }
 #artaround-home #destinazioni .modern-grid > div:hover h3,
 #artaround-home #destinazioni .modern-grid > div:hover p,
 #artaround-home #destinazioni .modern-grid > div:hover span { 
-    color: #F2F1ED !important; /* Il testo diventa chiaro */
+    color: #F2F1ED !important; 
 }

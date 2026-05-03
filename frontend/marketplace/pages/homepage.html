@@ -3,26 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Esplora l'Arte</title>
-    
+    <title>ArtAround - Plan Your Visit</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css">
     <link rel="stylesheet" href="../stylesheets/styles.css" />
     <link rel="stylesheet" href="../stylesheets/homepage.css" />
   </head>
   
   <body id="artaround-home" class="home-body">
     
-    <!-- NAVBAR (Non si tocca, ora è perfetta) -->
+   <!-- NAVBAR -->
     <header class="top-nav editorial-nav">
       <div class="nav-wrapper">
         <a href="homepage.html" class="brand">
-          <span class="logo-icon" style="color: #161616; font-size: 1.4rem; margin-right: 8px;">🏛</span>
-          <span class="logo-text">ARTAROUND</span>
+          <span class="logo-text">A&alpha;</span> 
         </a>
         
         <ul class="nav-links">
-          <li><a href="homepage.html" class="active">Esplora</a></li>
-          <li><a href="#" id="nav-add-museum">Aggiungi Museo</a></li>
-          <li><a href="about.html" id="nav-about">Il Progetto</a></li>
+          <li><a href="homepage.html" class="active">Plan your visit</a></li>
+          <li><a href="#" id="nav-add-museum">Add museum</a></li>
+          <li><a href="about.html" id="nav-about">About us</a></li>
         </ul>
         
         <div class="nav-auth-wrapper">
@@ -36,7 +35,7 @@
       </div>
     </header>
 
-    <!-- HERO SECTION (Non si tocca) -->
+    <!-- HERO SECTION -->
     <section class="hero-editorial">
       
       <div class="page-grid-lines">
@@ -45,6 +44,7 @@
         <div class="grid-line line-75"></div>
       </div>
 
+      <!-- Freccia con Scorrimento Fluido -->
       <a href="#destinazioni" class="scroll-arrow-link" aria-label="Scorri ai musei" onclick="document.getElementById('destinazioni').scrollIntoView({behavior: 'smooth'}); return false;">
         <div class="scroll-indicator"></div>
       </a>
@@ -52,6 +52,7 @@
       <div class="shape-circle circle-small"></div>
       <div class="shape-circle circle-large"></div>
 
+      <!-- BLOCCO SINISTRA -->
       <div class="hero-left-content">
         <div class="hero-text-inner">
           <h1 class="hero-title">
@@ -64,7 +65,9 @@
           </p>
 
           <div class="hero-actions">
-            <button class="primary-btn">Inizia il Tour</button>
+            <!-- Bottone aggiornato con testo nuovo e collegamento alla pagina profilo -->
+            <button class="primary-btn" onclick="window.location.href='user_profile.html'">Vedi le tue visite</button>
+            
             <div class="hero-meta">
               <div><strong>Data</strong><br><span id="current-date">Oggi</span></div>
               <div><strong>Orario</strong><br>10:00 AM</div>
@@ -73,6 +76,7 @@
         </div>
       </div>
 
+      <!-- BLOCCO DESTRA -->
       <div class="hero-right-content">
         <img src="../assets/artaround/image-17.png" alt="Nike di Samotracia" class="hero-statue">
         <p class="vertical-text right-vertical">NIKE DI SAMOTRACIA 190 a.C.</p>
