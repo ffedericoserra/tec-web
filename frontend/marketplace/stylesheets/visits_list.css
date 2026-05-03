@@ -1,0 +1,135 @@
+/* ==========================================================================
+   ARTAROUND - VISITS LIST EDITORIAL STYLES
+   ========================================================================== */
+
+#artaround-visits {
+    font-family: 'Helvetica', Arial, sans-serif;
+    background-color: #F2F1ED;
+    color: #161616;
+    margin: 0; 
+    padding: 0; 
+    min-height: 100vh;
+    padding-top: 80px; /* Spazio per la Navbar fissa */
+}
+
+#artaround-visits .hidden { display: none; }
+
+/* --- HEADER DELLA PAGINA --- */
+#artaround-visits .visits-header-section {
+    padding: 60px 10vw 20px 10vw;
+    border-bottom: 2px solid #161616;
+    margin-bottom: 50px;
+}
+
+#artaround-visits .page-title {
+    font-size: 3.5rem;
+    font-family: "Playfair Display", "Georgia", serif;
+    color: #710014; /* Bordeaux */
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    letter-spacing: -1px;
+}
+
+#artaround-visits .page-subtitle {
+    font-size: 1rem;
+    color: rgba(22, 22, 22, 0.7);
+    margin: 0;
+}
+
+/* --- CONTENITORE GRIGLIA --- */
+#artaround-visits .visits-grid-section {
+    padding: 0 10vw 80px 10vw;
+}
+
+#artaround-visits .modern-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 40px; 
+}
+
+/* --- OVERRIDE DELLE CARD GENERATE DA JS --- */
+/* Puntiamo a #tours-list, .visit-icon o semplici div figli */
+#artaround-visits #tours-list > div,
+#artaround-visits #visits-list > div,
+#artaround-visits .visit-icon {
+    background-color: transparent !important; 
+    background: transparent !important;
+    border: none !important; 
+    border-top: 1px solid rgba(22, 22, 22, 0.2) !important; /* Riga grigia superiore */
+    border-radius: 0 !important; 
+    box-shadow: none !important; 
+    padding: 30px !important; /* Spazio interno per far respirare il rosso su hover */
+    text-align: left !important;
+    transform: none !important; /* Nessun saltino su hover */
+    display: block !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Nascondiamo eventuali immagini caricate automaticamente se vogliamo il look solo testuale */
+#artaround-visits .visit-icon img,
+#artaround-visits #tours-list > div img {
+    display: none !important;
+}
+
+/* Tipografia delle Card */
+#artaround-visits .visit-icon h3,
+#artaround-visits #tours-list > div h3,
+#artaround-visits #tours-list > div h4 { 
+    color: #161616 !important; 
+    font-size: 1.6rem !important; 
+    margin: 0 0 10px 0 !important; 
+    font-weight: bold !important; 
+    font-family: 'Helvetica', Arial, sans-serif !important;
+    transition: color 0.3s ease !important; 
+}
+
+#artaround-visits .visit-icon p,
+#artaround-visits #tours-list > div p { 
+    color: rgba(22, 22, 22, 0.6) !important; 
+    font-size: 0.95rem !important; 
+    margin: 5px 0 !important;
+    transition: color 0.3s ease !important; 
+    line-height: 1.4 !important;
+}
+
+/* Badge o "Pillole" info (es. Status, Data) */
+#artaround-visits .visit-icon span,
+#artaround-visits .visit-icon .badge,
+#artaround-visits #tours-list > div span { 
+    color: #161616 !important; 
+    background: transparent !important; 
+    border: none !important;
+    font-size: 0.75rem !important; 
+    font-weight: 800 !important; 
+    text-transform: uppercase !important; 
+    letter-spacing: 1px !important;
+    display: block !important;
+    margin-bottom: 15px !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    transition: color 0.3s ease !important;
+}
+
+/* --- EFFETTO HOVER --- */
+/* Il box intero si riempie di Bordeaux */
+#artaround-visits #tours-list > div:hover,
+#artaround-visits #visits-list > div:hover,
+#artaround-visits .visit-icon:hover { 
+    border-top: 1px solid #710014 !important; 
+    background-color: #710014 !important; 
+    transform: none !important; 
+    box-shadow: none !important;
+}
+
+/* Tutti i testi all'interno del box si invertono in panna */
+#artaround-visits #tours-list > div:hover h3,
+#artaround-visits #tours-list > div:hover h4,
+#artaround-visits #tours-list > div:hover p,
+#artaround-visits #tours-list > div:hover span,
+#artaround-visits .visit-icon:hover h3, 
+#artaround-visits .visit-icon:hover p,
+#artaround-visits .visit-icon:hover span,
+#artaround-visits .visit-icon:hover .badge { 
+    color: #F2F1ED !important; 
+}
