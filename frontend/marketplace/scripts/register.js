@@ -44,7 +44,7 @@ if (registerForm) {
                 // Salviamo il token
                 localStorage.setItem("token", data.token)
                 // Rimandiamo l'utente al marketplace
-                window.location.href = "museum-preview.html"
+                window.location.href = "../pages/homepage.html"
             } else {
                 errorMsg.innerHTML = data.error || "Registration failed"
                 errorMsg.style.color = "#A93226"
