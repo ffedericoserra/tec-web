@@ -1,76 +1,214 @@
-// --- CONFIGURAZIONE ---
+// --- CONFIGURAZIONE E AUTENTICAZIONE ---
 const isLocal = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
 const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token");
 
-if (!token) window.location.href = "../pages/login.html";
+const loggedInUsername = localStorage.getItem("username") || "Tu"; 
 
-// 1. LEGGIAMO I DATI DALL'URL
+if (!token) window.location.href = "login.html";
+
+// 1. LEGGIAMO I DATI DALL'URL (Arrivano dal Content fisso)
 const urlParams = new URLSearchParams(window.location.search);
-const itemId = urlParams.get('itemId');
+let activeItemId = urlParams.get('itemId'); 
 const museumId = urlParams.get('museumId');
-const museumName = urlParams.get('museumName');
-const urlTitle = urlParams.get('title');
-const urlAuthor = urlParams.get('author');
+const museumName = urlParams.get('museumName') || 'Sconosciuto';
+const urlTitle = urlParams.get('title') || 'Titolo Sconosciuto';
+const urlAuthor = urlParams.get('author') || 'Autore Ignoto';
 const urlImage = urlParams.get('image');
 
-// --- SISTEMA DI TOAST NOTIFICATIONS (Pop-up fluidi) ---
+const urlYear = urlParams.get('year') || 'N/D';
+const urlPrice = urlParams.get('price') || 'N/D';
+const urlContentId = urlParams.get('contentId'); 
+
+// VARIABILI GLOBALI
+let originalContentId = urlContentId || null;
+let originalTargetAudience = null;
+
+// --- SISTEMA DI TOAST NOTIFICATIONS ---
 function showToast(message, type = "success") {
-    const container = document.getElementById('toast-container');
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        document.body.appendChild(container);
+    }
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.innerHTML = `<span>${message}</span>`;
     
     container.appendChild(toast);
-    
-    // Entrata fluida
     setTimeout(() => toast.classList.add('show'), 10);
-    
-    // Uscita fluida dopo 3.5 secondi
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400); // Aspetta la fine dell'animazione CSS
+        setTimeout(() => toast.remove(), 400); 
     }, 3500);
 }
 
-// --- GESTIONE DELLE TABS (Toni) ---
-document.querySelectorAll('.tone-tab').forEach(button => {
-    button.addEventListener('click', () => {
-        // Rimuove attivo da tutti
-        document.querySelectorAll('.tone-tab').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tone-tab-content').forEach(c => c.classList.remove('active'));
+// --- MAPPATURA UI <-> DATABASE ---
+const audienceMap = [
+    { id: 'children', tone: 'easy', label: 'bimbi' },
+    { id: 'standard', tone: 'medium', label: 'standard' },
+    { id: 'expert', tone: 'complex', label: 'esperti' }
+];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Popoliamo la grafica fissa dell'opera
+    document.getElementById('artwork-title-display').textContent = `${urlTitle} - ${urlAuthor}`;
+    document.getElementById('museum-name-display').textContent = museumName;
+    document.getElementById('item-anno').value = urlYear;
+    document.getElementById('item-prezzo').value = urlPrice;
+
+    const imgContainer = document.getElementById('image-preview');
+    if (urlImage) {
+        const finalImgUrl = urlImage.startsWith('http') ? urlImage : `${baseUrl}${urlImage.startsWith('/') ? '' : '/'}${urlImage}`;
+        imgContainer.innerHTML = `<img src="${finalImgUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 0;">`;
+    }
+
+    // Logica Accordion (Freccette)
+    audienceMap.forEach(aud => {
+        const header = document.querySelector(`.audience-header[data-aud="${aud.id}"]`);
+        const textarea = document.getElementById(`text-${aud.id}`);
+        const arrow = document.getElementById(`arrow-${aud.id}`);
         
-        // Attiva quello cliccato
-        button.classList.add('active');
-        const targetId = button.getAttribute('data-target');
-        document.getElementById(targetId).classList.add('active');
+        if(header && textarea && arrow) {
+            header.addEventListener('click', () => {
+                textarea.classList.toggle('hidden');
+                arrow.classList.toggle('open');
+            });
+        }
+    });
+
+    if (activeItemId) {
+        await caricaTestiDaDB(activeItemId);
+        document.getElementById('dropdown-selected-text').textContent = "Modificando il tuo Item selezionato";
+    }
+
+    // Carichiamo le varianti della community solo per QUESTO contentId
+    if (originalContentId) {
+        loadCommunityItems();
+    } else {
+        document.getElementById('existing-items-list').innerHTML = '<li style="color:gray;">Salva l\'item per vedere le versioni degli altri utenti.</li>';
+    }
+
+    document.getElementById('btn-cancel-exit').addEventListener('click', () => {
+        window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
     });
 });
 
-// --- POPOLIAMO LA GRAFICA ---
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('back-to-visit-btn').href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
-    
-    document.getElementById('artwork-title').textContent = urlTitle || "Titolo Sconosciuto";
-    document.getElementById('artwork-author').textContent = urlAuthor || "Autore Ignoto";
-    document.getElementById('artwork-id').textContent = `ID: ${itemId}`;
+// --- MENU A TENDINA E RICERCA COMMUNITY ---
+const dropdownTrigger = document.getElementById('dropdown-trigger');
+const dropdownMenu = document.getElementById('dropdown-menu');
+const existingItemsList = document.getElementById('existing-items-list');
 
-    const imgContainer = document.getElementById('artwork-img-container');
-    if (urlImage) {
-        const finalImgUrl = urlImage.startsWith('http') ? urlImage : `${baseUrl}${urlImage.startsWith('/') ? '' : '/'}${urlImage}`;
-        imgContainer.innerHTML = `<img src="${finalImgUrl}" style="width:100%; height:100%; object-fit:cover;">`;
-    } else {
-        imgContainer.innerHTML = `<span style="color:var(--chill-grey)">Nessuna immagine</span>`;
+if (dropdownTrigger) {
+    dropdownTrigger.addEventListener('click', () => dropdownMenu.classList.toggle('hidden'));
+}
+
+async function loadCommunityItems() {
+    if (!originalContentId) return; 
+
+    try {
+        const res = await fetch(`${myApi}/items?contentId=${originalContentId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return; 
+        
+        const responseData = await res.json();
+        let communityItems = responseData.data || responseData.items || responseData;
+
+        existingItemsList.innerHTML = '';
+
+        if (!Array.isArray(communityItems) || communityItems.length === 0) {
+            existingItemsList.innerHTML = '<li style="color:gray;">Nessuna variante creata per questa opera.</li>';
+            return;
+        }
+
+        const uniqueItemsMap = new Map();
+        communityItems.forEach(item => {
+            const creatorName = item.creatorId?.username || (typeof item.creatorId === 'string' ? item.creatorId : 'Anonimo');
+            
+            let contentSignature = "";
+            if (item.descriptions && Array.isArray(item.descriptions)) {
+                const sortedDesc = [...item.descriptions].sort((a, b) => a.tone.localeCompare(b.tone));
+                contentSignature = sortedDesc.map(d => `${d.tone}:${d.texts[0]?.text || ''}`).join("|");
+            }
+            
+            const uniqueKey = `${creatorName}-${contentSignature}`;
+            if (!uniqueItemsMap.has(uniqueKey)) uniqueItemsMap.set(uniqueKey, item);
+        });
+        
+        const uniqueItems = Array.from(uniqueItemsMap.values());
+        const authorCounts = {};
+
+        uniqueItems.forEach(item => {
+            const li = document.createElement('li');
+            
+            let creatorName = 'Utente Anonimo';
+            if (item.creatorId && item.creatorId.username) creatorName = item.creatorId.username;
+            else if (typeof item.creatorId === 'string') creatorName = `Utente ${item.creatorId.substring(0, 5)}...`;
+
+            if (!authorCounts[creatorName]) authorCounts[creatorName] = 0;
+            authorCounts[creatorName]++;
+            let displayCreatorName = authorCounts[creatorName] > 1 ? `${creatorName} (Variante ${authorCounts[creatorName]})` : creatorName;
+
+            let tags = [];
+            if (item.descriptions && Array.isArray(item.descriptions)) {
+                item.descriptions.forEach(desc => {
+                    const mappedAudience = audienceMap.find(a => a.tone === desc.tone);
+                    if (mappedAudience) tags.push(mappedAudience.label);
+                });
+            }
+            const tagsText = tags.length > 0 ? tags.join(', ') : 'nessun testo';
+
+            li.innerHTML = `<span>Item di <strong>${displayCreatorName}</strong></span> <span style="font-size: 0.8rem; color: #710014; font-weight:bold;">${tagsText}</span>`;
+            
+            li.addEventListener('click', () => {
+                caricaTestiDaDB(item._id);
+                document.getElementById('dropdown-selected-text').textContent = `Visualizzando l'Item di: ${displayCreatorName}`;
+                
+                const btnDelete = document.getElementById('btn-delete-item');
+                if (creatorName === loggedInUsername) {
+                    activeItemId = item._id; 
+                    btnDelete.classList.remove('hidden');
+                } else {
+                    activeItemId = null; 
+                    btnDelete.classList.add('hidden'); 
+                }
+                
+                dropdownMenu.classList.add('hidden');
+            });
+            existingItemsList.appendChild(li);
+        });
+    } catch (e) {
+        console.error("Errore fetch community items:", e);
     }
+}
 
-    caricaTestiDaDB();
+document.getElementById('btn-create-new').addEventListener('click', () => {
+    clearUI();
+    activeItemId = null; 
+    document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
+    document.getElementById('btn-delete-item').classList.add('hidden'); 
+    dropdownMenu.classList.add('hidden');
 });
 
-// Chiamata per riempire la matrice
-async function caricaTestiDaDB() {
+function clearUI() {
+    audienceMap.forEach(aud => {
+        const textarea = document.getElementById(`text-${aud.id}`);
+        const arrow = document.getElementById(`arrow-${aud.id}`);
+        if(textarea) {
+            textarea.value = '';
+            textarea.classList.add('hidden'); 
+        }
+        if(arrow) arrow.classList.remove('open'); 
+    });
+    document.getElementById('item-creatore').value = loggedInUsername;
+}
+
+async function caricaTestiDaDB(idToLoad) {
     try {
-        const res = await fetch(`${myApi}/items/${itemId}`, { 
+        const res = await fetch(`${myApi}/items/${idToLoad}`, { 
             headers: { 'Authorization': `Bearer ${token}` } 
         });
         
@@ -78,82 +216,79 @@ async function caricaTestiDaDB() {
         const data = await res.json();
         const currentItem = data.item || data; 
 
-        if (document.getElementById('item-public-toggle')) {
-            document.getElementById('item-public-toggle').value = currentItem.isPublic ? "true" : "false";
-        }
+        if (currentItem.contentId) originalContentId = currentItem.contentId;
+        if (currentItem.content && currentItem.content._id) originalContentId = currentItem.content._id;
+        if (currentItem.targetAudience) originalTargetAudience = currentItem.targetAudience;
+        
+        if (currentItem.price !== undefined) document.getElementById('item-prezzo').value = currentItem.price;
+        if (currentItem.year) document.getElementById('item-anno').value = currentItem.year;
 
-        // Se ci sono descrizioni, le inseriamo nei posti giusti della matrice
+        clearUI();
+        
+        let creatorName = "Utente Ignoto";
+        if (currentItem.creatorId && currentItem.creatorId.username) creatorName = currentItem.creatorId.username;
+        else if (typeof currentItem.creatorId === 'string') creatorName = `Utente ${currentItem.creatorId.substring(0, 5)}`;
+        
+        document.getElementById('item-creatore').value = creatorName;
+
         if (currentItem.descriptions && currentItem.descriptions.length > 0) {
             currentItem.descriptions.forEach(descGroup => {
-                const tone = descGroup.tone; // "easy", "medium", o "complex"
-                if(descGroup.texts && descGroup.texts.length > 0) {
-                    descGroup.texts.forEach(txtObj => {
-                        const length = txtObj.lengthCategory; // "3s", "15s", "45s"
-                        // Cerchiamo la casella di testo esatta per questa combinazione
-                        const inputEl = document.querySelector(`.matrix-input[data-tone="${tone}"][data-length="${length}"]`);
-                        if (inputEl) {
-                            inputEl.value = txtObj.text || "";
-                        }
-                    });
+                const uiMap = audienceMap.find(a => a.tone === descGroup.tone);
+                if(uiMap && descGroup.texts && descGroup.texts.length > 0) {
+                    const textarea = document.getElementById(`text-${uiMap.id}`);
+                    const arrow = document.getElementById(`arrow-${uiMap.id}`);
+                    
+                    if(textarea) {
+                        textarea.value = descGroup.texts[0].text || "";
+                        textarea.classList.remove('hidden'); 
+                        if(arrow) arrow.classList.add('open'); 
+                    }
                 }
             });
         }
     } catch (error) {
         console.error("Errore Database:", error);
-        showToast("Errore di connessione al server", "error");
     }
 }
 
-// --- SALVATAGGIO DEI DATI NEL DB ---
-document.getElementById('save-item-btn').addEventListener('click', async () => {
-    // 1. Raccogliamo il valore della visibilità
-    const isPublicToggle = document.getElementById('item-public-toggle');
-    const isPublic = isPublicToggle ? isPublicToggle.value === "true" : true;
+// --- SALVATAGGIO (Crea o Aggiorna) ---
+document.getElementById('btn-save-exit').addEventListener('click', async () => {
     
-    // 2. Inizializziamo i contenitori per i tre toni
-    const groupedDescriptions = {
-        easy: [],
-        medium: [],
-        complex: []
-    };
-    
-    // 3. Leggiamo tutte le caselle di testo della matrice invisibile
-    const allInputs = document.querySelectorAll('.matrix-input');
-    allInputs.forEach(input => {
-        const tone = input.getAttribute('data-tone');
-        const length = input.getAttribute('data-length');
-        const text = input.value.trim();
-        
-        // Se l'utente ha scritto qualcosa, lo aggiungiamo al tono corrispondente
-        if (text !== "") {
-            groupedDescriptions[tone].push({
-                text: text,
-                lengthCategory: length,
-                language: "it" // Puoi renderlo dinamico in futuro se serve
-            });
-        }
-    });
+    if (!activeItemId && !originalContentId) {
+        showToast("Impossibile salvare: Manca il riferimento all'opera originale.", "error");
+        return;
+    }
 
-    // 4. Formattiamo i dati ESATTAMENTE come li vuole il Backend (vedi seed.js)
     const finalDescriptions = [];
-    Object.keys(groupedDescriptions).forEach(tone => {
-        if (groupedDescriptions[tone].length > 0) {
+    audienceMap.forEach(aud => {
+        const textarea = document.getElementById(`text-${aud.id}`);
+        if (textarea && textarea.value.trim() !== "") {
             finalDescriptions.push({
-                tone: tone,
-                texts: groupedDescriptions[tone]
+                tone: aud.tone, 
+                texts: [{ text: textarea.value.trim(), lengthCategory: "15s", language: "it" }]
             });
         }
     });
 
+    if (finalDescriptions.length === 0) {
+        showToast("Scrivi almeno una descrizione per salvare l'Item!", "error");
+        return;
+    }
+
+    // ECCO IL PAYLOAD PULITO: Invia solo le informazioni dell'Item!
     const payload = {
-        isPublic: isPublic,
+        isPublic: true, 
+        contentId: originalContentId, // Il gancio che collega questo Item all'opera fissa
+        targetAudience: originalTargetAudience || 'general',
         descriptions: finalDescriptions
     };
 
-    // 5. Inviamo la richiesta PUT al backend
     try {
-        const res = await fetch(`${myApi}/items/${itemId}`, {
-            method: 'PUT', // PUT perché stiamo aggiornando un item già esistente
+        const method = activeItemId ? 'PUT' : 'POST';
+        const endpoint = activeItemId ? `${myApi}/items/${activeItemId}` : `${myApi}/items`;
+
+        const res = await fetch(endpoint, {
+            method: method,
             headers: { 
                 'Content-Type': 'application/json', 
                 'Authorization': `Bearer ${token}` 
@@ -162,39 +297,44 @@ document.getElementById('save-item-btn').addEventListener('click', async () => {
         });
 
         if (res.ok) {
-            // Successo! Usiamo il Toast fluido e torniamo indietro
-            if (typeof showToast === "function") {
-                showToast("Modifiche salvate con successo!", "success");
-            } else {
-                alert("Modifiche salvate con successo!");
-            }
-            
-            // Aspettiamo un secondo per far leggere il messaggio, poi torniamo alla visita
+            showToast("Item salvato con successo!", "success");
             setTimeout(() => {
                 window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
             }, 1200);
-            
         } else {
-            // Errore 400 Bad Request: scopriamo cosa non va
-            const errorText = await res.text();
-            console.error("ERRORE DI VALIDAZIONE ITEM DAL BACKEND:", errorText);
-            
-            try {
-                const errorJson = JSON.parse(errorText);
-                if (typeof showToast === "function") {
-                    showToast("Errore di validazione. Controlla la console.", "error");
-                }
-                alert("Il Backend ha rifiutato il formato dei dati. Motivo: " + JSON.stringify(errorJson));
-            } catch (e) {
-                alert("Errore dal server. Controlla la console.");
-            }
+            showToast("Errore di validazione dal server.", "error");
         }
     } catch (error) {
-        console.error("Save Error:", error);
-        if (typeof showToast === "function") {
-            showToast("Errore di rete o connessione.", "error");
+        showToast("Errore di rete o connessione.", "error");
+    }
+});
+
+// --- ELIMINAZIONE ITEM ---
+document.getElementById('btn-delete-item').addEventListener('click', async () => {
+    if (!activeItemId) return;
+
+    if (!confirm("Sei sicuro di voler eliminare definitivamente questo item? L'azione è irreversibile.")) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`${myApi}/items/${activeItemId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            showToast("Item eliminato con successo!", "success");
+            activeItemId = null; 
+            document.getElementById('btn-delete-item').classList.add('hidden'); 
+            clearUI(); 
+            loadCommunityItems(); 
+            document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
         } else {
-            alert("Errore di rete o connessione.");
+            const errorData = await res.json();
+            showToast(errorData.error || "Non sei autorizzato a eliminare questo item.", "error");
         }
+    } catch (error) {
+        showToast("Errore di connessione durante l'eliminazione.", "error");
     }
 });

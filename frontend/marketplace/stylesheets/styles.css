@@ -38,8 +38,6 @@ body, html {
 
 body {
     /* Sfondo a galleria d'arte */
-    background: radial-gradient(circle at 50% 0%, var(--pure-white) 0%, var(--gallery-bg) 80%, var(--gallery-bg-darker) 100%);
-    background-attachment: fixed;
     color: var(--charcoal);
     overflow-x: hidden; 
 }
@@ -178,7 +176,6 @@ body {
 
 .arrow {
     font-size: 2rem;
-    color: var(--museum-gold); 
     cursor: pointer;
     transition: color 0.3s;
 }

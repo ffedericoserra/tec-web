@@ -165,3 +165,8 @@ html { scroll-behavior: smooth; }
 #artaround-home #destinazioni .modern-grid > div:hover span { 
     color: #F2F1ED !important; 
 }
+
+/* Previene che la navbar fissa copra la sezione quando si arriva da un'altra pagina */
+#artaround-home #destinazioni {
+    scroll-margin-top: 100px; /* 80px della navbar + 20px di respiro */
+}
