@@ -2184,3 +2184,47 @@ body {
 input[type="password"].input-minimal {
     letter-spacing: 2px;
 }
+/* ==========================================================================
+   PULSANTE PREFERITI (CARD VISITA)
+   ========================================================================== */
+
+.favorite-visit-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-size: 1.3rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.favorite-visit-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.favorite-visit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.heart-icon {
+    color: var(--chill-grey, #555555);
+    transition: color 0.3s ease;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.heart-icon.saved {
+    color: var(--error-red, #A93226);
+}

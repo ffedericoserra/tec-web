@@ -12,13 +12,12 @@ if (!token) {
 document.addEventListener("DOMContentLoaded", () => {
     
     // ==========================================
-    // 1. CARICAMENTO VISITE DELL'UTENTE
+    // 1. CARICAMENTO VISITE CREATE DALL'UTENTE
     // ==========================================
     async function loadUserVisits() {
         const visitsListContainer = document.getElementById('user-visits-list');
 
         try {
-            // Chiamata all'API sulla rotta corretta /my
             const res = await fetch(`${myApi}/visits/my`, {
                 method: 'GET',
                 headers: { 
@@ -29,11 +28,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (res.ok) {
                 const data = await res.json();
-                // Estrae l'array di visite. 
                 const visits = Array.isArray(data) ? data : (data.visits || []);
 
                 if (visits.length === 0) {
-                    visitsListContainer.innerHTML = '<p class="text-label" style="text-align: center; margin-top: 20px;">Non hai ancora creato nessuna visita.</p>';
+                    visitsListContainer.innerHTML = '<p class="text-label empty-tab-msg">Non hai ancora creato nessuna visita.</p>';
                     return;
                 }
 
@@ -43,10 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     const visitItem = document.createElement('div');
                     visitItem.className = 'profile-list-item flex-between';
 
-                    // Mappa i dati dal formato del database a un formato leggibile
                     const title = visit.title || 'Visita Senza Titolo';
-                    
-                    // Costruisce i tag basandosi sullo schema esatto del tuo DB
                     const tagType = visit.type ? visit.type.charAt(0).toUpperCase() + visit.type.slice(1) : 'Standard';
                     const tagLength = visit.length ? visit.length.charAt(0).toUpperCase() + visit.length.slice(1) : 'Normale';
                     const tagVisibility = visit.isPublic ? 'Pubblica' : 'Privata';
@@ -67,16 +62,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
             } else {
-                visitsListContainer.innerHTML = '<p class="text-label" style="text-align: center; margin-top: 20px; color: var(--error-red, #A93226);">Errore nel caricamento delle visite dal server.</p>';
+                visitsListContainer.innerHTML = '<p class="text-label empty-tab-msg error-text">Errore nel caricamento delle visite dal server.</p>';
             }
         } catch (err) {
             console.error("Errore durante il recupero delle visite:", err);
-            visitsListContainer.innerHTML = '<p class="text-label" style="text-align: center; margin-top: 20px; color: var(--error-red, #A93226);">Offline: impossibile connettersi al server per le visite.</p>';
+            visitsListContainer.innerHTML = '<p class="text-label empty-tab-msg error-text">Offline: impossibile connettersi al server per le visite.</p>';
         }
     }
 
     // ==========================================
-    // 2. CARICAMENTO DATI UTENTE
+    // 2. CARICAMENTO DATI UTENTE E PREFERITI
     // ==========================================
     async function loadUserProfile() {
         try {
@@ -91,21 +86,54 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('profile-user-name').innerText = user.username || "Utente";
                 document.getElementById('profile-wallet-balance').innerText = user.walletBalance || "0";
                 
-                // Chiama la funzione per le visite (ora senza bisogno di passare parametri)
+                // --- PUNTO 4: GESTIONE VISITE SALVATE ---
+                const savedTabContainer = document.querySelector('#tab-saved .profile-list');
+                
+                if (!user.savedVisits || user.savedVisits.length === 0) {
+                    savedTabContainer.innerHTML = '<p class="text-label empty-tab-msg">Nessun elemento salvato.</p>';
+                } else {
+                    savedTabContainer.innerHTML = ''; 
+                    
+                    user.savedVisits.forEach(visit => {
+                        const savedItem = document.createElement('div');
+                        savedItem.className = 'profile-list-item flex-between';
+
+                        const title = visit.title || 'Visita Salvata';
+                        const tagType = visit.type ? visit.type.charAt(0).toUpperCase() + visit.type.slice(1) : 'Standard';
+                        const tagVisibility = visit.isPublic ? 'Pubblica' : 'Privata';
+                        const tags = `${tagType} • ${tagVisibility}`;
+
+                        // Recupero l'ID del museo associato alla visita per poterla avviare
+                        // Nel caso il populate abbia popolato anche museumId come oggetto, estraiamo l'ID
+                        const museumId = typeof visit.museumId === 'object' && visit.museumId !== null ? visit.museumId._id : (visit.museumId || '');
+
+                        savedItem.innerHTML = `
+                            <div class="item-info">
+                                <h4>${title}</h4>
+                                <span class="text-label">${tags}</span>
+                            </div>
+                            <div class="item-actions">
+                                <a href="../../marketplace/pages/navigator.html?museumId=${museumId}&visitId=${visit._id}" class="btn-ghost">Avvia Visita</a>
+                            </div>
+                        `;
+                        savedTabContainer.appendChild(savedItem);
+                    });
+                }
+                
+                // Carica le visite create
                 loadUserVisits();
 
             } else {
                 document.getElementById('profile-user-name').innerText = "Errore nel caricamento";
-                document.getElementById('user-visits-list').innerHTML = '<p class="text-label" style="text-align: center; margin-top: 20px;">Impossibile caricare l\'utente e le visite.</p>';
+                document.getElementById('user-visits-list').innerHTML = '<p class="text-label empty-tab-msg">Impossibile caricare l\'utente e le visite.</p>';
             }
         } catch (err) {
             console.error("Errore nel caricamento profilo:", err);
             document.getElementById('profile-user-name').innerText = "Offline";
-            document.getElementById('user-visits-list').innerHTML = ''; // Pulisce il blocco visite se l'utente è offline
+            document.getElementById('user-visits-list').innerHTML = ''; 
         }
     }
 
-    // Avvia il caricamento iniziale
     loadUserProfile();
 
     // ==========================================

@@ -55,6 +55,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    savedVisits: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Visit' 
+    }],
   },
   {
     timestamps: true,

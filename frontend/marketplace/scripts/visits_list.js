@@ -40,9 +40,10 @@ function renderVisitsList(visitsArr) {
         const visitIcon = document.createElement("div");
         visitIcon.className = "visit-card-modern"; 
         
-        // Stile della card (più moderno, angoli più morbidi e ombra leggera)
+        // Stile della card (mantenuto in linea dal tuo codice originale)
         visitIcon.style.display = "flex";
         visitIcon.style.flexDirection = "column";
+        visitIcon.style.position = "relative"; // Aggiunto per posizionare il cuore in modo assoluto
         visitIcon.style.background = "var(--pure-white, #FFFFFF)";
         visitIcon.style.border = "1px solid var(--border-light, #E2E8F0)";
         visitIcon.style.borderRadius = "16px";
@@ -51,7 +52,6 @@ function renderVisitsList(visitsArr) {
         visitIcon.style.transition = "transform 0.2s ease, box-shadow 0.2s ease";
         visitIcon.style.minHeight = "220px";
 
-        // Effetto hover per farla "sollevare" quando ci passi sopra
         visitIcon.onmouseover = () => {
             visitIcon.style.transform = "translateY(-4px)";
             visitIcon.style.boxShadow = "0 12px 24px rgba(0,0,0,0.08)";
@@ -61,19 +61,19 @@ function renderVisitsList(visitsArr) {
             visitIcon.style.boxShadow = "0 2px 10px rgba(0,0,0,0.02)";
         };
 
-        // Struttura HTML interna
-        // Struttura HTML interna con il nuovo Overlay animato
+        // Struttura HTML interna con il nuovo bottone preferiti
         visitIcon.innerHTML = `
-            <!-- Sfondo finto per simulare l'immagine della visita -->
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?auto=format&fit=crop&w=600&q=80') center/cover; opacity: 0.15; z-index: 0;"></div>
 
-            <!-- Contenuto base sempre visibile (Titolo in evidenza) -->
+            <button class="favorite-visit-btn">
+                <span class="heart-icon">♡</span>
+            </button>
+
             <div style="flex-grow: 1; position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
                 <span style="background: var(--charcoal); color: white; font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 10px;">Tour</span>
                 <h3 style="color: var(--charcoal); margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.2; text-shadow: 0 2px 4px rgba(255,255,255,0.8);">${v.title}</h3>
             </div>
 
-            <!-- OVERLAY A SCOMPARSA (Slide-in dal basso + Blur) -->
             <div class="visit-card-overlay">
                 <h3 style="color: var(--charcoal); margin-top: 0; font-size: 1.2rem; border-bottom: 2px solid var(--museum-gold); padding-bottom: 5px; display: inline-block;">${v.title}</h3>
                 <p style="color: #333; font-size: 0.95rem; line-height: 1.5; margin-top: 10px; overflow-y: auto; max-height: 100px;">
@@ -97,6 +97,49 @@ function renderVisitsList(visitsArr) {
         const editBtn = visitIcon.querySelector(".edit-btn");
         const startBtn = visitIcon.querySelector(".start-btn");
         const deleteBtn = visitIcon.querySelector(".delete-btn");
+        const favBtn = visitIcon.querySelector(".favorite-visit-btn");
+        const heartIcon = visitIcon.querySelector(".heart-icon");
+
+        // TOGGLE PREFERITI
+        favBtn.onclick = async (e) => {
+            e.stopPropagation(); // Evita conflitti con eventuali click sulla card
+            const token = localStorage.getItem("token");
+            
+            if (!token) {
+                alert("Devi effettuare il login per salvare una visita nei preferiti.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            favBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${myApi}/auth/favorites/visits/${v._id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.isSaved) {
+                        heartIcon.innerText = "♥";
+                        heartIcon.classList.add("saved");
+                    } else {
+                        heartIcon.innerText = "♡";
+                        heartIcon.classList.remove("saved");
+                    }
+                } else {
+                    console.error("Errore risposta server");
+                }
+            } catch (err) {
+                console.error("Errore rete nel salvataggio della visita:", err);
+            } finally {
+                favBtn.disabled = false;
+            }
+        };
 
         // START TOUR (Pubblico)
         startBtn.onclick = (e) => {
@@ -127,25 +170,20 @@ function renderVisitsList(visitsArr) {
                 return;
             }
 
-            // 1. Peschiamo il modale e i suoi elementi
             const deleteModal = document.getElementById("delete-confirm-modal");
             const deleteText = document.getElementById("delete-modal-text");
             const confirmBtn = document.getElementById("confirm-delete-btn");
             const cancelBtn = document.getElementById("cancel-delete-btn");
 
-            // 2. Personalizziamo il testo col nome della visita e mostriamo il modale
             deleteText.innerHTML = `Sei sicuro di voler eliminare la visita<br><strong style="color: var(--charcoal); font-size: 1.2rem;">"${v.title}"</strong>?<br><span style="font-size: 0.9rem; color: #64748b; display: block; margin-top: 10px;">Questa azione è irreversibile.</span>`;
             deleteModal.classList.remove("hidden");
 
-            // 3. Azione: Se l'utente clicca Annulla
             cancelBtn.onclick = () => {
                 deleteModal.classList.add("hidden");
             };
 
-            // 4. Azione: Se l'utente clicca Elimina
             confirmBtn.onclick = async () => {
                 try {
-                    // Cambiamo il testo del bottone per dare feedback visivo
                     confirmBtn.innerHTML = "Eliminazione...";
                     confirmBtn.style.opacity = "0.7";
                     confirmBtn.disabled = true;
@@ -156,8 +194,8 @@ function renderVisitsList(visitsArr) {
                     });
 
                     if (res.ok) {
-                        deleteModal.classList.add("hidden"); // Nascondi modale
-                        loadList(); // Ricarica la lista silenziosamente
+                        deleteModal.classList.add("hidden");
+                        loadList(); 
                     } else {
                         const errorData = await res.json();
                         alert(`Impossibile eliminare: ${errorData.error || "Non sei autorizzato"}`);
@@ -168,7 +206,6 @@ function renderVisitsList(visitsArr) {
                     alert("Errore di rete.");
                     deleteModal.classList.add("hidden");
                 } finally {
-                    // Ripristiniamo il bottone rosso allo stato originale
                     confirmBtn.innerHTML = "Elimina";
                     confirmBtn.style.opacity = "1";
                     confirmBtn.disabled = false;
@@ -187,10 +224,8 @@ async function loadList(){
         return;
     }
 
-    // 1. Recuperiamo il token
     const token = localStorage.getItem("token");
 
-    // 2. Se l'utente non è loggato, mostriamo un invito al login invece di fare la chiamata che fallirebbe
     if (!token) {
         visitsContainer.innerHTML = `
             <div style="grid-column: 1 / -1; text-align: center; padding: 40px; background: var(--gallery-bg); border-radius: 12px;">
@@ -199,14 +234,13 @@ async function loadList(){
                 <button class="main-btn" onclick="window.location.href='login.html'">Vai al Login</button>
             </div>
         `;
-        return; // Interrompiamo la funzione qui
+        return; 
     }
     
-    // 3. Se l'utente è loggato, facciamo la chiamata protetta originale
     try {
         const res = await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
             headers: {
-                "Authorization": `Bearer ${token}` // Ripristiniamo l'invio del token
+                "Authorization": `Bearer ${token}` 
             }
         });
 
@@ -244,14 +278,12 @@ function setupAddVisitBtn(){
         addNewVisitBtn.addEventListener('click', () => {
             const token = localStorage.getItem("token");
             
-            // CONTROLLO LOGIN
             if (!token) {
                 alert("Devi registrarti o effettuare il login per creare una nuova visita!");
                 window.location.href = "login.html";
                 return;
             }
             
-            // Se loggato, vai all'editor
             window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}`;
         });
     }
