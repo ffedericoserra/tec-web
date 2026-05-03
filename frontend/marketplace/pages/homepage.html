@@ -1,78 +1,106 @@
 <!doctype html>
-<html lang="en">
+<html lang="it">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArtAround - Esplora l'Arte</title>
+    
     <link rel="stylesheet" href="../stylesheets/styles.css" />
+    <link rel="stylesheet" href="../stylesheets/homepage.css" />
   </head>
-  <body class="home-body">
-    <header class="top-nav">
+  
+  <body id="artaround-home" class="home-body">
+    
+    <!-- NAVBAR (Non si tocca, ora è perfetta) -->
+    <header class="top-nav editorial-nav">
       <div class="nav-wrapper">
-        <!-- LOGO -->
-        <a href="homepage.html" class="brand"
-          ><span class="logo-text">A&alpha;</span></a
-        >
-
-        <!-- LINK CENTRALI -->
+        <a href="homepage.html" class="brand">
+          <span class="logo-icon" style="color: #161616; font-size: 1.4rem; margin-right: 8px;">🏛</span>
+          <span class="logo-text">ARTAROUND</span>
+        </a>
+        
         <ul class="nav-links">
-          <li><a href="homepage.html" id="nav-plan">Plan your visit</a></li>
-          <li><a href="#" id="nav-add-museum">Add a museum</a></li>
-          <li><a href="about.html" id="nav-about">About us</a></li>
+          <li><a href="homepage.html" class="active">Esplora</a></li>
+          <li><a href="#" id="nav-add-museum">Aggiungi Museo</a></li>
+          <li><a href="about.html" id="nav-about">Il Progetto</a></li>
         </ul>
-
-        <!-- LINK AUTENTICAZIONE (Destra) -->
-        <ul class="nav-auth">
-          <!-- Visibili solo se NON sei loggato -->
-          <li class="guest-only"><a href="login.html">Login</a></li>
-          <li class="guest-only"><a href="register.html">Sign-up</a></li>
-
-          <!-- Visibili solo se SEI loggato -->
-          <li class="user-only hidden">
-            <a href="user_profile.html">Your Account</a>
-          </li>
-          <li class="user-only hidden">
-            <a href="#" id="logout-btn">Log out</a>
-          </li>
-        </ul>
+        
+        <div class="nav-auth-wrapper">
+            <ul class="nav-auth">
+                <li class="guest-only"><a href="login.html">Login</a></li>
+                <li class="guest-only"><a href="register.html">Sign-up</a></li>
+                <li class="user-only hidden"><a href="user_profile.html">Account</a></li>
+                <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+            </ul>
+        </div>
       </div>
     </header>
 
-    <!-- NUOVA SEZIONE HERO CON IMMAGINE -->
-    <section class="hero-banner">
-      <div class="hero-overlay"></div>
-      <div class="hero-content">
-        <h1 class="hero-title">Esplora l'Arte nel Mondo</h1>
-        <p class="hero-subtitle">
-          La tua guida museale intelligente. Scopri, crea e condividi tour
-          personalizzati in pochi clic.
-        </p>
+    <!-- HERO SECTION (Non si tocca) -->
+    <section class="hero-editorial">
+      
+      <div class="page-grid-lines">
+        <div class="grid-line line-25"></div>
+        <div class="grid-line line-50"></div>
+        <div class="grid-line line-75"></div>
+      </div>
 
-        <div class="hero-search-wrapper">
-          <span class="search-icon">🔍</span>
-          <input
-            type="text"
-            id="search-bar"
-            placeholder="Cerca un museo, una città o una destinazione..."
-          />
+      <a href="#destinazioni" class="scroll-arrow-link" aria-label="Scorri ai musei" onclick="document.getElementById('destinazioni').scrollIntoView({behavior: 'smooth'}); return false;">
+        <div class="scroll-indicator"></div>
+      </a>
+
+      <div class="shape-circle circle-small"></div>
+      <div class="shape-circle circle-large"></div>
+
+      <div class="hero-left-content">
+        <div class="hero-text-inner">
+          <h1 class="hero-title">
+            <span class="font-light">LA</span> FORMA<br>
+            <span class="burgundy-text">DELL'ARTE.</span>
+          </h1>
+          
+          <p class="hero-description">
+            La grandezza della storia dell'arte risiede nella sua infinita pluralità di stili, movimenti e visioni. Dal rigore classico all'avanguardia contemporanea, esplora un patrimonio culturale senza confini.
+          </p>
+
+          <div class="hero-actions">
+            <button class="primary-btn">Inizia il Tour</button>
+            <div class="hero-meta">
+              <div><strong>Data</strong><br><span id="current-date">Oggi</span></div>
+              <div><strong>Orario</strong><br>10:00 AM</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <div class="hero-right-content">
+        <img src="../assets/artaround/image-17.png" alt="Nike di Samotracia" class="hero-statue">
+        <p class="vertical-text right-vertical">NIKE DI SAMOTRACIA 190 a.C.</p>
+      </div>
+
     </section>
 
-    <!-- SEZIONE GRIGLIA MUSEI -->
-    <section class="museums-section">
-      <div
-        class="nav-wrapper"
-        style="flex-direction: column; align-items: flex-start"
-      >
-        <h2 class="section-heading">Destinazioni in Evidenza</h2>
-        <div id="museum-list" class="modern-grid">
-          <!-- I musei verranno generati qui dal JS -->
+    <!-- SEZIONE MUSEI -->
+    <section id="destinazioni" class="museums-section">
+      
+      <div class="museums-header-editorial">
+        <div class="museum-search-wrapper">
+          <span class="search-label">Cerca</span>
+          <input type="text" id="search-bar" placeholder="Es. Louvre, Firenze..." />
         </div>
+        <h2 class="section-title-new">Destinazioni</h2>
+      </div>
+      
+      <div id="museum-list" class="modern-grid">
+        <!-- Generati da JS -->
       </div>
     </section>
 
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/homepage.js"></script>
+    <script>
+      const today = new Date();
+      document.getElementById('current-date').innerText = today.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+    </script>
   </body>
 </html>
