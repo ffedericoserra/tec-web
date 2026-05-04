@@ -3,15 +3,8 @@ const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token");
 
-if (!token) {
-    alert("You must be logged in to access this page.");
-    window.location.href = "../pages/login.html";
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('add-museum-form');
-    // Assicurati che l'URL coincida con quello usato nel resto dell'app
-    
 
     if (!token) {
         alert("You must be logged in to access this page.");
@@ -19,86 +12,79 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    if (!form) return;
 
-            // 1. Estrazione degli orari dai campi sequenziali
-            var hoursInputs = document.querySelectorAll('.hours-row input');
-            
-            
-            var payload = {
-                name: document.getElementById('m-name').value.trim(),
-                address: document.getElementById('m-address').value.trim(),
-                description: document.getElementById('m-description').value.trim(),
-                website: document.getElementById('m-website').value.trim(),
-                email: document.getElementById('m-email').value.trim(),
-                phone: document.getElementById('m-phone').value.trim(),
-                imageUrl: document.getElementById('m-image').value.trim(),
-                
-                openingHours: {
-                    mon: hoursInputs[0]?.value.trim() || undefined,
-                    tue: hoursInputs[1]?.value.trim() || undefined,
-                    wed: hoursInputs[2]?.value.trim() || undefined,
-                    thu: hoursInputs[3]?.value.trim() || undefined,
-                    fri: hoursInputs[4]?.value.trim() || undefined,
-                    sat: hoursInputs[5]?.value.trim() || undefined,
-                    sun: hoursInputs[6]?.value.trim() || undefined,
-                },
-                
-                theme: {
-                    primaryColor: document.getElementById('m-primary-color').value,
-                    secondaryColor: document.getElementById('m-secondary-color').value,
-                    font: document.getElementById('m-font').value
-                },
-                
-                mapData: {
-                    imageUrl: document.getElementById('m-map-image').value.trim() || undefined
-                }
-            };
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            // Rimuove campi vuoti per evitare conflitti con la validazione Zod
-            Object.keys(payload).forEach(key => {
-                if (payload[key] === "") {
-                    delete payload[key];
-                }
-            });
+        const hoursInputs = document.querySelectorAll('.hours-row input');
+        const payload = {
+            name: document.getElementById('m-name').value.trim(),
+            address: document.getElementById('m-address').value.trim(),
+            description: document.getElementById('m-description').value.trim(),
+            website: document.getElementById('m-website').value.trim(),
+            email: document.getElementById('m-email').value.trim(),
+            phone: document.getElementById('m-phone').value.trim(),
+            imageUrl: document.getElementById('m-image').value.trim(),
 
-            // Gestione UI durante il caricamento
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerText;
-            submitBtn.innerText = "Salvataggio in corso...";
-            submitBtn.disabled = true;
+            openingHours: {
+                mon: hoursInputs[0]?.value.trim() || undefined,
+                tue: hoursInputs[1]?.value.trim() || undefined,
+                wed: hoursInputs[2]?.value.trim() || undefined,
+                thu: hoursInputs[3]?.value.trim() || undefined,
+                fri: hoursInputs[4]?.value.trim() || undefined,
+                sat: hoursInputs[5]?.value.trim() || undefined,
+                sun: hoursInputs[6]?.value.trim() || undefined,
+            },
 
-            
-            try {
-                const response = await fetch(`${myApi}/museums`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify(payload)
-                });
+            theme: {
+                primaryColor: document.getElementById('m-primary-color').value,
+                secondaryColor: document.getElementById('m-secondary-color').value,
+                font: document.getElementById('m-font').value
+            },
 
-                const data = await response.json();
+            mapData: {
+                imageUrl: document.getElementById('m-map-image').value.trim() || undefined
+            }
+        };
 
-                if (response.ok) {
-                    alert("Museo aggiunto con successo!");
-                    // Reindirizzamento alla pagina del profilo o alla lista dei musei
-                    window.location.href = "../pages/homepage.html"; 
-                } else {
-                    // Stampa in caso di errore di validazione del backend
-                    alert("Errore durante il salvataggio: " + (data.error || "Controlla i campi inseriti."));
-                }
-            } catch (error) {
-                console.error("Errore fetch:", error);
-                alert("Si è verificato un errore di connessione al server.");
-            } finally {
-                // Ripristino del pulsante
-                submitBtn.innerText = originalBtnText;
-                submitBtn.disabled = false;
+        Object.keys(payload).forEach((key) => {
+            if (payload[key] === "") {
+                delete payload[key];
             }
         });
-    }
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.innerText;
+        submitBtn.innerText = "Salvataggio in corso...";
+        submitBtn.classList.add("is-loading");
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch(`${myApi}/museums`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert("Museo aggiunto con successo!");
+                window.location.href = "../pages/homepage.html";
+            } else {
+                alert("Errore durante il salvataggio: " + (data.error || "Controlla i campi inseriti."));
+            }
+        } catch (error) {
+            console.error("Errore fetch:", error);
+            alert("Si e' verificato un errore di connessione al server.");
+        } finally {
+            submitBtn.innerText = originalBtnText;
+            submitBtn.classList.remove("is-loading");
+            submitBtn.disabled = false;
+        }
+    });
 });
