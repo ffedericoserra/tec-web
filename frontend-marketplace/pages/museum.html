@@ -37,7 +37,12 @@
 
       <!-- My Visits panel -->
       <section class="panel my-visits-panel" data-panel="my-visits">
-        <div class="visit-editor" id="visitEditor"></div>
+        <div class="visit-editor-wrap">
+          <div class="visit-editor" id="visitEditor"></div>
+          <div class="visit-actions" id="visitActions" hidden>
+            <button type="button" class="btn-publish" id="publishBtn" disabled>Publish</button>
+          </div>
+        </div>
 
         <aside class="content-picker">
           <input type="search" id="contentPickerSearch" placeholder="Search Item / Artwork / Author …" autocomplete="off" />
@@ -51,6 +56,46 @@
         <div class="content-grid" id="contentGrid"></div>
       </section>
     </main>
+
+    <!-- Visit form dialog (shared by New Visit + Edit Visit Info) -->
+    <dialog id="visitDialog" class="visit-dialog">
+      <form id="visitForm" class="visit-form" novalidate>
+        <h3 id="visitDialogTitle">New Visit</h3>
+
+        <label>
+          Title
+          <input type="text" name="title" required minlength="3" maxlength="120" />
+        </label>
+
+        <label>
+          Description
+          <textarea name="description" rows="3" maxlength="500" placeholder="What is this visit about?"></textarea>
+        </label>
+
+        <label>
+          Length
+          <select name="length">
+            <option value="quick">Quick</option>
+            <option value="normal" selected>Normal</option>
+            <option value="deep">Deep</option>
+          </select>
+        </label>
+
+        <label class="visit-form-public">
+          <input type="checkbox" name="isPublic" checked />
+          Public — discoverable in the marketplace
+        </label>
+
+        <p class="visit-form-error" id="visitFormError" role="alert"></p>
+
+        <div class="visit-form-actions">
+          <button type="button" class="btn-danger" id="visitDeleteBtn" hidden>Delete</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn-ghost" id="visitCancelBtn">Cancel</button>
+          <button type="submit" class="btn-primary" id="visitSaveBtn">Save</button>
+        </div>
+      </form>
+    </dialog>
 
     <script type="module" src="/marketplace/js/museum.js"></script>
   </body>
