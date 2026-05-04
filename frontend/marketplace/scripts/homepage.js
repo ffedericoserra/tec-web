@@ -13,10 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if(!token) {
                 alert("Devi effettuare il login per aggiungere un museo!");
                 window.location.href = "login.html";
-            } else {
-                // Logica per aggiungere museo (es. mostrare il modale)
-                alert("Funzione aggiungi museo da implementare");
-            }
+            } 
         });
     }
 
