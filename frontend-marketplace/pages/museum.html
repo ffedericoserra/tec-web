@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround — Museum</title>
+    <link rel="stylesheet" href="/marketplace/css/base.css" />
+    <link rel="stylesheet" href="/marketplace/css/museum.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="/marketplace/museums" class="brand-link">
+        <div class="brand">ArtAround &nbsp;|&nbsp; Marketplace &amp; Editor</div>
+      </a>
+
+      <div class="profile" id="profile">
+        <button class="profile-btn" id="profileBtn" aria-haspopup="menu" aria-expanded="false" aria-label="Profile menu">
+          <span class="profile-avatar" id="profileAvatar"></span>
+        </button>
+        <div class="profile-menu" id="profileMenu" role="menu" hidden>
+          <div class="profile-username" id="profileUsername">—</div>
+          <button class="profile-logout" id="logoutBtn" type="button" role="menuitem">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <h1 class="museum-name" id="museumName">…</h1>
+
+      <p class="banner" id="errorBanner" hidden></p>
+
+      <nav class="museum-tabs" role="tablist" aria-label="Museum sections">
+        <button class="m-tab is-active" data-tab="my-visits" role="tab" type="button" aria-selected="true">My Visits</button>
+        <button class="m-tab" data-tab="add-items" role="tab" type="button">Add Items</button>
+        <a href="/marketplace/museums" class="change-museum">Change Museum</a>
+      </nav>
+
+      <!-- My Visits panel -->
+      <section class="panel my-visits-panel" data-panel="my-visits">
+        <div class="visit-editor" id="visitEditor"></div>
+
+        <aside class="content-picker">
+          <input type="search" id="contentPickerSearch" placeholder="Search Item / Artwork / Author …" autocomplete="off" />
+          <div class="content-picker-list" id="contentPickerList"></div>
+        </aside>
+      </section>
+
+      <!-- Add Items panel -->
+      <section class="panel add-items-panel" data-panel="add-items" hidden>
+        <input type="search" id="addItemsSearch" placeholder="Search" autocomplete="off" />
+        <div class="content-grid" id="contentGrid"></div>
+      </section>
+    </main>
+
+    <script type="module" src="/marketplace/js/museum.js"></script>
+  </body>
+</html>

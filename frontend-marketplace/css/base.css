@@ -37,3 +37,9 @@ a {
 button {
   font-family: inherit;
 }
+
+/* Author CSS like `display: grid` would otherwise out-specificity the UA
+   stylesheet's `[hidden] { display: none }` and leak hidden panels. */
+[hidden] {
+  display: none !important;
+}

@@ -1,5 +1,6 @@
 import { api, setCachedUser } from './api.js';
 import { isAuthenticated, logout } from './auth.js';
+import { mountProfile } from './profile.js';
 
 const state = {
   museums: [],
@@ -15,11 +16,6 @@ async function init() {
   els.status = document.getElementById('status');
   els.search = document.getElementById('search');
   els.tabs = document.querySelectorAll('.tab');
-  els.profileBtn = document.getElementById('profileBtn');
-  els.profileMenu = document.getElementById('profileMenu');
-  els.profileAvatar = document.getElementById('profileAvatar');
-  els.profileUsername = document.getElementById('profileUsername');
-  els.logoutBtn = document.getElementById('logoutBtn');
 
   bindUI();
 
@@ -32,7 +28,7 @@ async function init() {
     state.museums = list.museums || [];
     state.savedIds = new Set((me.user.savedMuseums || []).map(m => m._id || m));
 
-    setProfile(me.user);
+    mountProfile(me.user);
     render();
   } catch (err) {
     if (err.status === 401) {
@@ -62,24 +58,6 @@ function bindUI() {
     });
   });
 
-  els.profileBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const open = els.profileMenu.hidden;
-    els.profileMenu.hidden = !open;
-    els.profileBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-  });
-
-  document.addEventListener('click', () => {
-    els.profileMenu.hidden = true;
-    els.profileBtn.setAttribute('aria-expanded', 'false');
-  });
-
-  els.logoutBtn.addEventListener('click', () => logout());
-}
-
-function setProfile(user) {
-  els.profileUsername.textContent = user.username;
-  els.profileAvatar.textContent = (user.username[0] || '?').toUpperCase();
 }
 
 function render() {

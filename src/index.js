@@ -35,6 +35,9 @@ app.get('/marketplace', (req, res) => {
 app.get('/marketplace/museums', (req, res) => {
   res.sendFile(path.join(marketplaceDir, 'pages', 'museums.html'));
 });
+app.get('/marketplace/museums/:slug', (req, res) => {
+  res.sendFile(path.join(marketplaceDir, 'pages', 'museum.html'));
+});
 
 // API routes
 app.use('/api', apiRoutes);
