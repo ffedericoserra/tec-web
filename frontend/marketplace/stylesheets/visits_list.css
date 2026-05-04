@@ -1,135 +1,732 @@
 /* ==========================================================================
    ARTAROUND - VISITS LIST EDITORIAL STYLES
+   Colors: #710014 (Burgundy), #F2F1ED (Cream), #161616 (Anthracite)
+   Font: Helvetica
    ========================================================================== */
 
 #artaround-visits {
     font-family: 'Helvetica', Arial, sans-serif;
     background-color: #F2F1ED;
     color: #161616;
-    margin: 0; 
-    padding: 0; 
-    min-height: 100vh;
-    padding-top: 80px; /* Spazio per la Navbar fissa */
-}
-
-#artaround-visits .hidden { display: none; }
-
-/* --- HEADER DELLA PAGINA --- */
-#artaround-visits .visits-header-section {
-    padding: 60px 10vw 20px 10vw;
-    border-bottom: 2px solid #161616;
-    margin-bottom: 50px;
-}
-
-#artaround-visits .page-title {
-    font-size: 3.5rem;
-    font-family: "Playfair Display", "Georgia", serif;
-    color: #710014; /* Bordeaux */
-    font-weight: 700;
-    margin: 0 0 10px 0;
-    letter-spacing: -1px;
-}
-
-#artaround-visits .page-subtitle {
-    font-size: 1rem;
-    color: rgba(22, 22, 22, 0.7);
     margin: 0;
+    padding: 0;
+    padding-top: 80px;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-/* --- CONTENITORE GRIGLIA --- */
-#artaround-visits .visits-grid-section {
-    padding: 0 10vw 80px 10vw;
+#artaround-visits .hidden { display: none !important; }
+
+#artaround-visits .visits-page-shell {
+    background-color: #F2F1ED;
+    min-height: calc(100vh - 80px);
 }
 
-#artaround-visits .modern-grid { 
-    display: grid; 
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
-    gap: 40px; 
+/* --- Hero editoriale --- */
+#artaround-visits .visits-hero {
+    position: relative;
+    min-height: 360px;
+    padding: 70px 10vw 60px;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+    overflow: hidden;
 }
 
-/* --- OVERRIDE DELLE CARD GENERATE DA JS --- */
-/* Puntiamo a #tours-list, .visit-icon o semplici div figli */
-#artaround-visits #tours-list > div,
-#artaround-visits #visits-list > div,
-#artaround-visits .visit-icon {
-    background-color: transparent !important; 
-    background: transparent !important;
-    border: none !important; 
-    border-top: 1px solid rgba(22, 22, 22, 0.2) !important; /* Riga grigia superiore */
-    border-radius: 0 !important; 
-    box-shadow: none !important; 
-    padding: 30px !important; /* Spazio interno per far respirare il rosso su hover */
-    text-align: left !important;
-    transform: none !important; /* Nessun saltino su hover */
-    display: block !important;
-    cursor: pointer !important;
-    transition: all 0.3s ease !important;
+#artaround-visits .page-grid-lines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
 }
 
-/* Nascondiamo eventuali immagini caricate automaticamente se vogliamo il look solo testuale */
-#artaround-visits .visit-icon img,
-#artaround-visits #tours-list > div img {
-    display: none !important;
+#artaround-visits .grid-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid rgba(22, 22, 22, 0.15);
 }
 
-/* Tipografia delle Card */
-#artaround-visits .visit-icon h3,
-#artaround-visits #tours-list > div h3,
-#artaround-visits #tours-list > div h4 { 
-    color: #161616 !important; 
-    font-size: 1.6rem !important; 
-    margin: 0 0 10px 0 !important; 
-    font-weight: bold !important; 
-    font-family: 'Helvetica', Arial, sans-serif !important;
-    transition: color 0.3s ease !important; 
+#artaround-visits .line-25 { left: 25%; }
+#artaround-visits .line-50 { left: 50%; }
+#artaround-visits .line-75 { left: 75%; }
+
+#artaround-visits .visits-hero-layout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+    gap: 60px;
+    align-items: end;
+    min-height: 300px;
 }
 
-#artaround-visits .visit-icon p,
-#artaround-visits #tours-list > div p { 
-    color: rgba(22, 22, 22, 0.6) !important; 
-    font-size: 0.95rem !important; 
-    margin: 5px 0 !important;
-    transition: color 0.3s ease !important; 
-    line-height: 1.4 !important;
+#artaround-visits .visits-heading-block {
+    max-width: 760px;
 }
 
-/* Badge o "Pillole" info (es. Status, Data) */
-#artaround-visits .visit-icon span,
-#artaround-visits .visit-icon .badge,
-#artaround-visits #tours-list > div span { 
-    color: #161616 !important; 
-    background: transparent !important; 
-    border: none !important;
-    font-size: 0.75rem !important; 
-    font-weight: 800 !important; 
-    text-transform: uppercase !important; 
-    letter-spacing: 1px !important;
-    display: block !important;
-    margin-bottom: 15px !important;
-    padding: 0 !important;
-    box-shadow: none !important;
-    transition: color 0.3s ease !important;
+#artaround-visits .header-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+    color: rgba(22, 22, 22, 0.65);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
-/* --- EFFETTO HOVER --- */
-/* Il box intero si riempie di Bordeaux */
-#artaround-visits #tours-list > div:hover,
-#artaround-visits #visits-list > div:hover,
-#artaround-visits .visit-icon:hover { 
-    border-top: 1px solid #710014 !important; 
-    background-color: #710014 !important; 
-    transform: none !important; 
-    box-shadow: none !important;
+#artaround-visits .header-back-link::before {
+    content: "";
+    width: 32px;
+    height: 1px;
+    background-color: currentColor;
 }
 
-/* Tutti i testi all'interno del box si invertono in panna */
-#artaround-visits #tours-list > div:hover h3,
-#artaround-visits #tours-list > div:hover h4,
-#artaround-visits #tours-list > div:hover p,
-#artaround-visits #tours-list > div:hover span,
-#artaround-visits .visit-icon:hover h3, 
-#artaround-visits .visit-icon:hover p,
-#artaround-visits .visit-icon:hover span,
-#artaround-visits .visit-icon:hover .badge { 
-    color: #F2F1ED !important; 
+#artaround-visits .header-back-link:hover {
+    color: #710014;
+    transform: translateX(-4px);
+}
+
+#artaround-visits .visits-kicker {
+    display: block;
+    margin-bottom: 14px;
+    color: #710014;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .visits-title {
+    margin: 0 0 24px;
+    color: #161616;
+    font-size: clamp(3rem, 8vw, 5.6rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+}
+
+#artaround-visits .museum-info-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #161616;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+}
+
+#artaround-visits .museum-info-link::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background-color: currentColor;
+}
+
+#artaround-visits .museum-info-link:hover {
+    color: #710014;
+}
+
+#artaround-visits .visits-meta-panel {
+    max-width: 360px;
+    padding: 28px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-visits .visits-meta-panel strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #161616;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .visits-meta-panel p {
+    margin: 0;
+    color: rgba(22, 22, 22, 0.7);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* --- Toolbar e lista --- */
+#artaround-visits .visits-list-section {
+    padding: 80px 10vw;
+}
+
+#artaround-visits .visits-toolbar {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 60px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #161616;
+}
+
+#artaround-visits .visit-search-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: min(420px, 100%);
+}
+
+#artaround-visits .search-label {
+    margin-bottom: 5px;
+    color: #161616;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .search-bar-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px 0;
+    color: #161616;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.3);
+    border-radius: 0;
+    outline: none;
+    font-family: inherit;
+    font-size: 1.1rem;
+    transition: border-color 0.3s ease;
+}
+
+#artaround-visits .search-bar-input:focus {
+    border-color: #710014;
+    box-shadow: none;
+}
+
+#artaround-visits .search-bar-input::placeholder {
+    color: rgba(22, 22, 22, 0.45);
+}
+
+#artaround-visits .visits-section-heading {
+    text-align: right;
+}
+
+#artaround-visits .section-title-new {
+    margin: 0;
+    color: #161616;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .visits-section-heading p {
+    margin: 8px 0 0;
+    color: #710014;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#artaround-visits #tours-list.modern-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 40px;
+}
+
+/* --- Card visita generate da JS --- */
+#artaround-visits .visit-card-modern {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 300px;
+    padding: 30px;
+    overflow: hidden;
+    color: #161616;
+    background: transparent;
+    border: none;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-radius: 0;
+    box-shadow: none;
+    cursor: default;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#artaround-visits .visit-card-modern:hover {
+    background-color: #710014;
+    border-top-color: #710014;
+}
+
+#artaround-visits .visit-card-main {
+    position: relative;
+    z-index: 1;
+    padding-right: 48px;
+}
+
+#artaround-visits .visit-card-label {
+    display: block;
+    margin-bottom: 14px;
+    color: #161616;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.3s ease;
+}
+
+#artaround-visits .visit-card-title {
+    margin: 0 0 14px;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+    transition: color 0.3s ease;
+    overflow-wrap: anywhere;
+}
+
+#artaround-visits .visit-card-description {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    color: rgba(22, 22, 22, 0.65);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    transition: color 0.3s ease;
+}
+
+#artaround-visits .visit-card-modern:hover .visit-card-label,
+#artaround-visits .visit-card-modern:hover .visit-card-title,
+#artaround-visits .visit-card-modern:hover .visit-card-description {
+    color: #F2F1ED;
+}
+
+#artaround-visits .visit-card-actions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 34px;
+}
+
+#artaround-visits .visit-action-btn {
+    min-width: 0;
+    height: 42px;
+    padding: 0 16px;
+    border-radius: 4px;
+    border: 1px solid #161616;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 1;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+#artaround-visits .start-btn {
+    flex: 2;
+    color: #F2F1ED;
+    background-color: #161616;
+}
+
+#artaround-visits .edit-btn {
+    flex: 1;
+    color: #161616;
+    background-color: transparent;
+}
+
+#artaround-visits .delete-btn {
+    flex: 0 0 42px;
+    padding: 0;
+    color: #710014;
+    background-color: transparent;
+    border-color: #710014;
+    font-size: 1.1rem;
+}
+
+#artaround-visits .visit-card-modern:hover .start-btn {
+    color: #710014;
+    background-color: #F2F1ED;
+    border-color: #F2F1ED;
+}
+
+#artaround-visits .visit-card-modern:hover .edit-btn,
+#artaround-visits .visit-card-modern:hover .delete-btn {
+    color: #F2F1ED;
+    border-color: rgba(242, 241, 237, 0.75);
+}
+
+#artaround-visits .visit-action-btn:hover {
+    background-color: #F2F1ED;
+    border-color: #F2F1ED;
+    color: #710014;
+}
+
+/* --- Preferiti --- */
+#artaround-visits .favorite-visit-btn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    color: #161616;
+    background: transparent;
+    border: 1px solid rgba(22, 22, 22, 0.3);
+    border-radius: 50%;
+    box-shadow: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+}
+
+#artaround-visits .favorite-visit-btn:hover {
+    color: #710014;
+    border-color: #710014;
+    transform: scale(1.06);
+    box-shadow: none;
+}
+
+#artaround-visits .favorite-visit-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    transform: none;
+}
+
+#artaround-visits .heart-icon {
+    color: currentColor;
+    line-height: 1;
+    margin-top: 0;
+}
+
+#artaround-visits .heart-icon.saved {
+    color: #710014;
+}
+
+#artaround-visits .visit-card-modern:hover .favorite-visit-btn,
+#artaround-visits .visit-card-modern:hover .heart-icon,
+#artaround-visits .visit-card-modern:hover .heart-icon.saved {
+    color: #F2F1ED;
+    border-color: rgba(242, 241, 237, 0.75);
+}
+
+/* --- Stati vuoti / errore --- */
+#artaround-visits .visits-empty-message,
+#artaround-visits .visits-error-message,
+#artaround-visits .visits-empty-state {
+    grid-column: 1 / -1;
+}
+
+#artaround-visits .visits-empty-message,
+#artaround-visits .visits-error-message {
+    margin: 0;
+    padding: 40px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    color: rgba(22, 22, 22, 0.65);
+    font-size: 1.05rem;
+    text-align: center;
+}
+
+#artaround-visits .visits-error-message {
+    color: #710014;
+    font-weight: 800;
+}
+
+#artaround-visits .visits-empty-state {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 42px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    text-align: center;
+}
+
+#artaround-visits .visits-state-label {
+    display: block;
+    margin-bottom: 12px;
+    color: #710014;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .visits-empty-state h3 {
+    margin: 0 0 12px;
+    color: #161616;
+    font-size: 1.6rem;
+    line-height: 1.2;
+}
+
+#artaround-visits .visits-empty-state p {
+    margin: 0 0 26px;
+    color: rgba(22, 22, 22, 0.65);
+    line-height: 1.6;
+}
+
+#artaround-visits .visits-login-btn {
+    width: auto;
+    min-width: 180px;
+    padding: 14px 28px;
+    color: #F2F1ED;
+    background-color: #161616;
+    border: none;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#artaround-visits .visits-login-btn:hover {
+    background-color: #710014;
+    color: #F2F1ED;
+}
+
+/* --- Floating add --- */
+#artaround-visits .floating-add-btn {
+    position: fixed;
+    right: 40px;
+    bottom: 40px;
+    z-index: 1000;
+    width: 60px;
+    height: 60px;
+    color: #F2F1ED;
+    background-color: #161616;
+    border: none;
+    border-radius: 50%;
+    box-shadow: none;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+#artaround-visits .floating-add-btn:hover {
+    color: #F2F1ED;
+    background-color: #710014;
+    border-color: #710014;
+    box-shadow: none;
+    transform: rotate(90deg);
+}
+
+/* --- Modal eliminazione --- */
+#artaround-visits .modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(22, 22, 22, 0.78);
+    backdrop-filter: blur(3px);
+    opacity: 1;
+    animation: none;
+}
+
+#artaround-visits .delete-modal-content {
+    width: min(420px, 100%);
+    max-width: 420px;
+    max-height: 85vh;
+    box-sizing: border-box;
+    padding: 38px;
+    overflow-y: auto;
+    color: #161616;
+    background-color: #F2F1ED;
+    border: none;
+    border-top: 4px solid #710014;
+    border-radius: 0;
+    box-shadow: none;
+    text-align: left;
+    transform: none;
+    animation: none;
+}
+
+#artaround-visits .warning-title {
+    margin: 0 0 18px;
+    color: #710014;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .warning-text {
+    margin: 0 0 28px;
+    color: rgba(22, 22, 22, 0.75);
+    font-size: 1.05rem;
+    line-height: 1.6;
+}
+
+#artaround-visits .warning-text strong {
+    color: #161616;
+    font-size: 1.15rem;
+}
+
+#artaround-visits .warning-text span {
+    display: block;
+    margin-top: 10px;
+    color: rgba(22, 22, 22, 0.55);
+    font-size: 0.9rem;
+}
+
+#artaround-visits .delete-modal-actions {
+    display: flex;
+    gap: 15px;
+}
+
+#artaround-visits .modal-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 14px 18px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+#artaround-visits .modal-btn-secondary {
+    color: #161616;
+    background: transparent;
+    border: 1px solid rgba(22, 22, 22, 0.35);
+}
+
+#artaround-visits .modal-btn-secondary:hover {
+    color: #F2F1ED;
+    background-color: #161616;
+    border-color: #161616;
+}
+
+#artaround-visits .modal-btn-danger {
+    color: #F2F1ED;
+    background-color: #710014;
+    border: 1px solid #710014;
+}
+
+#artaround-visits .modal-btn-danger:hover {
+    color: #F2F1ED;
+    background-color: #161616;
+    border-color: #161616;
+}
+
+#artaround-visits .modal-btn.is-loading {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+@media (max-width: 900px) {
+    #artaround-visits .visits-hero {
+        min-height: auto;
+        padding: 56px 7vw 48px;
+    }
+
+    #artaround-visits .visits-hero-layout {
+        grid-template-columns: 1fr;
+        gap: 36px;
+        min-height: 0;
+    }
+
+    #artaround-visits .header-back-link {
+        margin-bottom: 34px;
+    }
+
+    #artaround-visits .visits-meta-panel {
+        max-width: none;
+    }
+
+    #artaround-visits .visits-list-section {
+        padding: 60px 7vw;
+    }
+
+    #artaround-visits .visits-toolbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 28px;
+    }
+
+    #artaround-visits .visits-section-heading {
+        text-align: left;
+    }
+}
+
+@media (max-width: 640px) {
+    #artaround-visits {
+        padding-top: 80px;
+    }
+
+    #artaround-visits .visits-hero {
+        padding: 44px 6vw 40px;
+    }
+
+    #artaround-visits .visits-title {
+        font-size: clamp(2.5rem, 14vw, 4rem);
+    }
+
+    #artaround-visits .visits-list-section {
+        padding: 46px 6vw 72px;
+    }
+
+    #artaround-visits #tours-list.modern-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 28px;
+    }
+
+    #artaround-visits .visit-card-modern {
+        min-height: 280px;
+        padding: 26px;
+    }
+
+    #artaround-visits .visit-card-actions {
+        flex-wrap: wrap;
+    }
+
+    #artaround-visits .start-btn,
+    #artaround-visits .edit-btn {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    #artaround-visits .delete-btn {
+        flex: 1 1 100%;
+    }
+
+    #artaround-visits .floating-add-btn {
+        right: 24px;
+        bottom: 24px;
+        width: 54px;
+        height: 54px;
+    }
+
+    #artaround-visits .delete-modal-content {
+        padding: 30px 24px;
+    }
+
+    #artaround-visits .delete-modal-actions {
+        flex-direction: column;
+    }
 }
