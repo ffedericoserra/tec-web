@@ -1,0 +1,307 @@
+/* ==========================================================================
+   ARTAROUND - ABOUT EDITORIAL STYLES
+   Colors: #710014 (Burgundy), #F2F1ED (Cream), #161616 (Anthracite)
+   Font: Helvetica
+   ========================================================================== */
+
+#artaround-about {
+    font-family: 'Helvetica', Arial, sans-serif;
+    background-color: #F2F1ED;
+    color: #161616;
+    margin: 0;
+    padding: 0;
+    padding-top: 80px;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#artaround-about .hidden { display: none !important; }
+
+#artaround-about .about-page-shell {
+    min-height: calc(100vh - 80px);
+    background-color: #F2F1ED;
+}
+
+/* --- Hero editoriale --- */
+#artaround-about .about-hero {
+    position: relative;
+    min-height: calc(100vh - 80px);
+    padding: 70px 10vw 60px;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+}
+
+#artaround-about .page-grid-lines {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+#artaround-about .grid-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid rgba(22, 22, 22, 0.15);
+}
+
+#artaround-about .line-25 { left: 25%; }
+#artaround-about .line-50 { left: 50%; }
+#artaround-about .line-75 { left: 75%; }
+
+#artaround-about .shape-circle {
+    position: absolute;
+    z-index: 1;
+    border-radius: 50%;
+    mix-blend-mode: multiply;
+}
+
+#artaround-about .circle-small {
+    width: 12vw;
+    height: 12vw;
+    top: 12%;
+    left: 8%;
+    background-color: rgba(113, 0, 20, 0.15);
+}
+
+#artaround-about .circle-large {
+    width: 42vw;
+    height: 42vw;
+    top: 52%;
+    right: 4%;
+    background-color: rgba(113, 0, 20, 0.15);
+    transform: translateY(-50%);
+}
+
+#artaround-about .about-hero-layout {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+    gap: 60px;
+    align-items: end;
+    min-height: calc(100vh - 210px);
+}
+
+#artaround-about .about-heading-block {
+    max-width: 760px;
+}
+
+#artaround-about .about-kicker,
+#artaround-about .about-label {
+    display: block;
+    margin-bottom: 14px;
+    color: #710014;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#artaround-about .about-title {
+    margin: 0;
+    color: #161616;
+    font-size: clamp(4rem, 10vw, 7.4rem);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -1px;
+}
+
+#artaround-about .font-light {
+    color: rgba(22, 22, 22, 0.6);
+    font-weight: 300;
+}
+
+#artaround-about .burgundy-text {
+    color: #710014;
+    font-weight: 800;
+}
+
+#artaround-about .about-meta-panel {
+    max-width: 360px;
+    padding: 28px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-about .about-meta-panel strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #161616;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-about .about-meta-panel p {
+    margin: 0;
+    color: rgba(22, 22, 22, 0.7);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* --- Contenuto --- */
+#artaround-about .about-content-section {
+    padding: 80px 10vw;
+}
+
+#artaround-about .about-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 70px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #161616;
+}
+
+#artaround-about .section-title-new {
+    margin: 0;
+    color: #161616;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#artaround-about .about-section-header p {
+    margin: 0;
+    color: #710014;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+#artaround-about .about-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    gap: 80px;
+    align-items: start;
+}
+
+#artaround-about .about-main-column,
+#artaround-about .about-side-column {
+    min-width: 0;
+}
+
+#artaround-about .about-main-column {
+    padding-top: 2px;
+}
+
+#artaround-about .about-heading {
+    margin: 0 0 28px;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: clamp(2.4rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 0.98;
+    letter-spacing: -1px;
+}
+
+#artaround-about .about-paragraph {
+    max-width: 820px;
+    margin: 0;
+    color: rgba(22, 22, 22, 0.76);
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+#artaround-about .about-paragraph strong,
+#artaround-about .about-small-text strong {
+    color: #161616;
+    font-weight: 800;
+}
+
+#artaround-about .about-side-column {
+    padding: 30px 0 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-about .about-subheading {
+    margin: 0 0 18px;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+#artaround-about .about-small-text {
+    margin: 0;
+    color: rgba(22, 22, 22, 0.68);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+    #artaround-about .about-hero {
+        min-height: auto;
+        padding: 56px 7vw 48px;
+    }
+
+    #artaround-about .about-hero-layout {
+        grid-template-columns: 1fr;
+        gap: 42px;
+        min-height: 420px;
+    }
+
+    #artaround-about .about-meta-panel {
+        max-width: none;
+    }
+
+    #artaround-about .about-content-section {
+        padding: 60px 7vw;
+    }
+
+    #artaround-about .about-section-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+        margin-bottom: 52px;
+    }
+
+    #artaround-about .about-section-header p {
+        text-align: left;
+    }
+
+    #artaround-about .about-grid {
+        grid-template-columns: 1fr;
+        gap: 52px;
+    }
+}
+
+@media (max-width: 640px) {
+    #artaround-about .about-hero {
+        padding: 44px 6vw 40px;
+    }
+
+    #artaround-about .about-hero-layout {
+        min-height: 360px;
+    }
+
+    #artaround-about .about-title {
+        font-size: clamp(3.2rem, 18vw, 5rem);
+    }
+
+    #artaround-about .circle-small {
+        width: 28vw;
+        height: 28vw;
+    }
+
+    #artaround-about .circle-large {
+        width: 72vw;
+        height: 72vw;
+        right: -20vw;
+    }
+
+    #artaround-about .about-content-section {
+        padding: 48px 6vw 72px;
+    }
+
+    #artaround-about .about-heading {
+        font-size: clamp(2.2rem, 12vw, 3rem);
+    }
+}
