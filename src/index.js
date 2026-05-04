@@ -24,6 +24,15 @@ app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
+// Marketplace frontend (vanilla HTML/CSS/JS)
+const marketplaceDir = path.join(__dirname, '..', 'frontend-marketplace');
+app.use('/marketplace/css', express.static(path.join(marketplaceDir, 'css')));
+app.use('/marketplace/js', express.static(path.join(marketplaceDir, 'js')));
+app.use('/marketplace/assets', express.static(path.join(marketplaceDir, 'assets')));
+app.get('/marketplace', (req, res) => {
+  res.sendFile(path.join(marketplaceDir, 'pages', 'home.html'));
+});
+
 // API routes
 app.use('/api', apiRoutes);
 
