@@ -32,6 +32,9 @@ app.use('/marketplace/assets', express.static(path.join(marketplaceDir, 'assets'
 app.get('/marketplace', (req, res) => {
   res.sendFile(path.join(marketplaceDir, 'pages', 'home.html'));
 });
+app.get('/marketplace/museums', (req, res) => {
+  res.sendFile(path.join(marketplaceDir, 'pages', 'museums.html'));
+});
 
 // API routes
 app.use('/api', apiRoutes);
