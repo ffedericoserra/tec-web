@@ -15,6 +15,8 @@ const state = {
   itemsByContent: new Map(), // cache: universalId -> Item[] (filtered to "owned by me")
   publicItemsByContent: new Map(), // cache: universalId -> Item[] (public, from marketplace)
   chooserUid: null,      // universalId currently shown in the content chooser dialog
+  createItemUid: null,   // universalId currently shown in the Create Item dialog
+  createItemContext: null, // 'chooser' | 'add-items' — drives post-publish behavior
   draft: null,           // local-only unpublished visit (no _id), or null
   tab: 'my-visits',
   visitSubTab: 'sequence',
@@ -94,6 +96,18 @@ function cacheEls() {
   els.chooserMineList = document.getElementById('chooserMineList');
   els.chooserMarketList = document.getElementById('chooserMarketList');
   els.chooserError   = document.getElementById('chooserError');
+  els.createItemDialog = document.getElementById('createItemDialog');
+  els.createItemForm = document.getElementById('createItemForm');
+  els.createItemTitle = document.getElementById('createItemTitle');
+  els.createItemThumb = document.getElementById('createItemThumb');
+  els.createItemId = document.getElementById('createItemId');
+  els.createItemType = document.getElementById('createItemType');
+  els.createItemContentName = document.getElementById('createItemContentName');
+  els.createItemAuthor = document.getElementById('createItemAuthor');
+  els.createItemError = document.getElementById('createItemError');
+  els.createItemCloseBtn = document.getElementById('createItemCloseBtn');
+  els.createItemCancelBtn = document.getElementById('createItemCancelBtn');
+  els.createItemSaveBtn = document.getElementById('createItemSaveBtn');
 }
 
 function bindStaticUI() {
@@ -129,6 +143,13 @@ function bindStaticUI() {
   els.publishBtn.addEventListener('click', publishVisit);
 
   els.chooserCloseBtn.addEventListener('click', () => els.chooserDialog.close());
+  els.chooserCreateBtn.addEventListener('click', () => {
+    if (state.chooserUid) openCreateItemDialog(state.chooserUid, 'chooser');
+  });
+
+  els.createItemForm.addEventListener('submit', handleCreateItemSubmit);
+  els.createItemCloseBtn.addEventListener('click', closeCreateItemDialog);
+  els.createItemCancelBtn.addEventListener('click', closeCreateItemDialog);
 }
 
 function markDirty() {
@@ -723,10 +744,126 @@ function renderAddItems() {
       </div>
       <div class="ci-name">${escapeHtml(c.name)}</div>
       <div class="ci-type">${escapeHtml(c.type)}${c.author ? ' · ' + escapeHtml(c.author) : ''}</div>
-      <button type="button" class="ci-create" disabled>Create Item</button>
+      <button type="button" class="ci-create" data-uid="${escapeAttr(c.universalId || '')}">Create Item</button>
       <a class="ci-marketplace" aria-disabled="true">or select from Marketplace</a>
     </div>
   `).join('');
+
+  els.contentGrid.querySelectorAll('.ci-create').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const uid = btn.dataset.uid;
+      if (uid) openCreateItemDialog(uid, 'add-items');
+    });
+  });
+}
+
+/* ---------- Create Item dialog (Phase 3) ---------- */
+
+function openCreateItemDialog(uid, context) {
+  if (!uid) return;
+  const content = state.contentByUid.get(uid);
+  if (!content) return;
+
+  state.createItemUid = uid;
+  state.createItemContext = context;
+
+  els.createItemTitle.textContent = `Create Item — ${content.name}`;
+  els.createItemThumb.innerHTML = content.imageUrl
+    ? `<img src="${escapeAttr(content.imageUrl)}" alt="" loading="lazy" />`
+    : `<span class="ph">No image</span>`;
+  els.createItemId.textContent = content.universalId || '—';
+  els.createItemType.textContent = content.type || '—';
+  els.createItemContentName.textContent = content.name || '—';
+  els.createItemAuthor.textContent = content.author || '—';
+
+  els.createItemForm.reset();
+  els.createItemError.textContent = '';
+  els.createItemSaveBtn.disabled = false;
+  els.createItemSaveBtn.textContent = 'Publish';
+
+  els.createItemDialog.showModal();
+  els.createItemForm.elements.namedItem('tone').focus();
+}
+
+function closeCreateItemDialog() {
+  els.createItemDialog.close();
+  state.createItemUid = null;
+  state.createItemContext = null;
+}
+
+async function handleCreateItemSubmit(e) {
+  e.preventDefault();
+  els.createItemError.textContent = '';
+
+  const f = els.createItemForm;
+  if (!f.checkValidity()) {
+    f.reportValidity();
+    return;
+  }
+
+  const data = new FormData(f);
+  const tone = data.get('tone');
+  const targetAudience = (data.get('targetAudience') || '').trim();
+  const text3s  = (data.get('text3s')  || '').trim();
+  const text15s = (data.get('text15s') || '').trim();
+  const text45s = (data.get('text45s') || '').trim();
+  const isPublic = f.elements.namedItem('isPublic').checked;
+  const price = Math.max(0, Number(data.get('price')) || 0);
+
+  const texts = [];
+  if (text3s)  texts.push({ text: text3s,  lengthCategory: '3s',  language: 'it' });
+  if (text15s) texts.push({ text: text15s, lengthCategory: '15s', language: 'it' });
+  if (text45s) texts.push({ text: text45s, lengthCategory: '45s', language: 'it' });
+
+  if (texts.length === 0) {
+    els.createItemError.textContent = 'Add at least one description (3s, 15s, or 45s).';
+    return;
+  }
+
+  const payload = {
+    contentId: state.createItemUid,
+    targetAudience,
+    descriptions: [{ tone, texts }],
+    price,
+    isPublic,
+  };
+
+  els.createItemSaveBtn.disabled = true;
+  els.createItemSaveBtn.textContent = 'Publishing…';
+  try {
+    const res = await api('/items', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+    const created = res.item;
+    // POST /items returns the unpopulated doc — creatorId is an ObjectId string.
+    // The seq-card item picker and chooser rows expect `creatorId.username`,
+    // so populate it locally from the cached user.
+    if (state.user && typeof created.creatorId === 'string') {
+      created.creatorId = { _id: state.user._id, username: state.user.username };
+    }
+
+    // Insert into the per-content "your collection" cache so the seq-card item
+    // picker and the chooser's "From your collection" list see it immediately.
+    const uid = state.createItemUid;
+    const cached = state.itemsByContent.get(uid) || [];
+    state.itemsByContent.set(uid, [created, ...cached]);
+    // Public-items cache may now be stale — drop it so the chooser refetches next open.
+    if (created.isPublic) state.publicItemsByContent.delete(uid);
+
+    const context = state.createItemContext;
+    closeCreateItemDialog();
+
+    if (context === 'chooser' && state.selected) {
+      // appendItemToSequence also closes the chooser dialog underneath.
+      appendItemToSequence(created);
+    }
+  } catch (err) {
+    if (err.status === 401) { logout(); return; }
+    els.createItemError.textContent = err.message || 'Failed to create item.';
+    els.createItemSaveBtn.disabled = false;
+    els.createItemSaveBtn.textContent = 'Publish';
+  }
 }
 
 /* ---------- Sequence editing (reorder + inline logistic) ---------- */

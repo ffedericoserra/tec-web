@@ -65,8 +65,7 @@
           <button type="button" class="chooser-close" id="chooserCloseBtn" aria-label="Close">×</button>
         </div>
 
-        <button type="button" class="chooser-create" id="chooserCreateBtn" disabled
-          title="Coming soon — Create Item form is Phase 3">
+        <button type="button" class="chooser-create" id="chooserCreateBtn">
           + Create New Item
         </button>
 
@@ -120,6 +119,62 @@
           <span class="spacer"></span>
           <button type="button" class="btn-ghost" id="visitCancelBtn">Cancel</button>
           <button type="submit" class="btn-primary" id="visitSaveBtn">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Create Item dialog (Phase 3) -->
+    <dialog id="createItemDialog" class="create-item-dialog">
+      <form id="createItemForm" class="create-item-form" novalidate>
+        <header class="create-item-head">
+          <h3 id="createItemTitle">Create Item</h3>
+          <button type="button" class="create-item-close" id="createItemCloseBtn" aria-label="Close">×</button>
+        </header>
+
+        <div class="create-item-grid">
+          <aside class="create-item-content">
+            <div class="ci-form-thumb" id="createItemThumb"></div>
+            <dl class="ci-form-meta">
+              <div><dt>id</dt><dd id="createItemId">—</dd></div>
+              <div><dt>type</dt><dd id="createItemType">—</dd></div>
+              <div><dt>title</dt><dd id="createItemContentName">—</dd></div>
+              <div><dt>author</dt><dd id="createItemAuthor">—</dd></div>
+            </dl>
+          </aside>
+
+          <div class="create-item-fields">
+            <select name="tone" required>
+              <option value="" disabled selected>Select tone</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="complex">Complex</option>
+            </select>
+
+            <input name="targetAudience" type="text" required maxlength="80"
+              placeholder="Target audience (e.g. adulti, bambini, studenti)" />
+
+            <textarea name="text3s" rows="2" maxlength="200" placeholder="Insert 3s description prompt"></textarea>
+            <textarea name="text15s" rows="3" maxlength="500" placeholder="Insert 15s description prompt"></textarea>
+            <textarea name="text45s" rows="4" maxlength="1500" placeholder="Insert 45s description prompt"></textarea>
+
+            <div class="create-item-options">
+              <label class="ci-option">
+                <input type="checkbox" name="isPublic" />
+                Public — visible in the marketplace
+              </label>
+              <label class="ci-option">
+                Price (€)
+                <input type="number" name="price" min="0" step="0.01" value="0" />
+              </label>
+            </div>
+
+            <p class="create-item-error" id="createItemError" role="alert"></p>
+
+            <div class="create-item-actions">
+              <button type="button" class="btn-ghost" id="createItemCancelBtn">Cancel</button>
+              <button type="submit" class="btn-primary" id="createItemSaveBtn">Publish</button>
+            </div>
+          </div>
         </div>
       </form>
     </dialog>
