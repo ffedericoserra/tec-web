@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArtAround - Visit Builder</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
-    <link rel="stylesheet" href="../stylesheets/styles.css" />
     <link rel="stylesheet" href="../stylesheets/create_items.css" />
   </head>
   <body id="artaround-visit-builder" class="visit-builder-body">
@@ -16,7 +15,11 @@
         </a>
 
         <ul class="nav-links">
-          <li><a href="homepage.html#destinazioni" id="nav-plan">Plan your visit</a></li>
+          <li>
+            <a href="homepage.html#destinazioni" id="nav-plan"
+              >Plan your visit</a
+            >
+          </li>
           <li><a href="#" id="nav-add-museum">Add museum</a></li>
           <li><a href="about.html" id="nav-about">About us</a></li>
         </ul>
@@ -25,8 +28,12 @@
           <ul class="nav-auth">
             <li class="guest-only"><a href="login.html">Login</a></li>
             <li class="guest-only"><a href="register.html">Sign-up</a></li>
-            <li class="user-only hidden"><a href="user_profile.html">Account</a></li>
-            <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+            <li class="user-only hidden">
+              <a href="user_profile.html">Account</a>
+            </li>
+            <li class="user-only hidden">
+              <a href="#" id="logout-btn">Log out</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -42,7 +49,9 @@
 
         <div class="visit-builder-hero-layout">
           <div class="visit-builder-heading-block">
-            <a href="#" id="back-to-museum-btn" class="header-back-link">Back to museum page</a>
+            <a href="#" id="back-to-museum-btn" class="header-back-link"
+              >Back to museum page</a
+            >
             <span class="visit-builder-kicker">Tour editor</span>
             <h1 class="visit-builder-title">Build your visit</h1>
           </div>
@@ -94,10 +103,18 @@
           </div>
 
           <div class="action-buttons">
-            <button id="cancel-btn" class="main-btn cancel-visit-btn" type="button">
+            <button
+              id="cancel-btn"
+              class="main-btn cancel-visit-btn"
+              type="button"
+            >
               Cancel / exit
             </button>
-            <button id="save-visit-btn" class="main-btn save-visit-btn" type="button">
+            <button
+              id="save-visit-btn"
+              class="main-btn save-visit-btn"
+              type="button"
+            >
               Save
             </button>
           </div>
@@ -127,13 +144,25 @@
           to save them before leaving this page?
         </p>
         <div class="modal-action-stack">
-          <button id="confirm-save-btn" class="main-btn confirm-save-btn" type="button">
+          <button
+            id="confirm-save-btn"
+            class="main-btn confirm-save-btn"
+            type="button"
+          >
             Save visit
           </button>
-          <button id="confirm-exit-btn" class="main-btn confirm-exit-btn" type="button">
+          <button
+            id="confirm-exit-btn"
+            class="main-btn confirm-exit-btn"
+            type="button"
+          >
             Leave without saving
           </button>
-          <button id="close-cancel-modal" class="main-btn continue-edit-btn" type="button">
+          <button
+            id="close-cancel-modal"
+            class="main-btn continue-edit-btn"
+            type="button"
+          >
             Keep editing
           </button>
         </div>

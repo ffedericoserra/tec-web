@@ -4,40 +4,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArtAround - Plan Your Visit</title>
-    <link rel="stylesheet" href="../stylesheets/navbar.css">
-    <link rel="stylesheet" href="../stylesheets/styles.css" />
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/homepage.css" />
   </head>
-  
+
   <body id="artaround-home" class="home-body">
-    
-   <!-- NAVBAR -->
+    <!-- NAVBAR -->
     <header class="top-nav editorial-nav">
       <div class="nav-wrapper">
         <a href="homepage.html" class="brand">
-          <span class="logo-text">A&alpha;</span> 
+          <span class="logo-text">A&alpha;</span>
         </a>
-        
+
         <ul class="nav-links">
-          <li><a href="homepage.html#destinazioni" class="active">Plan your visit</a></li>
+          <li>
+            <a href="homepage.html#destinazioni" class="active"
+              >Plan your visit</a
+            >
+          </li>
           <li><a href="#" id="nav-add-museum">Add museum</a></li>
           <li><a href="about.html" id="nav-about">About us</a></li>
         </ul>
-        
+
         <div class="nav-auth-wrapper">
-            <ul class="nav-auth">
-                <li class="guest-only"><a href="login.html">Login</a></li>
-                <li class="guest-only"><a href="register.html">Sign-up</a></li>
-                <li class="user-only hidden"><a href="user_profile.html">Account</a></li>
-                <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
-            </ul>
+          <ul class="nav-auth">
+            <li class="guest-only"><a href="login.html">Login</a></li>
+            <li class="guest-only"><a href="register.html">Sign-up</a></li>
+            <li class="user-only hidden">
+              <a href="user_profile.html">Account</a>
+            </li>
+            <li class="user-only hidden">
+              <a href="#" id="logout-btn">Log out</a>
+            </li>
+          </ul>
         </div>
       </div>
     </header>
 
     <!-- HERO SECTION -->
     <section class="hero-editorial">
-      
       <div class="page-grid-lines">
         <div class="grid-line line-25"></div>
         <div class="grid-line line-50"></div>
@@ -45,7 +50,17 @@
       </div>
 
       <!-- Freccia con Scorrimento Fluido -->
-      <a href="#destinazioni" class="scroll-arrow-link" aria-label="Scorri ai musei" onclick="document.getElementById('destinazioni').scrollIntoView({behavior: 'smooth'}); return false;">
+      <a
+        href="#destinazioni"
+        class="scroll-arrow-link"
+        aria-label="Scorri ai musei"
+        onclick="
+          document
+            .getElementById('destinazioni')
+            .scrollIntoView({ behavior: 'smooth' });
+          return false;
+        "
+      >
         <div class="scroll-indicator"></div>
       </a>
 
@@ -56,21 +71,31 @@
       <div class="hero-left-content">
         <div class="hero-text-inner">
           <h1 class="hero-title">
-            <span class="font-light">LA</span> FORMA<br>
+            <span class="font-light">LA</span> FORMA<br />
             <span class="burgundy-text">DELL'ARTE.</span>
           </h1>
-          
+
           <p class="hero-description">
-            La grandezza della storia dell'arte risiede nella sua infinita pluralità di stili, movimenti e visioni. Dal rigore classico all'avanguardia contemporanea, esplora un patrimonio culturale senza confini.
+            La grandezza della storia dell'arte risiede nella sua infinita
+            pluralità di stili, movimenti e visioni. Dal rigore classico
+            all'avanguardia contemporanea, esplora un patrimonio culturale senza
+            confini.
           </p>
 
           <div class="hero-actions">
             <!-- Bottone aggiornato con testo nuovo e collegamento alla pagina profilo -->
-            <button class="primary-btn" onclick="window.location.href='user_profile.html'">Vedi le tue visite</button>
-            
+            <button
+              class="primary-btn"
+              onclick="window.location.href = 'user_profile.html'"
+            >
+              Vedi le tue visite
+            </button>
+
             <div class="hero-meta">
-              <div><strong>Data</strong><br><span id="current-date">Oggi</span></div>
-              <div><strong>Orario</strong><br>10:00 AM</div>
+              <div>
+                <strong>Data</strong><br /><span id="current-date">Oggi</span>
+              </div>
+              <div><strong>Orario</strong><br />10:00 AM</div>
             </div>
           </div>
         </div>
@@ -78,31 +103,46 @@
 
       <!-- BLOCCO DESTRA -->
       <div class="hero-right-content">
-        <img src="../assets/artaround/image-17.png" alt="Nike di Samotracia" class="hero-statue">
+        <img
+          src="../assets/artaround/image-17.png"
+          alt="Nike di Samotracia"
+          class="hero-statue"
+        />
         <p class="vertical-text right-vertical">NIKE DI SAMOTRACIA 190 a.C.</p>
       </div>
-
     </section>
 
     <!-- SEZIONE MUSEI -->
     <!-- SEZIONE MUSEI -->
     <section id="destinazioni" class="museums-section">
-      
       <div class="museums-header-editorial">
         <div class="museum-search-wrapper">
           <span class="search-label">Cerca</span>
-          <input type="text" id="search-bar" placeholder="Es. Louvre, Firenze..." />
+          <input
+            type="text"
+            id="search-bar"
+            placeholder="Es. Louvre, Firenze..."
+          />
         </div>
-        
+
         <!-- Nuova struttura del titolo con istruzione -->
-        <div style="text-align: right;">
+        <div style="text-align: right">
           <h2 class="section-title-new">Destinazioni</h2>
-          <p style="margin: 8px 0 0 0; font-size: 0.75rem; color: #710014; font-weight: bold; letter-spacing: 1px; text-transform: uppercase;">
+          <p
+            style="
+              margin: 8px 0 0 0;
+              font-size: 0.75rem;
+              color: #710014;
+              font-weight: bold;
+              letter-spacing: 1px;
+              text-transform: uppercase;
+            "
+          >
             Seleziona un museo per iniziare
           </p>
         </div>
       </div>
-      
+
       <div id="museum-list" class="modern-grid">
         <!-- Generati da JS -->
       </div>
@@ -112,7 +152,13 @@
     <script src="../scripts/homepage.js"></script>
     <script>
       const today = new Date();
-      document.getElementById('current-date').innerText = today.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+      document.getElementById("current-date").innerText = today
+        .toLocaleDateString("it-IT", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+        .replace(/\//g, "-");
     </script>
   </body>
 </html>

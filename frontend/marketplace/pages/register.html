@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ArtAround - Register</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
-    <link rel="stylesheet" href="../stylesheets/styles.css" />
     <link rel="stylesheet" href="../stylesheets/register.css" />
   </head>
   <body id="artaround-register" class="register-body">
@@ -16,7 +15,11 @@
         </a>
 
         <ul class="nav-links">
-          <li><a href="homepage.html#destinazioni" id="nav-plan">Plan your visit</a></li>
+          <li>
+            <a href="homepage.html#destinazioni" id="nav-plan"
+              >Plan your visit</a
+            >
+          </li>
           <li><a href="#" id="nav-add-museum">Add museum</a></li>
           <li><a href="about.html" id="nav-about">About us</a></li>
         </ul>
@@ -24,9 +27,15 @@
         <div class="nav-auth-wrapper">
           <ul class="nav-auth">
             <li class="guest-only"><a href="login.html">Login</a></li>
-            <li class="guest-only"><a href="register.html" class="active">Sign-up</a></li>
-            <li class="user-only hidden"><a href="user_profile.html">Account</a></li>
-            <li class="user-only hidden"><a href="#" id="logout-btn">Log out</a></li>
+            <li class="guest-only">
+              <a href="register.html" class="active">Sign-up</a>
+            </li>
+            <li class="user-only hidden">
+              <a href="user_profile.html">Account</a>
+            </li>
+            <li class="user-only hidden">
+              <a href="#" id="logout-btn">Log out</a>
+            </li>
           </ul>
         </div>
       </div>
@@ -51,11 +60,15 @@
               <span class="burgundy-text">ARTAROUND.</span>
             </h1>
             <p class="register-copy">
-              Crea il tuo profilo per costruire tour, salvare percorsi e organizzare nuove visite.
+              Crea il tuo profilo per costruire tour, salvare percorsi e
+              organizzare nuove visite.
             </p>
           </section>
 
-          <section class="register-panel" aria-labelledby="register-panel-title">
+          <section
+            class="register-panel"
+            aria-labelledby="register-panel-title"
+          >
             <div class="register-panel-header">
               <span class="text-label">Account</span>
               <h2 id="register-panel-title">Sign up</h2>
@@ -97,7 +110,11 @@
 
               <button class="main-btn" type="submit">Sign up</button>
 
-              <div id="error-msg" class="register-message" aria-live="polite"></div>
+              <div
+                id="error-msg"
+                class="register-message"
+                aria-live="polite"
+              ></div>
             </form>
 
             <p class="login-prompt">
