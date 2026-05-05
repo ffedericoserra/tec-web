@@ -255,7 +255,7 @@ exports.getVisits = async (req, res, next) => {
     };
 
     const visits = await Visit.find(query)
-      .select('title slug description imageUrl sequence type viewCount createdAt')
+      .select('title slug description imageUrl sequence length type viewCount createdAt')
       .populate('creatorId', 'username')
       .sort({ viewCount: -1 });
 

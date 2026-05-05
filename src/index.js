@@ -42,6 +42,16 @@ app.get('/marketplace/museums/:slug', (req, res) => {
 // API routes
 app.use('/api', apiRoutes);
 
+// Navigator frontend (React SPA, Vite-built). Mounted last so it doesn't
+// shadow /api, /marketplace, or /uploads. The catch-all only matches paths
+// without a file extension so missing assets still 404 instead of returning
+// HTML.
+const navigatorDir = path.join(__dirname, '..', 'frontend-navigator', 'dist');
+app.use(express.static(navigatorDir));
+app.get(/^\/(?!api|marketplace|uploads)[^.]*$/, (req, res) => {
+  res.sendFile(path.join(navigatorDir, 'index.html'));
+});
+
 // Error handling
 app.use(errorHandler);
 

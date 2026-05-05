@@ -1,0 +1,64 @@
+:root {
+  --bg: #f6f3ee;
+  --ink: #1a1a1a;
+  --muted: #6b6b6b;
+  --line: #1a1a1a;
+  --line-soft: #d8d4cc;
+  --accent: #b34a3a;
+  --surface: #ffffff;
+  --surface-alt: #efeae1;
+  --radius: 14px;
+  --radius-sm: 10px;
+  --tap: 44px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+body {
+  min-height: 100dvh;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100dvh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
