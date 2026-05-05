@@ -57,6 +57,33 @@
       </section>
     </main>
 
+    <!-- Content chooser dialog (open via content-picker `+`) -->
+    <dialog id="contentChooserDialog" class="chooser-dialog">
+      <div class="chooser-body">
+        <div class="chooser-head">
+          <h3 id="chooserTitle">Add an item</h3>
+          <button type="button" class="chooser-close" id="chooserCloseBtn" aria-label="Close">×</button>
+        </div>
+
+        <button type="button" class="chooser-create" id="chooserCreateBtn" disabled
+          title="Coming soon — Create Item form is Phase 3">
+          + Create New Item
+        </button>
+
+        <section class="chooser-section">
+          <h4>From your collection</h4>
+          <div class="chooser-list" id="chooserMineList"></div>
+        </section>
+
+        <section class="chooser-section">
+          <h4>From the marketplace</h4>
+          <div class="chooser-list" id="chooserMarketList"></div>
+        </section>
+
+        <p class="chooser-error" id="chooserError" role="alert"></p>
+      </div>
+    </dialog>
+
     <!-- Visit form dialog (shared by New Visit + Edit Visit Info) -->
     <dialog id="visitDialog" class="visit-dialog">
       <form id="visitForm" class="visit-form" novalidate>

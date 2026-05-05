@@ -13,6 +13,8 @@ const state = {
   contentByUid: new Map(),
   user: null,            // current user (from /auth/me)
   itemsByContent: new Map(), // cache: universalId -> Item[] (filtered to "owned by me")
+  publicItemsByContent: new Map(), // cache: universalId -> Item[] (public, from marketplace)
+  chooserUid: null,      // universalId currently shown in the content chooser dialog
   draft: null,           // local-only unpublished visit (no _id), or null
   tab: 'my-visits',
   visitSubTab: 'sequence',
@@ -85,6 +87,13 @@ function cacheEls() {
   els.visitSaveBtn   = document.getElementById('visitSaveBtn');
   els.visitActions   = document.getElementById('visitActions');
   els.publishBtn     = document.getElementById('publishBtn');
+  els.chooserDialog  = document.getElementById('contentChooserDialog');
+  els.chooserTitle   = document.getElementById('chooserTitle');
+  els.chooserCloseBtn = document.getElementById('chooserCloseBtn');
+  els.chooserCreateBtn = document.getElementById('chooserCreateBtn');
+  els.chooserMineList = document.getElementById('chooserMineList');
+  els.chooserMarketList = document.getElementById('chooserMarketList');
+  els.chooserError   = document.getElementById('chooserError');
 }
 
 function bindStaticUI() {
@@ -118,6 +127,8 @@ function bindStaticUI() {
   els.visitCancelBtn.addEventListener('click', () => els.visitDialog.close());
   els.visitDeleteBtn.addEventListener('click', handleDeleteVisit);
   els.publishBtn.addEventListener('click', publishVisit);
+
+  els.chooserCloseBtn.addEventListener('click', () => els.chooserDialog.close());
 }
 
 function markDirty() {
@@ -355,6 +366,14 @@ function renderEditor() {
     });
   });
 
+  // Remove sequence entry
+  els.editor.querySelectorAll('.seq-remove-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation(); // don't bubble to seq-card-head
+      removeSeqEntry(Number(btn.dataset.idx));
+    });
+  });
+
   // Drag-and-drop reorder
   els.editor.querySelectorAll('.seq-card').forEach(card => {
     const idx = Number(card.dataset.idx);
@@ -420,6 +439,9 @@ function renderSequence(visit) {
         ${open ? `
           <div class="seq-card-body">
             ${renderSeqItems(item, i)}
+            <div class="seq-card-actions">
+              <button type="button" class="seq-remove-btn" data-idx="${i}">Remove from visit</button>
+            </div>
           </div>` : ''}
       </div>
     `);
@@ -492,6 +514,31 @@ async function fetchItemsForContent(uid) {
   return filtered;
 }
 
+async function fetchPublicItemsForContent(uid) {
+  const res = await api(`/items?contentId=${encodeURIComponent(uid)}&isPublic=true`);
+  const items = res.items || [];
+  state.publicItemsByContent.set(uid, items);
+  return items;
+}
+
+function removeSeqEntry(seqIdx) {
+  if (!state.selected || !Array.isArray(state.selected.sequence)) return;
+  if (seqIdx < 0 || seqIdx >= state.selected.sequence.length) return;
+
+  state.selected.sequence = state.selected.sequence.filter((_, i) => i !== seqIdx);
+
+  // Rebuild expansion set: drop the removed index and shift down anything past it.
+  const next = new Set();
+  for (const i of state.selectedExpanded) {
+    if (i === seqIdx) continue;
+    next.add(i > seqIdx ? i - 1 : i);
+  }
+  state.selectedExpanded = next;
+
+  markDirty();
+  renderEditor();
+}
+
 async function swapSeqItem(seqIdx, newItemId) {
   const entry = state.selected.sequence[seqIdx];
   const currentItem = entry.itemId;
@@ -544,6 +591,9 @@ function renderContentPicker() {
     els.pickerList.innerHTML = `<div class="empty-list">No matches.</div>`;
     return;
   }
+  // `+` is enabled only when a visit is selected — adding requires a target sequence.
+  const canAdd = !!state.selected;
+  const addTitle = canAdd ? 'Add to this visit' : 'Select or create a visit first';
   els.pickerList.innerHTML = list.map(c => `
     <div class="cp-card" data-uid="${escapeAttr(c.universalId || '')}">
       <div class="cp-thumb">
@@ -551,9 +601,107 @@ function renderContentPicker() {
       </div>
       <span class="cp-name">${escapeHtml(c.name)}</span>
       <span class="cp-type">${escapeHtml(c.type)}</span>
-      <button type="button" class="cp-add" disabled aria-disabled="true" title="Coming soon">+</button>
+      <button type="button" class="cp-add" ${canAdd ? '' : 'disabled aria-disabled="true"'}
+        title="${escapeAttr(addTitle)}" data-uid="${escapeAttr(c.universalId || '')}">+</button>
     </div>
   `).join('');
+
+  els.pickerList.querySelectorAll('.cp-add:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openContentChooser(btn.dataset.uid);
+    });
+  });
+}
+
+/* ---------- Content chooser dialog (Phase 2c) ---------- */
+
+async function openContentChooser(uid) {
+  if (!state.selected || !uid) return;
+
+  state.chooserUid = uid;
+  const content = state.contentByUid.get(uid);
+  els.chooserTitle.textContent = content
+    ? `Add an item — ${content.name}`
+    : 'Add an item';
+  els.chooserError.textContent = '';
+  els.chooserMineList.innerHTML = `<div class="chooser-loading">Loading…</div>`;
+  els.chooserMarketList.innerHTML = `<div class="chooser-loading">Loading…</div>`;
+  els.chooserDialog.showModal();
+
+  try {
+    const [mine, market] = await Promise.all([
+      state.itemsByContent.has(uid)
+        ? Promise.resolve(state.itemsByContent.get(uid))
+        : fetchItemsForContent(uid),
+      state.publicItemsByContent.has(uid)
+        ? Promise.resolve(state.publicItemsByContent.get(uid))
+        : fetchPublicItemsForContent(uid),
+    ]);
+    if (state.chooserUid !== uid) return; // dialog moved on
+    renderChooser(uid, mine, market);
+  } catch (err) {
+    if (err.status === 401) { logout(); return; }
+    els.chooserError.textContent = `Couldn't load items: ${err.message}`;
+    els.chooserMineList.innerHTML = '';
+    els.chooserMarketList.innerHTML = '';
+  }
+}
+
+function renderChooser(uid, mineItems, marketItems) {
+  const myId = state.user?._id;
+  const mineIds = new Set(mineItems.map(it => it._id));
+  // Marketplace section excludes items already in the user's collection — those appear under "From your collection".
+  const marketOnly = marketItems.filter(it => !mineIds.has(it._id));
+
+  els.chooserMineList.innerHTML = mineItems.length === 0
+    ? `<div class="chooser-empty">You don't own any items for this content yet.</div>`
+    : mineItems.map(it => chooserRowHtml(uid, it, myId)).join('');
+
+  els.chooserMarketList.innerHTML = marketOnly.length === 0
+    ? `<div class="chooser-empty">No public items available for this content.</div>`
+    : marketOnly.map(it => chooserRowHtml(uid, it, myId)).join('');
+
+  els.chooserDialog.querySelectorAll('.chooser-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const itemId = row.dataset.itemId;
+      const item = mineItems.find(x => x._id === itemId)
+        || marketItems.find(x => x._id === itemId);
+      if (item) appendItemToSequence(item);
+    });
+  });
+}
+
+function chooserRowHtml(uid, item, myId) {
+  const creator = item.creatorId?.username || '—';
+  const aud = item.targetAudience || '—';
+  const tones = (item.descriptions || []).map(d => d.tone).join(', ') || '—';
+  const isMine = (item.creatorId?._id || item.creatorId) === myId;
+  const tag = isMine ? '<span class="chooser-tag mine">yours</span>' : '';
+  const price = item.price > 0 ? `<span class="chooser-price">${item.price}€</span>` : '';
+  return `
+    <button type="button" class="chooser-row" data-item-id="${escapeAttr(item._id)}">
+      <span class="chooser-row-aud">${escapeHtml(aud)}</span>
+      <span class="chooser-row-creator">${escapeHtml(creator)} ${tag}</span>
+      <span class="chooser-row-tones">${escapeHtml(tones)}</span>
+      ${price}
+    </button>
+  `;
+}
+
+function appendItemToSequence(item) {
+  if (!state.selected) return;
+
+  state.selected.sequence = [
+    ...(state.selected.sequence || []),
+    { itemId: item, prevDirections: '', nextDirections: '' },
+  ];
+  // Auto-expand the newly added entry so the user sees it landed.
+  state.selectedExpanded = new Set([state.selected.sequence.length - 1]);
+  markDirty();
+  els.chooserDialog.close();
+  state.chooserUid = null;
+  renderEditor();
 }
 
 /* ---------- Add Items grid ---------- */
@@ -719,7 +867,9 @@ function handleVisitFormSubmit(e) {
   }
 
   els.visitDialog.close();
-  renderEditor();
+  // Use full render: create-mode flips state.selected from null/old → draft,
+  // which changes the content-picker `+` enabled state.
+  render();
 }
 
 async function handleDeleteVisit() {
@@ -756,7 +906,9 @@ async function handleDeleteVisit() {
   }
 
   els.visitDialog.close();
-  renderEditor();
+  // Full render: state.selected may have flipped to null (no visits remain),
+  // which disables the content-picker `+`.
+  render();
 }
 
 async function publishVisit() {
