@@ -15,8 +15,13 @@ const state = {
   itemsByContent: new Map(), // cache: universalId -> Item[] (filtered to "owned by me")
   publicItemsByContent: new Map(), // cache: universalId -> Item[] (public, from marketplace)
   chooserUid: null,      // universalId currently shown in the content chooser dialog
+  chooserMode: null,     // 'no-items' | 'marketplace'
+  chooserAppend: false,  // when true, after purchase append the item to the visit's sequence
   createItemUid: null,   // universalId currently shown in the Create Item dialog
   createItemContext: null, // 'chooser' | 'add-items' — drives post-publish behavior
+  createItemMode: 'create', // 'create' | 'edit'
+  editItem: null,        // populated item being edited (when createItemMode === 'edit')
+  viewItemId: null,      // _id of the item shown in the View Item dialog
   draft: null,           // local-only unpublished visit (no _id), or null
   tab: 'my-visits',
   visitSubTab: 'sequence',
@@ -93,9 +98,24 @@ function cacheEls() {
   els.chooserTitle   = document.getElementById('chooserTitle');
   els.chooserCloseBtn = document.getElementById('chooserCloseBtn');
   els.chooserCreateBtn = document.getElementById('chooserCreateBtn');
-  els.chooserMineList = document.getElementById('chooserMineList');
+  els.chooserNoItemsMsg = document.getElementById('chooserNoItemsMsg');
+  els.chooserSelectMarketplaceBtn = document.getElementById('chooserSelectMarketplaceBtn');
+  els.chooserMarketSection = document.getElementById('chooserMarketSection');
   els.chooserMarketList = document.getElementById('chooserMarketList');
   els.chooserError   = document.getElementById('chooserError');
+  els.viewItemDialog = document.getElementById('viewItemDialog');
+  els.viewItemTitle  = document.getElementById('viewItemTitle');
+  els.viewItemCloseBtn = document.getElementById('viewItemCloseBtn');
+  els.viewItemContent = document.getElementById('viewItemContent');
+  els.viewItemAud    = document.getElementById('viewItemAud');
+  els.viewItemCreator = document.getElementById('viewItemCreator');
+  els.viewItemLicense = document.getElementById('viewItemLicense');
+  els.viewItemPublic = document.getElementById('viewItemPublic');
+  els.viewItemPrice  = document.getElementById('viewItemPrice');
+  els.viewItemDescriptions = document.getElementById('viewItemDescriptions');
+  els.viewItemError  = document.getElementById('viewItemError');
+  els.viewItemEditBtn = document.getElementById('viewItemEditBtn');
+  els.viewItemDeleteBtn = document.getElementById('viewItemDeleteBtn');
   els.createItemDialog = document.getElementById('createItemDialog');
   els.createItemForm = document.getElementById('createItemForm');
   els.createItemTitle = document.getElementById('createItemTitle');
@@ -142,14 +162,21 @@ function bindStaticUI() {
   els.visitDeleteBtn.addEventListener('click', handleDeleteVisit);
   els.publishBtn.addEventListener('click', publishVisit);
 
-  els.chooserCloseBtn.addEventListener('click', () => els.chooserDialog.close());
+  els.chooserCloseBtn.addEventListener('click', closeContentChooser);
   els.chooserCreateBtn.addEventListener('click', () => {
     if (state.chooserUid) openCreateItemDialog(state.chooserUid, 'chooser');
+  });
+  els.chooserSelectMarketplaceBtn.addEventListener('click', () => {
+    if (state.chooserUid) renderChooserMarketplace(state.chooserUid);
   });
 
   els.createItemForm.addEventListener('submit', handleCreateItemSubmit);
   els.createItemCloseBtn.addEventListener('click', closeCreateItemDialog);
   els.createItemCancelBtn.addEventListener('click', closeCreateItemDialog);
+
+  els.viewItemCloseBtn.addEventListener('click', closeViewItemDialog);
+  els.viewItemEditBtn.addEventListener('click', startEditFromViewItem);
+  els.viewItemDeleteBtn.addEventListener('click', deleteFromViewItem);
 }
 
 function markDirty() {
@@ -379,11 +406,20 @@ function renderEditor() {
     });
   });
 
-  // Swap item via row click
-  els.editor.querySelectorAll('.seq-item-row').forEach(row => {
-    row.addEventListener('click', () => {
-      const seqIdx = Number(row.dataset.seqIdx);
-      swapSeqItem(seqIdx, row.dataset.itemId);
+  // View Item buttons (inside expanded seq-card body)
+  els.editor.querySelectorAll('.seq-view-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openViewItemDialog(btn.dataset.itemId);
+    });
+  });
+
+  // Buy from Marketplace button (one per expanded seq-card)
+  els.editor.querySelectorAll('.seq-buy-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // Content is already in sequence — purchase only, no append.
+      openMarketplaceBrowser(btn.dataset.uid, { append: false });
     });
   });
 
@@ -491,35 +527,51 @@ function renderSeqItems(currentItem, seqIdx) {
     return `<div class="seq-items-loading">Loading your items for this content…</div>`;
   }
 
-  // Always include the currently-selected item, even if the user no longer
-  // owns it (e.g. opened a public visit they didn't author).
+  // Always include the currently-stored item even if the user no longer owns it
+  // (e.g. inherited a public visit). Show it in whichever group it belongs to.
+  const myId = state.user?._id;
+  const purchased = new Set(state.user?.purchasedItems || []);
   const list = [...cached];
-  const currentId = typeof currentItem === 'string' ? currentItem : currentItem._id;
-  if (!list.find(x => x._id === currentId)) list.unshift(currentItem);
+  if (!list.find(x => x._id === currentItem._id)) list.unshift(currentItem);
 
-  if (list.length === 0) {
-    return `<div class="empty-list">No items in your collection for this content.</div>`;
-  }
+  const created = list.filter(it => (it.creatorId?._id || it.creatorId) === myId);
+  const bought = list.filter(it => {
+    const cId = it.creatorId?._id || it.creatorId;
+    return cId !== myId && purchased.has(it._id);
+  });
+
+  const createdHtml = created.length === 0
+    ? `<div class="seq-items-empty">No items created by you yet.</div>`
+    : created.map(it => renderSeqItemRow(it)).join('');
+  const boughtHtml = bought.length === 0
+    ? `<div class="seq-items-empty">No items purchased from the marketplace.</div>`
+    : bought.map(it => renderSeqItemRow(it)).join('');
 
   return `
-    <div class="seq-items-list">
-      ${list.map(it => renderSeqItemRow(it, currentId, seqIdx)).join('')}
+    <div class="seq-items-section">
+      <h5>Created by you</h5>
+      ${createdHtml}
+    </div>
+    <div class="seq-items-section">
+      <h5>Bought from marketplace</h5>
+      ${boughtHtml}
+    </div>
+    <div class="seq-items-buy">
+      <button type="button" class="seq-buy-btn" data-uid="${escapeAttr(uid)}">Buy from Marketplace</button>
     </div>
   `;
 }
 
-function renderSeqItemRow(it, currentId, seqIdx) {
-  const isCurrent = it._id === currentId;
+function renderSeqItemRow(it) {
   const aud = it.targetAudience || '—';
-  const creator = it.creatorId?.username || '—';
   const tones = (it.descriptions || []).map(d => d.tone).join(', ') || '—';
+  const price = it.price > 0 ? ` · €${Number(it.price).toFixed(2)}` : '';
   return `
-    <button type="button" class="seq-item-row ${isCurrent ? 'is-current' : ''}" data-item-id="${escapeAttr(it._id)}" data-seq-idx="${seqIdx}">
-      <span class="seq-item-marker" aria-hidden="true">${isCurrent ? '●' : '○'}</span>
+    <div class="seq-item-row" data-item-id="${escapeAttr(it._id)}">
       <span class="seq-item-aud">${escapeHtml(aud)}</span>
-      <span class="seq-item-creator">${escapeHtml(creator)}</span>
-      <span class="seq-item-tones">${escapeHtml(tones)}</span>
-    </button>
+      <span class="seq-item-tones">${escapeHtml(tones)}${price}</span>
+      <button type="button" class="seq-view-btn" data-item-id="${escapeAttr(it._id)}">View Item</button>
+    </div>
   `;
 }
 
@@ -558,24 +610,7 @@ function removeSeqEntry(seqIdx) {
 
   markDirty();
   renderEditor();
-}
-
-async function swapSeqItem(seqIdx, newItemId) {
-  const entry = state.selected.sequence[seqIdx];
-  const currentItem = entry.itemId;
-  const currentId = typeof currentItem === 'string' ? currentItem : currentItem._id;
-  if (currentId === newItemId) return;
-
-  const uid = (typeof currentItem === 'string') ? null : currentItem.contentId;
-  const cached = (uid && state.itemsByContent.get(uid)) || [];
-  let newItem = cached.find(it => it._id === newItemId);
-  if (!newItem) {
-    try { newItem = (await api(`/items/${newItemId}`)).item; } catch (e) { return; }
-  }
-
-  state.selected.sequence[seqIdx] = { ...entry, itemId: newItem };
-  markDirty();
-  renderEditor();
+  renderContentPicker(); // re-show the removed content in the right column
 }
 
 function renderAssociatedItems(visit) {
@@ -605,11 +640,15 @@ function contentSubtitle(content) {
 
 function renderContentPicker() {
   const q = state.pickerSearch.trim().toLowerCase();
+  // Hide contents already in the active visit's sequence — "When a content is added it
+  // disappears from view, and appears again if removed from visit."
+  const inSeq = sequenceContentIds();
   const list = state.contents
+    .filter(c => !inSeq.has(c.universalId))
     .filter(c => !q || c.name.toLowerCase().includes(q) || (c.author || '').toLowerCase().includes(q));
 
   if (list.length === 0) {
-    els.pickerList.innerHTML = `<div class="empty-list">No matches.</div>`;
+    els.pickerList.innerHTML = `<div class="empty-list">${inSeq.size > 0 && !q ? 'All available contents are in this visit.' : 'No matches.'}</div>`;
     return;
   }
   // `+` is enabled only when a visit is selected — adding requires a target sequence.
@@ -630,26 +669,139 @@ function renderContentPicker() {
   els.pickerList.querySelectorAll('.cp-add:not([disabled])').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      openContentChooser(btn.dataset.uid);
+      addContentToVisit(btn.dataset.uid);
     });
   });
 }
 
-/* ---------- Content chooser dialog (Phase 2c) ---------- */
+function sequenceContentIds() {
+  const ids = new Set();
+  for (const entry of (state.selected?.sequence || [])) {
+    const it = entry.itemId;
+    const uid = (it && typeof it === 'object') ? it.contentId : null;
+    if (uid) ids.add(uid);
+  }
+  return ids;
+}
 
-async function openContentChooser(uid) {
+// Add a content from the right column to the active visit.
+// If the user already owns one or more items for this content, append the first one
+// (created-by-me first, then bought-from-marketplace). Otherwise show a no-items prompt
+// (Create Item / or select from Marketplace) — same dialog shell as the chooser.
+async function addContentToVisit(uid) {
   if (!state.selected || !uid) return;
+  // Defensive: shouldn't happen because renderContentPicker filters these out, but guard anyway.
+  if (sequenceContentIds().has(uid)) return;
 
+  let cached = state.itemsByContent.get(uid);
+  if (cached === undefined) {
+    try {
+      cached = await fetchItemsForContent(uid);
+    } catch (err) {
+      if (err.status === 401) { logout(); return; }
+      showError(`Couldn't load items: ${err.message}`);
+      return;
+    }
+  }
+
+  const firstOwned = pickDefaultItem(cached);
+  if (firstOwned) {
+    appendItemToSequence(firstOwned);
+    return;
+  }
+  openNoItemsPrompt(uid);
+}
+
+// "First listed" default: prefer items the user created, then items they bought.
+// Within each group keep the API order (newest first).
+function pickDefaultItem(items) {
+  if (!items || items.length === 0) return null;
+  const myId = state.user?._id;
+  const created = items.find(it => (it.creatorId?._id || it.creatorId) === myId);
+  if (created) return created;
+  const purchased = new Set(state.user?.purchasedItems || []);
+  return items.find(it => purchased.has(it._id)) || null;
+}
+
+/* ---------- Content chooser dialog (no-items prompt + marketplace browser) ----------
+ *
+ * The dialog has two modes:
+ *
+ *   'no-items'   — shown when the user clicks `+` on the right-column content picker
+ *                  for a content they don't yet own any item for. Shows a "Create Item"
+ *                  button (opens Create Item dialog) and "or select from Marketplace"
+ *                  link (switches the same dialog to 'marketplace' mode).
+ *
+ *   'marketplace' — shown when:
+ *                   (a) user clicks "or select from Marketplace" inside the no-items
+ *                       prompt — they're trying to add a not-yet-in-sequence content,
+ *                       so a successful purchase appends it (state.chooserAppend = true).
+ *                   (b) user clicks "Buy from Marketplace" inside an expanded seq-card
+ *                       body — the content is already in the sequence, so a purchase
+ *                       just adds the item to their library, no append.
+ *                   (c) user clicks "or select from Marketplace" on the Add Items grid
+ *                       — no visit context, no append.
+ *
+ * `state.chooserAppend` decides whether `purchaseAndUse(item)` calls
+ * `appendItemToSequence(item)` after a successful purchase.
+ */
+
+function closeContentChooser() {
+  els.chooserDialog.close();
+  state.chooserUid = null;
+  state.chooserMode = null;
+  state.chooserAppend = false;
+}
+
+function openNoItemsPrompt(uid) {
+  if (!uid) return;
   state.chooserUid = uid;
-  const content = state.contentByUid.get(uid);
-  els.chooserTitle.textContent = content
-    ? `Add an item — ${content.name}`
-    : 'Add an item';
-  els.chooserError.textContent = '';
-  els.chooserMineList.innerHTML = `<div class="chooser-loading">Loading…</div>`;
-  els.chooserMarketList.innerHTML = `<div class="chooser-loading">Loading…</div>`;
-  els.chooserDialog.showModal();
+  state.chooserMode = 'no-items';
+  state.chooserAppend = true; // creating an item via this prompt is followed by appendToSequence
 
+  const content = state.contentByUid.get(uid);
+  els.chooserTitle.textContent = content ? `Add an item — ${content.name}` : 'Add an item';
+  els.chooserError.textContent = '';
+  els.chooserNoItemsMsg.hidden = false;
+  els.chooserCreateBtn.hidden = false;
+  els.chooserSelectMarketplaceBtn.hidden = false;
+  els.chooserMarketSection.hidden = true;
+  els.chooserDialog.showModal();
+}
+
+async function openMarketplaceBrowser(uid, { append = false } = {}) {
+  if (!uid) return;
+  state.chooserUid = uid;
+  state.chooserMode = 'marketplace';
+  state.chooserAppend = append;
+
+  const content = state.contentByUid.get(uid);
+  els.chooserTitle.textContent = content ? `Marketplace — ${content.name}` : 'Marketplace';
+  els.chooserError.textContent = '';
+  els.chooserNoItemsMsg.hidden = true;
+  els.chooserCreateBtn.hidden = true;
+  els.chooserSelectMarketplaceBtn.hidden = true;
+  els.chooserMarketSection.hidden = false;
+
+  if (!els.chooserDialog.open) els.chooserDialog.showModal();
+
+  await renderChooserMarketplace(uid);
+}
+
+// Switch the open chooser dialog (in 'no-items' mode) into 'marketplace' mode.
+// Used by the "or select from Marketplace" link inside the no-items prompt and
+// also as the body-renderer for openMarketplaceBrowser.
+async function renderChooserMarketplace(uid) {
+  state.chooserMode = 'marketplace';
+  els.chooserNoItemsMsg.hidden = true;
+  els.chooserCreateBtn.hidden = true;
+  els.chooserSelectMarketplaceBtn.hidden = true;
+  els.chooserMarketSection.hidden = false;
+
+  const content = state.contentByUid.get(uid);
+  if (content) els.chooserTitle.textContent = `Marketplace — ${content.name}`;
+
+  els.chooserMarketList.innerHTML = `<div class="chooser-loading">Loading…</div>`;
   try {
     const [mine, market] = await Promise.all([
       state.itemsByContent.has(uid)
@@ -660,24 +812,18 @@ async function openContentChooser(uid) {
         : fetchPublicItemsForContent(uid),
     ]);
     if (state.chooserUid !== uid) return; // dialog moved on
-    renderChooser(uid, mine, market);
+    renderMarketplaceList(uid, mine, market);
   } catch (err) {
     if (err.status === 401) { logout(); return; }
     els.chooserError.textContent = `Couldn't load items: ${err.message}`;
-    els.chooserMineList.innerHTML = '';
     els.chooserMarketList.innerHTML = '';
   }
 }
 
-function renderChooser(uid, mineItems, marketItems) {
+function renderMarketplaceList(uid, mineItems, marketItems) {
   const myId = state.user?._id;
   const mineIds = new Set(mineItems.map(it => it._id));
-  // Marketplace section excludes items already in the user's collection — those appear under "From your collection".
   const marketOnly = marketItems.filter(it => !mineIds.has(it._id));
-
-  els.chooserMineList.innerHTML = mineItems.length === 0
-    ? `<div class="chooser-empty">You don't own any items for this content yet.</div>`
-    : mineItems.map(it => chooserRowHtml(uid, it, myId)).join('');
 
   els.chooserMarketList.innerHTML = marketOnly.length === 0
     ? `<div class="chooser-empty">No public items available for this content.</div>`
@@ -686,11 +832,64 @@ function renderChooser(uid, mineItems, marketItems) {
   els.chooserDialog.querySelectorAll('.chooser-row').forEach(row => {
     row.addEventListener('click', () => {
       const itemId = row.dataset.itemId;
-      const item = mineItems.find(x => x._id === itemId)
-        || marketItems.find(x => x._id === itemId);
-      if (item) appendItemToSequence(item);
+      const item = marketItems.find(x => x._id === itemId);
+      if (item) purchaseAndUse(item);
     });
   });
+}
+
+async function purchaseAndUse(item) {
+  els.chooserError.textContent = '';
+  const price = Number(item.price) || 0;
+  const balance = Number(state.user?.walletBalance) || 0;
+
+  if (price > balance) {
+    els.chooserError.textContent = `Not enough balance — wallet €${balance.toFixed(2)}, price €${price.toFixed(2)}.`;
+    return;
+  }
+
+  const creator = item.creatorId?.username || 'unknown';
+  const audLabel = item.targetAudience ? ` (${item.targetAudience})` : '';
+  const promptMsg = price > 0
+    ? `Buy this item${audLabel} by ${creator} for €${price.toFixed(2)}?`
+    : `Add this free item${audLabel} by ${creator} to your collection?`;
+  if (!window.confirm(promptMsg)) return;
+
+  try {
+    await api(`/items/${item._id}/purchase`, { method: 'POST' });
+  } catch (err) {
+    if (err.status === 401) { logout(); return; }
+    els.chooserError.textContent = err.message || 'Purchase failed.';
+    return;
+  }
+
+  // Reflect ownership locally so future chooser opens see the item in
+  // "From your collection" instead of the marketplace section.
+  if (!Array.isArray(state.user.purchasedItems)) state.user.purchasedItems = [];
+  state.user.purchasedItems.push(item._id);
+  if (price > 0) {
+    state.user.walletBalance = Math.max(0, balance - price);
+  }
+
+  const uid = state.chooserUid;
+  if (uid) {
+    const cached = state.itemsByContent.get(uid) || [];
+    if (!cached.find(x => x._id === item._id)) {
+      state.itemsByContent.set(uid, [item, ...cached]);
+    }
+  }
+
+  if (state.chooserAppend && state.selected) {
+    // appendItemToSequence closes the chooser.
+    appendItemToSequence(item);
+  } else {
+    // No append (Buy from Marketplace inside an expanded seq-card, or Add Items
+    // grid's "or select from Marketplace") — just close.
+    closeContentChooser();
+    // Re-render the editor in case the user is buying a second item for an already-
+    // open seq-card; the new item should appear in "Bought from marketplace".
+    if (state.tab === 'my-visits') renderEditor();
+  }
 }
 
 function chooserRowHtml(uid, item, myId) {
@@ -720,9 +919,9 @@ function appendItemToSequence(item) {
   // Auto-expand the newly added entry so the user sees it landed.
   state.selectedExpanded = new Set([state.selected.sequence.length - 1]);
   markDirty();
-  els.chooserDialog.close();
-  state.chooserUid = null;
+  closeContentChooser();
   renderEditor();
+  renderContentPicker(); // hide the just-added content from the right column
 }
 
 /* ---------- Add Items grid ---------- */
@@ -745,7 +944,7 @@ function renderAddItems() {
       <div class="ci-name">${escapeHtml(c.name)}</div>
       <div class="ci-type">${escapeHtml(c.type)}${c.author ? ' · ' + escapeHtml(c.author) : ''}</div>
       <button type="button" class="ci-create" data-uid="${escapeAttr(c.universalId || '')}">Create Item</button>
-      <a class="ci-marketplace" aria-disabled="true">or select from Marketplace</a>
+      <button type="button" class="ci-marketplace" data-uid="${escapeAttr(c.universalId || '')}">or select from Marketplace</button>
     </div>
   `).join('');
 
@@ -755,19 +954,37 @@ function renderAddItems() {
       if (uid) openCreateItemDialog(uid, 'add-items');
     });
   });
+
+  els.contentGrid.querySelectorAll('.ci-marketplace').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const uid = btn.dataset.uid;
+      if (uid) openMarketplaceBrowser(uid, { append: false });
+    });
+  });
 }
 
-/* ---------- Create Item dialog (Phase 3) ---------- */
+/* ---------- Create / Edit Item dialog ----------
+ *
+ * Modes:
+ *   'create'  — POST /items, returns item; the chooser-context ('chooser') flow appends
+ *               the new item onto the active visit's sequence.
+ *   'edit'    — PUT /items/:id (state.editItem._id), pre-fills the form with the
+ *               existing item's first description block. Update only — never appends.
+ */
 
-function openCreateItemDialog(uid, context) {
+function openCreateItemDialog(uid, context, options = {}) {
   if (!uid) return;
   const content = state.contentByUid.get(uid);
   if (!content) return;
 
+  const editItem = options.editItem || null;
   state.createItemUid = uid;
   state.createItemContext = context;
+  state.createItemMode = editItem ? 'edit' : 'create';
+  state.editItem = editItem;
 
-  els.createItemTitle.textContent = `Create Item — ${content.name}`;
+  const verb = editItem ? 'Edit' : 'Create';
+  els.createItemTitle.textContent = `${verb} Item — ${content.name}`;
   els.createItemThumb.innerHTML = content.imageUrl
     ? `<img src="${escapeAttr(content.imageUrl)}" alt="" loading="lazy" />`
     : `<span class="ph">No image</span>`;
@@ -776,19 +993,37 @@ function openCreateItemDialog(uid, context) {
   els.createItemContentName.textContent = content.name || '—';
   els.createItemAuthor.textContent = content.author || '—';
 
-  els.createItemForm.reset();
+  const f = els.createItemForm;
+  f.reset();
   els.createItemError.textContent = '';
   els.createItemSaveBtn.disabled = false;
-  els.createItemSaveBtn.textContent = 'Publish';
+  els.createItemSaveBtn.textContent = editItem ? 'Save changes' : 'Publish';
+
+  if (editItem) {
+    // Pre-fill: Item.descriptions[0] is the only description block we render in this
+    // form (one tone × up to 3 length-texts). If an item has multiple description
+    // blocks (uncommon in marketplace items), only the first is shown for editing.
+    const desc = (editItem.descriptions || [])[0] || {};
+    const byLen = Object.fromEntries((desc.texts || []).map(t => [t.lengthCategory, t.text]));
+    f.elements.namedItem('tone').value = desc.tone || '';
+    f.elements.namedItem('targetAudience').value = editItem.targetAudience || '';
+    f.elements.namedItem('text3s').value = byLen['3s'] || '';
+    f.elements.namedItem('text15s').value = byLen['15s'] || '';
+    f.elements.namedItem('text45s').value = byLen['45s'] || '';
+    f.elements.namedItem('isPublic').checked = !!editItem.isPublic;
+    f.elements.namedItem('price').value = editItem.price ?? 0;
+  }
 
   els.createItemDialog.showModal();
-  els.createItemForm.elements.namedItem('tone').focus();
+  f.elements.namedItem(editItem ? 'targetAudience' : 'tone').focus();
 }
 
 function closeCreateItemDialog() {
   els.createItemDialog.close();
   state.createItemUid = null;
   state.createItemContext = null;
+  state.createItemMode = 'create';
+  state.editItem = null;
 }
 
 async function handleCreateItemSubmit(e) {
@@ -820,50 +1055,217 @@ async function handleCreateItemSubmit(e) {
     return;
   }
 
-  const payload = {
-    contentId: state.createItemUid,
-    targetAudience,
-    descriptions: [{ tone, texts }],
-    price,
-    isPublic,
-  };
-
+  const isEdit = state.createItemMode === 'edit' && state.editItem;
+  const baseLabel = isEdit ? 'Save changes' : 'Publish';
   els.createItemSaveBtn.disabled = true;
-  els.createItemSaveBtn.textContent = 'Publishing…';
+  els.createItemSaveBtn.textContent = isEdit ? 'Saving…' : 'Publishing…';
+
   try {
-    const res = await api('/items', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-    const created = res.item;
-    // POST /items returns the unpopulated doc — creatorId is an ObjectId string.
-    // The seq-card item picker and chooser rows expect `creatorId.username`,
-    // so populate it locally from the cached user.
-    if (state.user && typeof created.creatorId === 'string') {
-      created.creatorId = { _id: state.user._id, username: state.user.username };
+    let saved;
+    if (isEdit) {
+      const payload = {
+        targetAudience,
+        descriptions: [{ tone, texts }],
+        price,
+        isPublic,
+      };
+      saved = (await api(`/items/${state.editItem._id}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+      })).item;
+    } else {
+      const payload = {
+        contentId: state.createItemUid,
+        targetAudience,
+        descriptions: [{ tone, texts }],
+        price,
+        isPublic,
+      };
+      saved = (await api('/items', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      })).item;
     }
 
-    // Insert into the per-content "your collection" cache so the seq-card item
-    // picker and the chooser's "From your collection" list see it immediately.
+    // Both POST /items and PUT /items/:id return the unpopulated doc — creatorId is
+    // an ObjectId string. Normalize it to {_id, username} (matching the populated
+    // shape used elsewhere) so seq-card rendering and chooser rows work.
+    if (state.user && typeof saved.creatorId === 'string') {
+      saved.creatorId = { _id: state.user._id, username: state.user.username };
+    }
+
     const uid = state.createItemUid;
     const cached = state.itemsByContent.get(uid) || [];
-    state.itemsByContent.set(uid, [created, ...cached]);
-    // Public-items cache may now be stale — drop it so the chooser refetches next open.
-    if (created.isPublic) state.publicItemsByContent.delete(uid);
+    if (isEdit) {
+      // Replace by id, preserving order.
+      state.itemsByContent.set(uid, cached.map(it => it._id === saved._id ? saved : it));
+      // The visit's sequence may reference this item; if so, swap in the updated copy
+      // so subsequent renders show the new tones/audience/price.
+      if (state.selected?.sequence) {
+        state.selected.sequence = state.selected.sequence.map(entry => {
+          if (entry.itemId && entry.itemId._id === saved._id) {
+            return { ...entry, itemId: saved };
+          }
+          return entry;
+        });
+      }
+    } else {
+      state.itemsByContent.set(uid, [saved, ...cached]);
+    }
+
+    // Public-items cache may now be stale; drop it so the marketplace section refetches.
+    if (saved.isPublic || (isEdit && state.editItem?.isPublic)) {
+      state.publicItemsByContent.delete(uid);
+    }
 
     const context = state.createItemContext;
     closeCreateItemDialog();
 
-    if (context === 'chooser' && state.selected) {
-      // appendItemToSequence also closes the chooser dialog underneath.
-      appendItemToSequence(created);
+    if (!isEdit && context === 'chooser' && state.selected) {
+      // Right-column "+" → no-items prompt → Create Item: append the freshly-created
+      // item to the active visit. appendItemToSequence closes the chooser dialog under us.
+      appendItemToSequence(saved);
+    } else if (state.tab === 'my-visits') {
+      // Edits / add-items context: re-render so seq-card bodies pick up the change.
+      renderEditor();
     }
   } catch (err) {
     if (err.status === 401) { logout(); return; }
-    els.createItemError.textContent = err.message || 'Failed to create item.';
+    els.createItemError.textContent = err.message || 'Failed to save item.';
     els.createItemSaveBtn.disabled = false;
-    els.createItemSaveBtn.textContent = 'Publish';
+    els.createItemSaveBtn.textContent = baseLabel;
   }
+}
+
+/* ---------- View Item dialog ----------
+ *
+ * Shown when the user clicks "View Item" in an expanded seq-card body. Pulls the
+ * item from `state.itemsByContent` if cached, otherwise GETs it. Shows metadata +
+ * descriptions (tone × length-text). For items the user authored, also exposes
+ * Edit (opens Create Item dialog in 'edit' mode) and Delete.
+ */
+
+async function openViewItemDialog(itemId) {
+  if (!itemId) return;
+  state.viewItemId = itemId;
+
+  // Try the local cache (across all contents) first to avoid a roundtrip.
+  let item = findCachedItem(itemId);
+  if (!item) {
+    try {
+      item = (await api(`/items/${itemId}`)).item;
+    } catch (err) {
+      if (err.status === 401) { logout(); return; }
+      els.viewItemError.textContent = `Couldn't load item: ${err.message}`;
+      els.viewItemDialog.showModal();
+      return;
+    }
+  }
+
+  if (state.viewItemId !== itemId) return; // user moved on
+
+  renderViewItem(item);
+  els.viewItemDialog.showModal();
+}
+
+function findCachedItem(itemId) {
+  for (const items of state.itemsByContent.values()) {
+    const found = items.find(it => it._id === itemId);
+    if (found) return found;
+  }
+  for (const items of state.publicItemsByContent.values()) {
+    const found = items.find(it => it._id === itemId);
+    if (found) return found;
+  }
+  return null;
+}
+
+function renderViewItem(item) {
+  const content = state.contentByUid.get(item.contentId);
+  const myId = state.user?._id;
+  const creatorId = item.creatorId?._id || item.creatorId;
+  const isMine = creatorId === myId;
+
+  els.viewItemTitle.textContent = content ? content.name : 'Item details';
+  els.viewItemContent.textContent = content ? `${content.name}${content.author ? ' — ' + content.author : ''}` : (item.contentId || '—');
+  els.viewItemAud.textContent = item.targetAudience || '—';
+  els.viewItemCreator.textContent = (item.creatorId?.username) || (isMine ? state.user?.username : '—');
+  els.viewItemLicense.textContent = item.license || '—';
+  els.viewItemPublic.textContent = item.isPublic ? 'Public' : 'Private';
+  els.viewItemPrice.textContent = (item.price > 0) ? `€${Number(item.price).toFixed(2)}` : 'Free';
+  els.viewItemError.textContent = '';
+
+  // Render description blocks: one section per tone, with each length-text inside.
+  const descs = item.descriptions || [];
+  els.viewItemDescriptions.innerHTML = descs.length === 0
+    ? `<div class="view-item-empty">No descriptions.</div>`
+    : descs.map(d => `
+        <article class="view-item-desc">
+          <h4>${escapeHtml(d.tone || '—')}</h4>
+          <ul>
+            ${(d.texts || []).map(t => `
+              <li>
+                <span class="view-item-desc-len">${escapeHtml(t.lengthCategory || '—')}</span>
+                <span class="view-item-desc-text">${escapeHtml(t.text || '')}</span>
+              </li>
+            `).join('')}
+          </ul>
+        </article>
+      `).join('');
+
+  els.viewItemEditBtn.hidden = !isMine;
+  els.viewItemDeleteBtn.hidden = !isMine;
+}
+
+function closeViewItemDialog() {
+  els.viewItemDialog.close();
+  state.viewItemId = null;
+}
+
+function startEditFromViewItem() {
+  const itemId = state.viewItemId;
+  if (!itemId) return;
+  const item = findCachedItem(itemId);
+  if (!item) return;
+  closeViewItemDialog();
+  openCreateItemDialog(item.contentId, 'view-item', { editItem: item });
+}
+
+async function deleteFromViewItem() {
+  const itemId = state.viewItemId;
+  if (!itemId) return;
+  const item = findCachedItem(itemId);
+  if (!item) return;
+
+  const ok = window.confirm(`Delete this item? This cannot be undone.\n\n${item.targetAudience || ''}`);
+  if (!ok) return;
+
+  els.viewItemDeleteBtn.disabled = true;
+  try {
+    await api(`/items/${itemId}`, { method: 'DELETE' });
+  } catch (err) {
+    els.viewItemDeleteBtn.disabled = false;
+    if (err.status === 401) { logout(); return; }
+    els.viewItemError.textContent = err.message || 'Delete failed.';
+    return;
+  }
+
+  // Drop the item from every cache.
+  const uid = item.contentId;
+  const owned = state.itemsByContent.get(uid);
+  if (owned) state.itemsByContent.set(uid, owned.filter(it => it._id !== itemId));
+  const pub = state.publicItemsByContent.get(uid);
+  if (pub) state.publicItemsByContent.set(uid, pub.filter(it => it._id !== itemId));
+
+  // If the visit's sequence references this item, the entry now points to a
+  // missing item — Mongoose populate will return null. Leave it as-is so the
+  // user can decide (Remove from visit / pick a different item by re-adding).
+  // The seq-card will render `<em>Item missing.</em>` until the user reloads
+  // or the entry is removed.
+
+  els.viewItemDeleteBtn.disabled = false;
+  closeViewItemDialog();
+  if (state.tab === 'my-visits') renderEditor();
 }
 
 /* ---------- Sequence editing (reorder + inline logistic) ---------- */

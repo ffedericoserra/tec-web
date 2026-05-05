@@ -57,7 +57,8 @@
       </section>
     </main>
 
-    <!-- Content chooser dialog (open via content-picker `+`) -->
+    <!-- Content chooser dialog -->
+    <!-- Two modes: 'no-items' (right-column + with 0 owned items) and 'marketplace' (Buy / select from Marketplace) -->
     <dialog id="contentChooserDialog" class="chooser-dialog">
       <div class="chooser-body">
         <div class="chooser-head">
@@ -65,21 +66,51 @@
           <button type="button" class="chooser-close" id="chooserCloseBtn" aria-label="Close">×</button>
         </div>
 
+        <p class="chooser-no-items" id="chooserNoItemsMsg" hidden>You have no items for this content.</p>
+
         <button type="button" class="chooser-create" id="chooserCreateBtn">
-          + Create New Item
+          Create Item
         </button>
 
-        <section class="chooser-section">
-          <h4>From your collection</h4>
-          <div class="chooser-list" id="chooserMineList"></div>
-        </section>
+        <button type="button" class="chooser-marketplace-link" id="chooserSelectMarketplaceBtn" hidden>
+          or select from Marketplace
+        </button>
 
-        <section class="chooser-section">
+        <section class="chooser-section" id="chooserMarketSection" hidden>
           <h4>From the marketplace</h4>
           <div class="chooser-list" id="chooserMarketList"></div>
         </section>
 
         <p class="chooser-error" id="chooserError" role="alert"></p>
+      </div>
+    </dialog>
+
+    <!-- View Item dialog -->
+    <dialog id="viewItemDialog" class="view-item-dialog">
+      <div class="view-item-body">
+        <header class="view-item-head">
+          <h3 id="viewItemTitle">Item</h3>
+          <button type="button" class="view-item-close" id="viewItemCloseBtn" aria-label="Close">×</button>
+        </header>
+
+        <dl class="view-item-meta">
+          <div><dt>Content</dt><dd id="viewItemContent">—</dd></div>
+          <div><dt>Target audience</dt><dd id="viewItemAud">—</dd></div>
+          <div><dt>Created by</dt><dd id="viewItemCreator">—</dd></div>
+          <div><dt>License</dt><dd id="viewItemLicense">—</dd></div>
+          <div><dt>Visibility</dt><dd id="viewItemPublic">—</dd></div>
+          <div><dt>Price</dt><dd id="viewItemPrice">—</dd></div>
+        </dl>
+
+        <section class="view-item-descriptions" id="viewItemDescriptions"></section>
+
+        <p class="view-item-error" id="viewItemError" role="alert"></p>
+
+        <div class="view-item-actions">
+          <button type="button" class="btn-danger" id="viewItemDeleteBtn" hidden>Delete</button>
+          <span class="spacer"></span>
+          <button type="button" class="btn-primary" id="viewItemEditBtn" hidden>Edit</button>
+        </div>
       </div>
     </dialog>
 
