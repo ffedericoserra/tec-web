@@ -18,6 +18,7 @@
 #artaround-visits .hidden { display: none !important; }
 
 #artaround-visits .visits-page-shell {
+    position: relative;
     background-color: #F2F1ED;
     min-height: calc(100vh - 80px);
 }
@@ -28,14 +29,43 @@
     min-height: 360px;
     padding: 70px 10vw 60px;
     border-bottom: 1px solid rgba(22, 22, 22, 0.15);
-    overflow: hidden;
+    overflow: visible;
+    z-index: 40;
+    isolation: isolate;
+}
+
+#artaround-visits .visits-hero::before,
+#artaround-visits .visits-hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    z-index: 0;
+}
+
+#artaround-visits .visits-hero::before {
+    width: clamp(150px, 18vw, 270px);
+    height: clamp(150px, 18vw, 270px);
+    top: 16px;
+    right: 6%;
+    background-color: rgba(113, 0, 20, 0.14);
+}
+
+#artaround-visits .visits-hero::after {
+    width: clamp(240px, 30vw, 440px);
+    height: clamp(240px, 30vw, 440px);
+    top: -140px;
+    left: 52%;
+    transform: translateX(-50%);
+    background-color: rgba(113, 0, 20, 0.08);
 }
 
 #artaround-visits .page-grid-lines {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
 }
 
 #artaround-visits .grid-line {
@@ -51,7 +81,7 @@
 
 #artaround-visits .visits-hero-layout {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
     gap: 60px;
@@ -157,8 +187,201 @@
     line-height: 1.6;
 }
 
+#artaround-visits .museum-details-panel {
+    position: relative;
+    max-width: 440px;
+    padding: 28px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+    z-index: 6000;
+}
+
+#artaround-visits .museum-details-loading,
+#artaround-visits .museum-details-error {
+    margin: 0;
+    color: rgba(22, 22, 22, 0.62);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+#artaround-visits .museum-details-error {
+    color: #710014;
+    font-weight: 800;
+}
+
+#artaround-visits .museum-details-header {
+    margin-bottom: 24px;
+}
+
+#artaround-visits .museum-details-kicker,
+#artaround-visits .museum-detail-label {
+    display: block;
+    color: #710014;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .museum-details-kicker {
+    margin-bottom: 10px;
+}
+
+#artaround-visits .museum-details-header h2 {
+    margin: 0;
+    color: #161616;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+#artaround-visits .museum-detail-group {
+    padding: 18px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.16);
+}
+
+#artaround-visits .museum-detail-group p {
+    margin: 8px 0 0;
+    color: rgba(22, 22, 22, 0.72);
+    font-size: 0.96rem;
+    line-height: 1.65;
+}
+
+#artaround-visits .museum-contact-list {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+}
+
+#artaround-visits .museum-extra-details {
+    position: relative;
+    padding-top: 18px;
+    border-top: 1px solid rgba(22, 22, 22, 0.16);
+}
+
+#artaround-visits .museum-extra-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    width: 100%;
+    padding: 16px 0;
+    color: #161616;
+    background: transparent;
+    border: none;
+    border-top: 2px solid #161616;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.18);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-align: left;
+    text-transform: uppercase;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+#artaround-visits .museum-extra-toggle:hover,
+#artaround-visits .museum-extra-toggle[aria-expanded="true"] {
+    color: #710014;
+    border-top-color: #710014;
+}
+
+#artaround-visits .museum-extra-arrow {
+    flex: 0 0 auto;
+    width: 12px;
+    height: 12px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg) translateY(-2px);
+    transition: transform 0.3s ease;
+}
+
+#artaround-visits .museum-extra-toggle[aria-expanded="true"] .museum-extra-arrow {
+    transform: rotate(225deg) translate(-2px, -2px);
+}
+
+#artaround-visits .museum-extra-content {
+    position: absolute;
+    top: calc(100% - 1px);
+    left: 0;
+    right: 0;
+    z-index: 7000;
+}
+
+#artaround-visits .museum-extra-content[hidden] {
+    display: none;
+}
+
+#artaround-visits .museum-extra-overlay {
+    padding: 2px 24px 24px;
+    background-color: #F2F1ED;
+    border: 1px solid rgba(22, 22, 22, 0.24);
+    border-top: none;
+    box-shadow: 0 24px 40px rgba(22, 22, 22, 0.16);
+}
+
+#artaround-visits .museum-extra-overlay .museum-detail-group:first-child {
+    border-top: none;
+}
+
+#artaround-visits .museum-contact-list li,
+#artaround-visits .museum-hour-row {
+    display: grid;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 18px;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.1);
+}
+
+#artaround-visits .museum-contact-list li:last-child,
+#artaround-visits .museum-hour-row:last-child {
+    border-bottom: none;
+}
+
+#artaround-visits .museum-contact-list span,
+#artaround-visits .museum-hour-row span {
+    color: rgba(22, 22, 22, 0.55);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#artaround-visits .museum-contact-list a,
+#artaround-visits .museum-contact-list strong,
+#artaround-visits .museum-hour-row strong {
+    min-width: 0;
+    color: #161616;
+    font-size: 0.9rem;
+    font-weight: 800;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    text-decoration: none;
+}
+
+#artaround-visits .museum-contact-list a {
+    border-bottom: 1px solid currentColor;
+    transition: color 0.3s ease;
+}
+
+#artaround-visits .museum-contact-list a:hover {
+    color: #710014;
+}
+
+#artaround-visits .museum-hours-group {
+    padding-bottom: 0;
+}
+
+#artaround-visits .museum-hours-grid {
+    margin-top: 12px;
+}
+
 /* --- Toolbar e lista --- */
 #artaround-visits .visits-list-section {
+    position: relative;
+    z-index: 1;
     padding: 80px 10vw;
 }
 
@@ -508,6 +731,8 @@
     right: 40px;
     bottom: 40px;
     z-index: 1000;
+    display: inline-grid;
+    place-items: center;
     width: 60px;
     height: 60px;
     color: #F2F1ED;
@@ -516,10 +741,20 @@
     border-radius: 50%;
     box-shadow: none;
     font-family: 'Helvetica', Arial, sans-serif;
-    font-size: 2rem;
+    font-size: 0;
     font-weight: 300;
     line-height: 1;
-    transition: background-color 0.3s ease, transform 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+}
+
+#artaround-visits .floating-add-btn::before {
+    content: "+";
+    display: block;
+    color: currentColor;
+    font-size: 2rem;
+    font-weight: 400;
+    line-height: 1;
+    transform: translateY(-1px);
 }
 
 #artaround-visits .floating-add-btn:hover {
@@ -527,7 +762,7 @@
     background-color: #710014;
     border-color: #710014;
     box-shadow: none;
-    transform: rotate(90deg);
+    transform: translateY(-2px) scale(1.04);
 }
 
 /* --- Modal eliminazione --- */
@@ -660,6 +895,20 @@
         max-width: none;
     }
 
+    #artaround-visits .museum-details-panel {
+        max-width: none;
+    }
+
+    #artaround-visits .museum-extra-content {
+        position: static;
+    }
+
+    #artaround-visits .museum-extra-overlay {
+        padding: 0;
+        border: none;
+        box-shadow: none;
+    }
+
     #artaround-visits .visits-list-section {
         padding: 60px 7vw;
     }
@@ -690,6 +939,12 @@
 
     #artaround-visits .visits-list-section {
         padding: 46px 6vw 72px;
+    }
+
+    #artaround-visits .museum-contact-list li,
+    #artaround-visits .museum-hour-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
     }
 
     #artaround-visits #tours-list.modern-grid {

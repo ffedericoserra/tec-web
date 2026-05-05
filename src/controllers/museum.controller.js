@@ -43,12 +43,16 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { name, address, description, theme, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, theme, mapData, pointsOfInterest, imageUrl } = req.body;
 
     const museum = new Museum({
       name,
       address,
       description,
+      website,
+      email,
+      phone,
+      openingHours,
       theme,
       mapData,
       pointsOfInterest,
@@ -68,11 +72,11 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const { name, address, description, theme, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, theme, mapData, pointsOfInterest, imageUrl } = req.body;
 
     const museum = await Museum.findByIdAndUpdate(
       req.params.id,
-      { name, address, description, theme, mapData, pointsOfInterest, imageUrl },
+      { name, address, description, website, email, phone, openingHours, theme, mapData, pointsOfInterest, imageUrl },
       { new: true, runValidators: true }
     );
 

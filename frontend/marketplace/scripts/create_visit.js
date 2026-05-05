@@ -17,7 +17,7 @@ const visitId = urlParams.get('visitId');
 const backToMuseumBtn = document.getElementById('back-to-museum-btn');
 if (backToMuseumBtn) {
     // Aggiorniamo l'href dinamicamente inserendo l'ID che abbiamo appena letto
-    backToMuseumBtn.href = `museums_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+    backToMuseumBtn.href = `visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
 }
 
 const displayMuseumEl = document.getElementById('display-museum-name');
@@ -29,7 +29,7 @@ document.getElementById('cancel-btn').addEventListener('click', () => {
     cancelModal.classList.remove('hidden');
 });
 document.getElementById('confirm-exit-btn').addEventListener('click', () => {
-    window.location.href = `../pages/museums_list.html`; 
+    window.location.href = `../pages/visits_list.html`; 
 });
 document.getElementById('confirm-save-btn').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
@@ -55,6 +55,20 @@ function toRoman(num) {
     return str;
 }
 
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
+}
+
+function renderBuilderMessage(message, isError = false) {
+    return `<p class="builder-empty-message${isError ? ' error-text' : ''}">${escapeHTML(message)}</p>`;
+}
+
 const blocksContainer = document.getElementById('blocks-container');
 const addBlockBtnWrapper = document.getElementById('add-block-btn');
 let blockCounter = 0;
@@ -66,13 +80,13 @@ function createNewBlock(defaultTitle = "New Section") {
     block.innerHTML = `
         <div class="block-header">
             <span class="block-number">${toRoman(blockCounter)}</span>
-            <input type="text" class="block-title-input" value="${defaultTitle}">
+            <input type="text" class="block-title-input" value="${escapeHTML(defaultTitle)}">
             <span class="block-count">0 artworks</span>
-            <button class="delete-block-btn" title="Remove section">✖</button>
+            <button class="delete-block-btn" title="Remove section" aria-label="Remove section">&times;</button>
         </div>
         <ul class="block-list"></ul>
-        <div style="display: flex; justify-content: center; margin-top: auto; padding-top: 15px;">
-            <button class="add-btn add-item-to-block" title="Add an artwork to this section">+</button>
+        <div class="block-footer">
+            <button class="add-btn add-item-to-block" type="button" title="Add an artwork to this section">+</button>
         </div>
     `;
 
@@ -134,7 +148,7 @@ function aggiornaContatoriBlocchi() {
 // --- LOGICA RECUPERO OPERE ED INCROCIO CON I CONTENTS ---
 async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
-    itemsContainer.innerHTML = '<p style="text-align:center;">Loading from server...</p>';
+    itemsContainer.innerHTML = renderBuilderMessage("Loading from server...");
 
     try {
         // Scarica i Contents (per avere Nomi Veri, Immagini e Autori)
@@ -170,9 +184,17 @@ async function apriModaleOpere() {
                                   ? item.descriptions[0].title 
                                   : contentName;
 
-                const itemDiv = document.createElement('div');
-                itemDiv.style.padding = '12px'; itemDiv.style.borderBottom = '1px solid #e2e8f0'; itemDiv.style.cursor = 'pointer'; itemDiv.style.display = 'flex'; itemDiv.style.justifyContent = 'space-between';
-                itemDiv.innerHTML = `<strong>${itemTitle}</strong> <span style="color: var(--chil-grey);">${item.price > 0 ? item.price+'€' : 'Free'}</span>`;
+                const itemDiv = document.createElement('button');
+                itemDiv.type = 'button';
+                itemDiv.className = 'modal-artwork-item';
+                const priceLabel = item.price > 0 ? `${item.price} EUR` : 'Free';
+                itemDiv.innerHTML = `
+                    <span class="modal-artwork-copy">
+                        <strong>${escapeHTML(itemTitle)}</strong>
+                        <small>${escapeHTML(contentAuthor)}</small>
+                    </span>
+                    <span class="modal-artwork-price">${escapeHTML(priceLabel)}</span>
+                `;
                 
                 itemDiv.onclick = () => {
                     // Passiamo anche imageUrl e contentAuthor alla carta!
@@ -182,10 +204,10 @@ async function apriModaleOpere() {
                 itemsContainer.appendChild(itemDiv);
             });
         } else {
-            itemsContainer.innerHTML = '<p style="text-align:center; color: var(--chil-grey);">No artworks found.</p>';
+            itemsContainer.innerHTML = renderBuilderMessage("No artworks found.");
         }
     } catch (err) {
-        itemsContainer.innerHTML = '<p style="text-align:center; color: var(--error-red);">Connection error.</p>';
+        itemsContainer.innerHTML = renderBuilderMessage("Connection error.", true);
     }
 }
 
@@ -204,30 +226,35 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
     li.dataset.itemId = itemId; 
 
     // Risolviamo il percorso dell'immagine
-    let imgTag = "IMG";
+    let imgTag = '<span class="image-fallback">IMG</span>';
     if (imageUrl) {
         const finalImgUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-        imgTag = `<img src="${finalImgUrl}" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'">`;
+        imgTag = `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(titoloOpera)}" class="draggable-item-image">`;
     }
 
     li.innerHTML = `
         <div class="card-header">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span class="drag-handle" title="Drag">☰</span>
-                <strong style="color: var(--charcoal); font-size: 1.05rem;">${titoloOpera}</strong>
+            <div class="card-title-row">
+                <span class="drag-handle" title="Drag">&#9776;</span>
+                <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
             </div>
-            <button class="delete-btn" title="Remove">✖</button>
+            <button class="delete-btn" title="Remove" aria-label="Remove">&times;</button>
         </div>
         <div class="card-details">
-            <div class="card-image-placeholder" style="overflow:hidden; border: 1px solid #e2e8f0;">
+            <div class="card-image-placeholder">
                 ${imgTag}
             </div>
-            <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <p style="margin: 0; font-size: 0.95rem; color: var(--blue);"><strong>${author}</strong></p>
-                <p style="margin: 4px 0 0 0; font-size: 0.8rem; color: #64748b;">Click to edit this artwork's texts.</p>
+            <div class="card-copy">
+                <p class="card-author"><strong>${escapeHTML(author)}</strong></p>
+                <p class="card-note">Click to edit this artwork's texts.</p>
             </div>
         </div>
     `;
+
+    const itemImage = li.querySelector('.draggable-item-image');
+    if (itemImage) {
+        itemImage.addEventListener('error', () => itemImage.classList.add('is-hidden'));
+    }
 
     li.addEventListener('click', function(e) {
         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
@@ -326,7 +353,7 @@ function salvaStatoTemporaneo() {
 // --- FUNZIONE PER RICOSTRUIRE IL TAVOLO ARCHIDEKT (CON DEBUG) ---
 async function caricaVisitaEsistente(vId) {
     try {
-        console.log("🔥 INIZIO CARICAMENTO VISITA ID:", vId);
+        console.log("INIZIO CARICAMENTO VISITA ID:", vId);
         document.querySelector('.editor-title').textContent = "Edit Tour Mode"; 
         
         // 1. Scarichiamo i dati
@@ -335,31 +362,31 @@ async function caricaVisitaEsistente(vId) {
         const data = await res.json();
         const visit = data.visit || data;
 
-        console.log("📦 DATI GREZZI DAL DATABASE:", visit);
+        console.log("DATI GREZZI DAL DATABASE:", visit);
 
-        // 2. Separiamo la descrizione dai blocchi in modo più robusto
+        // 2. Separiamo la descrizione dai blocchi in modo robusto
         let cleanDesc = visit.description || "";
         let structurData = null;
         const splitTag = "[Struttura Blocchi Salvata: "; // <-- Tolti i \n\n che causavano l'errore!
         
         if (cleanDesc.includes(splitTag)) {
-            console.log("✅ Trovata la stringa segreta!");
+            console.log("Trovata la stringa segreta!");
             const parts = cleanDesc.split(splitTag);
             
-            // La descrizione è la parte prima del tag (pulita da eventuali a capo rimasti)
+            // La descrizione e' la parte prima del tag (pulita da eventuali a capo rimasti)
             cleanDesc = parts[0].trim(); 
             
             const jsonString = parts[1].trim().slice(0, -1); // Toglie la ']' finale
-            console.log("🧩 JSON estratto:", jsonString);
+            console.log("JSON estratto:", jsonString);
             
             try { 
                 structurData = JSON.parse(jsonString); 
-                console.log("🛠️ Struttura interpretata correttamente:", structurData);
+                console.log("Struttura interpretata correttamente:", structurData);
             } catch(e) { 
-                console.error("❌ Il JSON si è rotto (forse il database lo ha tagliato?):", e); 
+                console.error("Il JSON non e' valido (forse il database lo ha tagliato?):", e);
             }
         } else {
-            console.warn("⚠️ Nessuna struttura trovata! Ecco cosa c'è salvato in description:", cleanDesc);
+            console.warn("Nessuna struttura trovata. Description salvata:", cleanDesc);
         }
 
         // 3. Compiliamo titolo e descrizione
@@ -373,7 +400,7 @@ async function caricaVisitaEsistente(vId) {
         }
 
         // 4. Scarichiamo le opere per stampare le carte vere
-        console.log("📥 Scarico le opere del museo per abbinare i dati...");
+        console.log("Scarico le opere del museo per abbinare i dati...");
         const token = localStorage.getItem("token");
         const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
 
@@ -396,7 +423,7 @@ async function caricaVisitaEsistente(vId) {
         });
 
         // 5. Ricreiamo i blocchi
-        console.log("🔨 Inizio a costruire le colonne e inserire le carte...");
+        console.log("Inizio a costruire le colonne e inserire le carte...");
         structurData.forEach(blockData => {
             createNewBlock(blockData.blockName); 
             
@@ -414,10 +441,10 @@ async function caricaVisitaEsistente(vId) {
             });
         });
         
-        console.log("🎉 CARICAMENTO FINITO CON SUCCESSO!");
+        console.log("CARICAMENTO FINITO CON SUCCESSO!");
 
     } catch(err) {
-        console.error("❌ ERRORE CRITICO in caricaVisitaEsistente:", err);
+        console.error("ERRORE CRITICO in caricaVisitaEsistente:", err);
         if(typeof createNewBlock === 'function') createNewBlock("Mainboard"); 
     }
 }
@@ -546,7 +573,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     };
     
     try {
-        // Se c'è un visitId sovrascriviamo (PUT), altrimenti creiamo nuovo (POST)
+        // Se c'e' un visitId sovrascriviamo (PUT), altrimenti creiamo nuovo (POST)
         const method = visitId ? 'PUT' : 'POST';
         const url = visitId ? `${myApi}/visits/${visitId}` : `${myApi}/visits`;
 
@@ -564,7 +591,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             sessionStorage.removeItem('temp_visit_state');
             
             // Reindirizziamo al Marketplace
-            window.location.href = "museums_list.html"; 
+            window.location.href = `visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`; 
         } else {
             const errorText = await res.text();
             console.error("Errore Backend:", errorText);

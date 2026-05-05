@@ -11,6 +11,16 @@ const currMuseumName = urlParams.get('museumName') || 'Museo';
 
 let allTours = [];
 
+const dayLabels = {
+    mon: "Mon",
+    tue: "Tue",
+    wed: "Wed",
+    thu: "Thu",
+    fri: "Fri",
+    sat: "Sat",
+    sun: "Sun"
+};
+
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, (char) => ({
         "&": "&amp;",
@@ -24,10 +34,183 @@ function escapeHTML(value) {
 function setUpMuseumDatas() {
     const title = document.getElementById("museum-title-display") || document.querySelector(".title");
     if (title) title.textContent = currMuseumName;
+}
 
-    const museumInfoLink = document.getElementById("museum-info-link");
-    if (museumInfoLink) {
-        museumInfoLink.href = "homepage.html#destinazioni";
+function normalizeMuseumValue(value, fallback = "Non disponibile") {
+    return value && String(value).trim() ? String(value).trim() : fallback;
+}
+
+function isSafeHttpUrl(value) {
+    try {
+        const url = new URL(value);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
+function isValidEmail(value) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function renderMuseumHours(openingHours = {}) {
+    return Object.entries(dayLabels).map(([key, label]) => {
+        const value = normalizeMuseumValue(openingHours?.[key], "Chiuso");
+
+        return `
+            <div class="museum-hour-row">
+                <span>${label}</span>
+                <strong>${escapeHTML(value)}</strong>
+            </div>
+        `;
+    }).join("");
+}
+
+function renderMuseumDetails(museum) {
+    const detailsPanel = document.getElementById("QUESTA");
+    if (!detailsPanel) return;
+
+    const address = normalizeMuseumValue(museum.address);
+    const description = normalizeMuseumValue(museum.description, "Nessun dettaglio disponibile per questo museo.");
+    const website = normalizeMuseumValue(museum.website);
+    const email = normalizeMuseumValue(museum.email);
+    const phone = normalizeMuseumValue(museum.phone);
+    const hasWebsite = museum.website && isSafeHttpUrl(String(museum.website).trim());
+    const hasEmail = museum.email && isValidEmail(String(museum.email).trim());
+    const hasPhone = museum.phone && String(museum.phone).trim();
+
+    detailsPanel.innerHTML = `
+        <div class="museum-details-header">
+            <span class="museum-details-kicker">Scheda museo</span>
+            <h2>Informazioni</h2>
+        </div>
+
+        <div class="museum-detail-group">
+            <span class="museum-detail-label">Indirizzo</span>
+            <p>${escapeHTML(address)}</p>
+        </div>
+
+        <div class="museum-detail-group">
+            <span class="museum-detail-label">Dettagli</span>
+            <p>${escapeHTML(description)}</p>
+        </div>
+
+        <div class="museum-extra-details">
+            <button
+                class="museum-extra-toggle"
+                type="button"
+                aria-expanded="false"
+                aria-controls="museum-extra-content"
+            >
+                <span>Contatti e orari</span>
+                <span class="museum-extra-arrow" aria-hidden="true"></span>
+            </button>
+
+            <div id="museum-extra-content" class="museum-extra-content" hidden>
+                <div class="museum-extra-overlay">
+                    <div class="museum-detail-group">
+                        <span class="museum-detail-label">Contatti</span>
+                        <ul class="museum-contact-list">
+                            <li>
+                                <span>Web</span>
+                                ${hasWebsite ? `<a href="${escapeHTML(website)}" target="_blank" rel="noopener noreferrer">${escapeHTML(website)}</a>` : `<strong>${escapeHTML(website)}</strong>`}
+                            </li>
+                            <li>
+                                <span>Email</span>
+                                ${hasEmail ? `<a href="mailto:${escapeHTML(email)}">${escapeHTML(email)}</a>` : `<strong>${escapeHTML(email)}</strong>`}
+                            </li>
+                            <li>
+                                <span>Telefono</span>
+                                ${hasPhone ? `<a href="tel:${escapeHTML(phone)}">${escapeHTML(phone)}</a>` : `<strong>${escapeHTML(phone)}</strong>`}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="museum-detail-group museum-hours-group">
+                        <span class="museum-detail-label">Orari di apertura</span>
+                        <div class="museum-hours-grid">
+                            ${renderMuseumHours(museum.openingHours)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    setupMuseumDetailsToggle(detailsPanel);
+}
+
+function setupMuseumDetailsToggle(detailsPanel) {
+    const toggle = detailsPanel.querySelector(".museum-extra-toggle");
+    const content = detailsPanel.querySelector("#museum-extra-content");
+
+    if (!toggle || !content) return;
+
+    const setExpanded = (isExpanded) => {
+        toggle.setAttribute("aria-expanded", String(isExpanded));
+        content.hidden = !isExpanded;
+        detailsPanel.classList.toggle("is-expanded", isExpanded);
+    };
+
+    toggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const isOpen = toggle.getAttribute("aria-expanded") === "true";
+
+        setExpanded(!isOpen);
+    });
+
+    content.addEventListener("click", (event) => {
+        event.stopPropagation();
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!detailsPanel.contains(event.target)) {
+            setExpanded(false);
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            setExpanded(false);
+        }
+    });
+}
+
+function renderMuseumDetailsError() {
+    const detailsPanel = document.getElementById("QUESTA");
+    if (!detailsPanel) return;
+
+    detailsPanel.innerHTML = `
+        <div class="museum-details-header">
+            <span class="museum-details-kicker">Scheda museo</span>
+            <h2>Informazioni</h2>
+        </div>
+        <p class="museum-details-error">Impossibile caricare i dettagli del museo.</p>
+    `;
+}
+
+async function loadMuseumDetails() {
+    if (!currMuseumId) {
+        renderMuseumDetailsError();
+        return;
+    }
+
+    try {
+        const res = await fetch(`${myApi}/museums/${currMuseumId}`);
+        if (!res.ok) throw new Error("Museum details request failed");
+
+        const data = await res.json();
+        const museum = data.museum || data;
+
+        if (museum?.name) {
+            const title = document.getElementById("museum-title-display");
+            if (title) title.textContent = museum.name;
+        }
+
+        renderMuseumDetails(museum);
+    } catch (err) {
+        console.error("Errore durante il caricamento dei dettagli museo:", err);
+        renderMuseumDetailsError();
     }
 }
 
@@ -296,6 +479,7 @@ function setupAddVisitBtn() {
 }
 
 setUpMuseumDatas();
+loadMuseumDetails();
 loadList();
 setupSearchListeners();
 setupAddVisitBtn();

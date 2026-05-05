@@ -29,12 +29,40 @@
     padding: 70px 10vw 60px;
     overflow: hidden;
     border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+    isolation: isolate;
+}
+
+#artaround-profile .profile-hero::before,
+#artaround-profile .profile-hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    z-index: 0;
+}
+
+#artaround-profile .profile-hero::before {
+    width: clamp(140px, 18vw, 260px);
+    height: clamp(140px, 18vw, 260px);
+    top: 18px;
+    right: 7%;
+    background-color: rgba(113, 0, 20, 0.15);
+}
+
+#artaround-profile .profile-hero::after {
+    width: clamp(220px, 28vw, 420px);
+    height: clamp(220px, 28vw, 420px);
+    top: -120px;
+    left: 54%;
+    transform: translateX(-50%);
+    background-color: rgba(113, 0, 20, 0.08);
 }
 
 #artaround-profile .page-grid-lines {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
     pointer-events: none;
 }
 
@@ -51,7 +79,7 @@
 
 #artaround-profile .profile-hero-layout {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
     gap: 60px;

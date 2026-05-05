@@ -29,12 +29,39 @@
     padding: 70px 10vw 60px;
     overflow: hidden;
     border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+    isolation: isolate;
+}
+
+#artaround-add-museum .add-museum-hero::before,
+#artaround-add-museum .add-museum-hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    z-index: 0;
+}
+
+#artaround-add-museum .add-museum-hero::before {
+    width: clamp(150px, 19vw, 280px);
+    height: clamp(150px, 19vw, 280px);
+    top: 22px;
+    left: 6%;
+    background-color: rgba(113, 0, 20, 0.14);
+}
+
+#artaround-add-museum .add-museum-hero::after {
+    width: clamp(240px, 31vw, 460px);
+    height: clamp(240px, 31vw, 460px);
+    top: -150px;
+    right: 3%;
+    background-color: rgba(113, 0, 20, 0.08);
 }
 
 #artaround-add-museum .page-grid-lines {
     position: absolute;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
     pointer-events: none;
 }
 
@@ -51,7 +78,7 @@
 
 #artaround-add-museum .add-museum-hero-layout {
     position: relative;
-    z-index: 1;
+    z-index: 2;
     display: grid;
     grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
     gap: 60px;
