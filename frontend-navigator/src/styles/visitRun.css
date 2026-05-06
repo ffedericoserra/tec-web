@@ -160,11 +160,19 @@
   font-style: italic;
 }
 
+.visit-desc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 10px;
+  min-height: 28px;
+}
+
 .visit-length-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 10px;
   padding: 4px 10px;
   border-radius: 999px;
   background: var(--surface-alt);
@@ -173,6 +181,41 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.visit-tts-btn {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.visit-tts-btn:hover,
+.visit-tts-btn:focus-visible {
+  background: var(--ink);
+  color: var(--bg);
+  outline: none;
+}
+
+.visit-tts-btn.is-on {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.visit-tts-btn.is-on:hover,
+.visit-tts-btn.is-on:focus-visible {
+  background: var(--bg);
+  color: var(--ink);
 }
 
 /* ---------- Bottom nav bar ---------- */

@@ -8,8 +8,43 @@ import '../styles/visitRun.css';
 
 const LENGTHS = ['3s', '15s', '45s'];
 
+const TTS_SUPPORTED =
+  typeof window !== 'undefined' && 'speechSynthesis' in window;
+
 function pickDescription(item) {
   return item?.descriptions?.[0] || null;
+}
+
+function SpeakerIcon({ active }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polygon
+        points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
+        fill={active ? 'currentColor' : 'none'}
+      />
+      {active ? (
+        <>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </>
+      ) : (
+        <>
+          <line x1="22" y1="9" x2="16" y2="15" />
+          <line x1="16" y1="9" x2="22" y2="15" />
+        </>
+      )}
+    </svg>
+  );
 }
 
 function findText(description, lengthIdx) {
@@ -47,6 +82,8 @@ export default function VisitRun() {
   const [assocError, setAssocError] = useState(null);
   const [assocCache, setAssocCache] = useState({});
   const [assocItemId, setAssocItemId] = useState(null);
+
+  const [ttsEnabled, setTtsEnabled] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -101,6 +138,37 @@ export default function VisitRun() {
   const isFirst = entryIndex === 0;
   const isLast = entryIndex >= sequence.length - 1;
   const atMaxLength = mode === 'describe' && lengthIdx >= maxLen;
+
+  let bodyText = '';
+  if (!visit || sequence.length === 0) {
+    bodyText = '';
+  } else if (mode === 'logistic') {
+    const prevEntry = sequence[entryIndex - 1];
+    bodyText =
+      prevEntry?.nextDirections?.trim() ||
+      entry?.prevDirections?.trim() ||
+      'Vai al prossimo punto della visita.';
+  } else if (description) {
+    bodyText =
+      findText(description, lengthIdx) ||
+      'Nessuna descrizione disponibile per questa lunghezza.';
+  } else {
+    bodyText = 'Nessuna descrizione disponibile.';
+  }
+
+  useEffect(() => {
+    if (!TTS_SUPPORTED) return;
+    if (!ttsEnabled || !bodyText) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(bodyText);
+    utter.lang = 'it-IT';
+    utter.rate = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+    return () => window.speechSynthesis.cancel();
+  }, [ttsEnabled, bodyText]);
 
   function goNext() {
     if (isLast) return;
@@ -207,21 +275,6 @@ export default function VisitRun() {
   const contentName = content?.name || (item?.contentId || '—');
   const imageUrl = content?.imageUrl;
 
-  let bodyText = '';
-  if (mode === 'logistic') {
-    const prevEntry = sequence[entryIndex - 1];
-    bodyText =
-      prevEntry?.nextDirections?.trim() ||
-      entry?.prevDirections?.trim() ||
-      'Vai al prossimo punto della visita.';
-  } else if (description) {
-    bodyText =
-      findText(description, lengthIdx) ||
-      'Nessuna descrizione disponibile per questa lunghezza.';
-  } else {
-    bodyText = 'Nessuna descrizione disponibile.';
-  }
-
   return (
     <div className="page-visit-run">
       <PageHeader
@@ -281,9 +334,27 @@ export default function VisitRun() {
           mode === 'logistic' ? ' is-logistic' : ''
         }`}
       >
-        {mode === 'describe' && description && (
-          <p className="visit-length-pill">{LENGTHS[lengthIdx]}</p>
-        )}
+        <div className="visit-desc-head">
+          {mode === 'describe' && description ? (
+            <span className="visit-length-pill">{LENGTHS[lengthIdx]}</span>
+          ) : (
+            <span />
+          )}
+          {TTS_SUPPORTED && (
+            <button
+              type="button"
+              className={`visit-tts-btn${ttsEnabled ? ' is-on' : ''}`}
+              onClick={() => setTtsEnabled((v) => !v)}
+              aria-pressed={ttsEnabled}
+              aria-label={
+                ttsEnabled ? 'Disattiva la voce' : 'Attiva la voce'
+              }
+              title={ttsEnabled ? 'Disattiva la voce' : 'Attiva la voce'}
+            >
+              <SpeakerIcon active={ttsEnabled} />
+            </button>
+          )}
+        </div>
         <p>{bodyText}</p>
       </div>
 
