@@ -3,6 +3,18 @@
     "name": "MAMbo - Museo d'Arte Moderna di Bologna",
     "address": "Via Don Giovanni Minzoni, 14, 40121 Bologna BO",
     "description": "Il museo d'arte moderna e contemporanea di Bologna, ospitato nell'ex Forno del Pane, con una ricca collezione permanente e mostre temporanee.",
+    "website": "https://www.mambo-bologna.org",
+    "email": "info@mambo-bologna.org",
+    "phone": "051 649 6611",
+    "openingHours": {
+      "mon": "Chiuso",
+      "tue": "10:00 - 18:00",
+      "wed": "10:00 - 18:00",
+      "thu": "10:00 - 20:00",
+      "fri": "10:00 - 18:00",
+      "sat": "10:00 - 18:00",
+      "sun": "10:00 - 18:00"
+    },
     "imageUrl": "/uploads/museums/mambo.jpg",
     "theme": {
       "primaryColor": "#1a1a1a",

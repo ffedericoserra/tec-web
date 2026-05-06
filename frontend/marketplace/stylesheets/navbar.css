@@ -1,0 +1,108 @@
+/* ==========================================================================
+   ARTAROUND - NAVBAR.CSS (Stile antiproiettile globale)
+   ========================================================================== */
+
+/* Forza la sovrascrittura del bianco di styles.css */
+header.top-nav.editorial-nav {
+    background-color: #F2F1ED !important; 
+    border-bottom: 1px solid #161616 !important; 
+    position: fixed !important; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; 
+    height: 80px !important;
+    display: flex;
+    align-items: center;
+    padding: 0 !important;
+    box-shadow: none !important; /* Rimuove ombre globali */
+}
+
+header.editorial-nav .nav-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    max-width: none !important;
+}
+
+/* Logo Aα allineato alla colonna di sinistra */
+header.editorial-nav .brand { 
+    position: absolute;
+    left: 10vw !important; 
+    top: 50%;
+    transform: translateY(-50%);
+    text-decoration: none;
+}
+
+header.editorial-nav .logo-text { 
+    font-size: 2.4rem !important; 
+    font-weight: 700 !important;
+    color: #161616 !important;
+    font-family: "Playfair Display", "Georgia", serif !important;
+    letter-spacing: -1px !important;
+    text-transform: none !important; 
+}
+
+/* Link ancorati alle linee verticali (25, 50, 75) */
+header.editorial-nav .nav-links { 
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    pointer-events: none; 
+}
+
+header.editorial-nav .nav-links li {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: auto; 
+}
+
+header.editorial-nav .nav-links li:nth-child(1) { left: 25%; }
+header.editorial-nav .nav-links li:nth-child(2) { left: 50%; }
+header.editorial-nav .nav-links li:nth-child(3) { left: 75%; }
+
+/* Stile dei link (forziamo l'Helvetica per sovrascrivere stili globali) */
+header.editorial-nav a,
+header.editorial-nav .nav-auth a { 
+    color: #161616 !important; 
+    font-size: 0.75rem !important; 
+    text-transform: uppercase !important; 
+    font-weight: bold !important; 
+    text-decoration: none !important; 
+    transition: color 0.3s !important;
+    white-space: nowrap;
+    font-family: 'Helvetica', Arial, sans-serif !important;
+}
+
+/* Il link attivo con la riga bordeaux (sovrascrive l'oro di styles.css) */
+header.editorial-nav .nav-links a.active {
+    color: #710014 !important;
+    border-bottom: 2px solid #710014 !important;
+    padding-bottom: 5px !important;
+}
+
+header.editorial-nav a:hover,
+header.editorial-nav .nav-auth a:hover { 
+    color: #710014 !important; 
+}
+
+/* Auth Links (Account, Logout) ancorati alla colonna di destra */
+header.editorial-nav .nav-auth-wrapper { 
+    position: absolute;
+    right: 10vw !important;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+header.editorial-nav .nav-auth { 
+    display: flex; 
+    gap: 30px; 
+    list-style: none; 
+    margin: 0;
+    padding: 0;
+}

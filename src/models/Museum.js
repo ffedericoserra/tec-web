@@ -5,6 +5,19 @@
 
 const mongoose = require('mongoose');
 
+const openingHoursSchema = new mongoose.Schema(
+  {
+    mon: { type: String, default: 'Chiuso' },
+    tue: { type: String, default: 'Chiuso' },
+    wed: { type: String, default: 'Chiuso' },
+    thu: { type: String, default: 'Chiuso' },
+    fri: { type: String, default: 'Chiuso' },
+    sat: { type: String, default: 'Chiuso' },
+    sun: { type: String, default: 'Chiuso' },
+  },
+  { _id: false }
+);
+
 const pointOfInterestSchema = new mongoose.Schema(
   {
     type: {
@@ -43,6 +56,23 @@ const museumSchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
+    },
+    website: {
+      type: String,
+      trim: true,
+    },
+    email: {
+      type: String,
+      trim: true,
+      lowercase: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    openingHours: {
+      type: openingHoursSchema,
+      default: () => ({}),
     },
     theme: {            // Refine when building frontends
       primaryColor: {
