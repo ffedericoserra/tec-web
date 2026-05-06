@@ -25,7 +25,7 @@ app.use(express.json());
 
 //per deploy
 // Dice a Express di servire i file statici della cartella frontend-marketplace
-app.use('/frontend-marketplace', express.static(path.join(__dirname, '../frontend-marketplace')));
+app.use('/frontend/marketplace', express.static(path.join(__dirname, '../frontend/marketplace')));
 // Facoltativo: se l'utente va sulla root del sito, rimandalo alla homepage
 app.get('/', (req, res) => {
     res.redirect('/frontend/marketplace/pages/homepage.html');
