@@ -1,0 +1,100 @@
+.page-museums {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-museums-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px 32px;
+}
+
+.page-museums-title {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 600;
+  margin: 16px 0 18px;
+  letter-spacing: -0.01em;
+}
+
+.search-input {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 12px 20px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  font-size: 16px;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.museum-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
+}
+
+.museum-list li {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.museum-list li:first-child {
+  border-top: 1px solid var(--line-soft);
+}
+
+.museum-row {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  padding: 16px 4px;
+  font-size: 17px;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.museum-row:hover,
+.museum-row:focus-visible {
+  background: var(--surface-alt);
+  outline: none;
+}
+
+.museum-row-arrow {
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.status {
+  text-align: center;
+  color: var(--muted);
+  margin: 32px 0;
+  font-size: 15px;
+}
+
+.status.error {
+  color: var(--accent);
+}
+
+.empty {
+  list-style: none;
+  text-align: center;
+  color: var(--muted);
+  padding: 32px 12px;
+  font-size: 15px;
+  border: none !important;
+}
