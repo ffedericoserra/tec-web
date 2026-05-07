@@ -29,6 +29,14 @@ ssh gocker
 start node-22 site242557 src/index.js
 ```
 
+**Navigator (build SPA before running):**
+```bash
+# Required before dev or prod — frontend-navigator/dist is gitignored
+cd frontend-navigator
+npm install
+npm run build
+```
+
 **Testing**
 ```bash
 npm run test:prod   # Production

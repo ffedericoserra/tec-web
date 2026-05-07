@@ -23,26 +23,26 @@ app.use(cors());
 app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
 
-//per deploy
-// Dice a Express di servire i file statici della cartella frontend-marketplace
-app.use('/frontend/marketplace', express.static(path.join(__dirname, '../frontend/marketplace')));
-// Facoltativo: se l'utente va sulla root del sito, rimandalo alla homepage
-app.get('/', (req, res) => {
-    res.redirect('/frontend/marketplace/pages/homepage.html');
+// Marketplace frontend (vanilla HTML/CSS/JS, served from frontend/marketplace).
+// Bare /marketplace redirects to the homepage; everything else under
+// /marketplace/* is served as a static asset.
+const marketplaceDir = path.join(__dirname, '../frontend/marketplace');
+app.get('/marketplace', (req, res) => {
+  res.redirect('/marketplace/pages/homepage.html');
 });
-
+app.use('/marketplace', express.static(marketplaceDir));
 
 // API routes
 app.use('/api', apiRoutes);
 
 // Navigator frontend (React SPA, Vite-built into frontend-navigator/dist).
-// Mounted after /api so it doesn't shadow API routes. The catch-all only
-// matches paths without a file extension so missing assets still 404 instead
-// of returning HTML. The earlier `app.get('/')` redirect to the marketplace
-// homepage stays first, so the navigator owns every other extensionless path.
+// Mounted after /api and /marketplace so it doesn't shadow them. The catch-all
+// only matches paths without a file extension so missing assets still 404
+// instead of returning HTML. Everything not under /api, /marketplace, or
+// /uploads is owned by the navigator.
 const navigatorDir = path.join(__dirname, '..', 'frontend-navigator', 'dist');
 app.use(express.static(navigatorDir));
-app.get(/^\/(?!api|frontend|uploads)[^.]*$/, (req, res) => {
+app.get(/^\/(?!api|marketplace|uploads)[^.]*$/, (req, res) => {
   res.sendFile(path.join(navigatorDir, 'index.html'));
 });
 
