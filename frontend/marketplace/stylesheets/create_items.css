@@ -145,6 +145,23 @@
     margin-bottom: 30px;
 }
 
+.image-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0;
+}
+
+.muted-list-message {
+    color: gray;
+}
+
+.community-item-tags {
+    color: #710014;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
 /* Metadati a righe orizzontali */
 .meta-row {
     display: flex;
@@ -271,6 +288,7 @@
 #btn-delete-item {
     color: #710014;
     border-color: #710014;
+    margin-right: auto;
 }
 #btn-delete-item:hover {
     background: #710014;
@@ -532,7 +550,7 @@
 
 #artaround-visit-builder .visit-meta-form {
     display: grid;
-    grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr) minmax(220px, 0.62fr);
     gap: 54px;
     margin: 0 0 54px;
     padding: 0 0 46px;
@@ -583,6 +601,79 @@
 #artaround-visit-builder #v-title::placeholder,
 #artaround-visit-builder #v-desc::placeholder {
     color: rgba(22, 22, 22, 0.4);
+}
+
+#artaround-visit-builder .visit-visibility-field {
+    align-self: stretch;
+}
+
+#artaround-visit-builder .visit-visibility-toggle {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: 92px;
+    padding: 18px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.22);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.22);
+    cursor: pointer;
+}
+
+#artaround-visit-builder .visit-visibility-toggle input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#artaround-visit-builder .visibility-switch {
+    position: relative;
+    width: 54px;
+    height: 28px;
+    flex: 0 0 54px;
+    border: 1px solid rgba(22, 22, 22, 0.4);
+    border-radius: 999px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+#artaround-visit-builder .visibility-switch::after {
+    content: "";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 18px;
+    height: 18px;
+    background-color: #161616;
+    border-radius: 50%;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+#artaround-visit-builder #v-is-public:checked + .visibility-switch {
+    background-color: #710014;
+    border-color: #710014;
+}
+
+#artaround-visit-builder #v-is-public:checked + .visibility-switch::after {
+    transform: translateX(26px);
+    background-color: #F2F1ED;
+}
+
+#artaround-visit-builder .visibility-copy {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#artaround-visit-builder .visibility-copy strong {
+    color: #161616;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#artaround-visit-builder .visibility-copy small {
+    color: rgba(22, 22, 22, 0.62);
+    line-height: 1.45;
 }
 
 /* Horizontal section rail: intentionally preserved. */
@@ -1036,6 +1127,37 @@
     line-height: 1.65;
 }
 
+#artaround-visit-builder .visit-wallet-panel {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+    padding: 18px 0 20px;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-visit-builder .visit-wallet-panel p {
+    margin: 0;
+    color: rgba(22, 22, 22, 0.68);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#artaround-visit-builder .visit-wallet-panel strong {
+    display: block;
+    margin-top: 8px;
+    color: #161616;
+    font-size: 1.1rem;
+    line-height: 1.2;
+}
+
+#artaround-visit-builder .visit-wallet-panel strong.is-warning {
+    color: #710014;
+}
+
 #artaround-visit-builder .items-scroll-container {
     display: flex;
     flex-direction: column;
@@ -1069,6 +1191,18 @@
     background-color: #710014;
 }
 
+#artaround-visit-builder .modal-artwork-item:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+#artaround-visit-builder .modal-artwork-item:disabled:hover {
+    padding-left: 0;
+    padding-right: 0;
+    color: #161616;
+    background-color: transparent;
+}
+
 #artaround-visit-builder .modal-artwork-copy {
     display: flex;
     min-width: 0;
@@ -1093,6 +1227,11 @@
 #artaround-visit-builder .modal-artwork-item:hover small,
 #artaround-visit-builder .modal-artwork-item:hover .modal-artwork-price {
     color: #F2F1ED;
+}
+
+#artaround-visit-builder .modal-artwork-item:disabled:hover small,
+#artaround-visit-builder .modal-artwork-item:disabled:hover .modal-artwork-price {
+    color: rgba(22, 22, 22, 0.58);
 }
 
 #artaround-visit-builder .builder-empty-message {
@@ -1185,5 +1324,9 @@
 
     #artaround-visit-builder .visit-builder-modal {
         padding: 32px 24px;
+    }
+
+    #artaround-visit-builder .visit-wallet-panel {
+        grid-template-columns: 1fr;
     }
 }

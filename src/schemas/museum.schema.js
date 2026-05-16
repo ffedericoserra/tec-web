@@ -25,12 +25,6 @@ const openingHoursSchema = z.object({
   sun: z.string().optional(),
 });
 
-const themeSchema = z.object({
-  primaryColor: z.string().optional(),
-  secondaryColor: z.string().optional(),
-  font: z.string().optional(),
-}).optional();
-
 const mapDataSchema = z.object({
   imageUrl: z.string().url().optional(),
   bounds: z.object({
@@ -50,7 +44,6 @@ const createMuseumSchema = z.object({
   email: z.string().email('Inserisci un email valida').optional().or(z.literal('')),
   phone: z.string().trim().optional(),
   openingHours: openingHoursSchema.optional(),
-  theme: themeSchema,
   mapData: mapDataSchema,
   pointsOfInterest: z.array(pointOfInterestSchema).optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),

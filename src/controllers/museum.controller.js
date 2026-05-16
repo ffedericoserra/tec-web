@@ -14,7 +14,7 @@ const User = require('../models/User');
  */
 exports.list = async (req, res, next) => {
   try {
-    const museums = await Museum.find().select('name slug address description imageUrl theme').sort({ name: 1 });
+    const museums = await Museum.find().select('name slug address description imageUrl').sort({ name: 1 });
     res.json({ museums });
   } catch (error) {
     next(error);
@@ -43,7 +43,7 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { name, address, description, website, email, phone, openingHours, theme, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl } = req.body;
 
     const museum = new Museum({
       name,
@@ -53,7 +53,6 @@ exports.create = async (req, res, next) => {
       email,
       phone,
       openingHours,
-      theme,
       mapData,
       pointsOfInterest,
       imageUrl,
@@ -72,11 +71,11 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const { name, address, description, website, email, phone, openingHours, theme, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl } = req.body;
 
     const museum = await Museum.findByIdAndUpdate(
       req.params.id,
-      { name, address, description, website, email, phone, openingHours, theme, mapData, pointsOfInterest, imageUrl },
+      { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl },
       { new: true, runValidators: true }
     );
 
@@ -206,7 +205,7 @@ exports.getVisits = async (req, res, next) => {
     };
 
     const visits = await Visit.find(query)
-      .select('title slug description imageUrl sequence type viewCount createdAt')
+      .select('title slug description imageUrl sequence type length isPublic viewCount createdAt creatorId')
       .populate('creatorId', 'username')
       .sort({ viewCount: -1 });
 

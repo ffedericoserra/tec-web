@@ -31,6 +31,23 @@ const sequenceItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const visitBlockSchema = new mongoose.Schema(
+  {
+    blockName: {
+      type: String,
+      default: 'Mainboard',
+      trim: true,
+    },
+    items: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Item',
+      },
+    ],
+  },
+  { _id: false }
+);
+
 const quizQuestionSchema = new mongoose.Schema(
   {
     question: {
@@ -75,6 +92,7 @@ const visitSchema = new mongoose.Schema(
       type: String,
     },
     sequence: [sequenceItemSchema],
+    blocks: [visitBlockSchema],
 
     // Preferred description length for this visit
     length: {

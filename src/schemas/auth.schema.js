@@ -28,7 +28,15 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const rechargeWalletSchema = z.object({
+  amount: z
+    .number()
+    .positive('Recharge amount must be greater than 0')
+    .max(10000, 'Recharge amount is too high'),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
+  rechargeWalletSchema,
 };

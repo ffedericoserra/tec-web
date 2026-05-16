@@ -74,20 +74,6 @@ const museumSchema = new mongoose.Schema(
       type: openingHoursSchema,
       default: () => ({}),
     },
-    theme: {            // Refine when building frontends
-      primaryColor: {
-        type: String,
-        default: '#1a1a1a',
-      },
-      secondaryColor: {
-        type: String,
-        default: '#ffffff',
-      },
-      font: {
-        type: String,
-        default: 'Inter',
-      },
-    },
     mapData: {      // Refine when testing with actual maps
       imageUrl: String,
       // For geo-referenced maps (lat/lng)

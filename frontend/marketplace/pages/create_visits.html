@@ -91,6 +91,20 @@
                 placeholder="Description or general introduction to your tour..."
               ></textarea>
             </div>
+
+            <div class="input-group visit-visibility-field">
+              <span class="text-label">Visibilita visita</span>
+              <label class="visit-visibility-toggle" for="v-is-public">
+                <input type="checkbox" id="v-is-public" />
+                <span class="visibility-switch" aria-hidden="true"></span>
+                <span class="visibility-copy">
+                  <strong id="visit-visibility-status">Privata</strong>
+                  <small id="visit-visibility-hint"
+                    >Visibile solo dal tuo account</small
+                  >
+                </span>
+              </label>
+            </div>
           </div>
 
           <div class="blocks-wrapper" id="blocks-container">
@@ -125,6 +139,11 @@
     <div id="select-item-modal" class="modal-overlay hidden">
       <div class="modal-content visit-builder-modal">
         <h3 class="modal-top-title">Choose an artwork</h3>
+        <div class="visit-wallet-panel">
+          <p>Saldo attuale <strong id="visit-wallet-current">0 A&alpha;</strong></p>
+          <p>Nuove aggiunte <strong id="visit-wallet-pending">0 A&alpha;</strong></p>
+          <p>Residuo stimato <strong id="visit-wallet-remaining">0 A&alpha;</strong></p>
+        </div>
         <div id="items-container" class="items-scroll-container"></div>
         <button
           type="button"

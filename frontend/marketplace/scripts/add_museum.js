@@ -37,12 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 sun: hoursInputs[6]?.value.trim() || undefined,
             },
 
-            theme: {
-                primaryColor: document.getElementById('m-primary-color').value,
-                secondaryColor: document.getElementById('m-secondary-color').value,
-                font: document.getElementById('m-font').value
-            },
-
             mapData: {
                 imageUrl: document.getElementById('m-map-image').value.trim() || undefined
             }

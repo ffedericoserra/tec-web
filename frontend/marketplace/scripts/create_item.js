@@ -13,6 +13,7 @@ const urlParams = new URLSearchParams(window.location.search);
 let activeItemId = urlParams.get('itemId'); 
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName') || 'Sconosciuto';
+const visitId = urlParams.get('visitId');
 const urlTitle = urlParams.get('title') || 'Titolo Sconosciuto';
 const urlAuthor = urlParams.get('author') || 'Autore Ignoto';
 const urlImage = urlParams.get('image');
@@ -24,6 +25,16 @@ const urlContentId = urlParams.get('contentId');
 // VARIABILI GLOBALI
 let originalContentId = urlContentId || null;
 let originalTargetAudience = null;
+
+function getVisitBuilderUrl() {
+    const params = new URLSearchParams({
+        museumId: museumId,
+        museumName: museumName
+    });
+
+    if (visitId) params.set('visitId', visitId);
+    return `create_visits.html?${params.toString()}`;
+}
 
 // --- SISTEMA DI TOAST NOTIFICATIONS ---
 function showToast(message, type = "success") {
@@ -62,7 +73,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const imgContainer = document.getElementById('image-preview');
     if (urlImage) {
         const finalImgUrl = urlImage.startsWith('http') ? urlImage : `${baseUrl}${urlImage.startsWith('/') ? '' : '/'}${urlImage}`;
-        imgContainer.innerHTML = `<img src="${finalImgUrl}" style="width:100%; height:100%; object-fit:cover; border-radius: 0;">`;
+        const img = document.createElement('img');
+        img.src = finalImgUrl;
+        img.alt = urlTitle;
+        img.classList.add('image-preview-img');
+        imgContainer.innerHTML = '';
+        imgContainer.appendChild(img);
     }
 
     // Logica Accordion (Freccette)
@@ -88,11 +104,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (originalContentId) {
         loadCommunityItems();
     } else {
-        document.getElementById('existing-items-list').innerHTML = '<li style="color:gray;">Salva l\'item per vedere le versioni degli altri utenti.</li>';
+        document.getElementById('existing-items-list').innerHTML = '<li class="muted-list-message">Salva l\'item per vedere le versioni degli altri utenti.</li>';
     }
 
     document.getElementById('btn-cancel-exit').addEventListener('click', () => {
-        window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+        window.location.href = getVisitBuilderUrl();
     });
 });
 
@@ -120,7 +136,7 @@ async function loadCommunityItems() {
         existingItemsList.innerHTML = '';
 
         if (!Array.isArray(communityItems) || communityItems.length === 0) {
-            existingItemsList.innerHTML = '<li style="color:gray;">Nessuna variante creata per questa opera.</li>';
+            existingItemsList.innerHTML = '<li class="muted-list-message">Nessuna variante creata per questa opera.</li>';
             return;
         }
 
@@ -161,7 +177,7 @@ async function loadCommunityItems() {
             }
             const tagsText = tags.length > 0 ? tags.join(', ') : 'nessun testo';
 
-            li.innerHTML = `<span>Item di <strong>${displayCreatorName}</strong></span> <span style="font-size: 0.8rem; color: #710014; font-weight:bold;">${tagsText}</span>`;
+            li.innerHTML = `<span>Item di <strong>${displayCreatorName}</strong></span> <span class="community-item-tags">${tagsText}</span>`;
             
             li.addEventListener('click', () => {
                 caricaTestiDaDB(item._id);
@@ -299,7 +315,7 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
         if (res.ok) {
             showToast("Item salvato con successo!", "success");
             setTimeout(() => {
-                window.location.href = `create_visits.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
+                window.location.href = getVisitBuilderUrl();
             }, 1200);
         } else {
             showToast("Errore di validazione dal server.", "error");

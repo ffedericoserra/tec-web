@@ -16,11 +16,6 @@
       "sun": "08:15 - 18:30"
     },
     "imageUrl": "/uploads/museums/uffizi.jpg",
-    "theme": {
-      "primaryColor": "#8B4513",
-      "secondaryColor": "#F5F5DC",
-      "font": "Georgia"
-    },
     "mapData": {
       "imageUrl": "/uploads/maps/uffizi-map.png",
       "bounds": {

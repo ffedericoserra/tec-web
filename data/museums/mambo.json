@@ -16,11 +16,6 @@
       "sun": "10:00 - 18:00"
     },
     "imageUrl": "/uploads/museums/mambo.jpg",
-    "theme": {
-      "primaryColor": "#1a1a1a",
-      "secondaryColor": "#e0e0e0",
-      "font": "Helvetica"
-    },
     "mapData": {
       "imageUrl": "/uploads/maps/mambo-map.png",
       "bounds": {

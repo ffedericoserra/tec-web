@@ -161,6 +161,25 @@ async function testAuth() {
     allPassed = allPassed && passed;
   }
 
+  // Recharge wallet
+  {
+    const before = await request('GET', '/auth/me', null, authToken);
+    const rechargeAmount = 25;
+    const recharge = await request('PATCH', '/auth/wallet', { amount: rechargeAmount }, authToken);
+    const after = await request('GET', '/auth/me', null, authToken);
+
+    const previousBalance = before.data?.user?.walletBalance;
+    const nextBalance = after.data?.user?.walletBalance;
+    const passed =
+      recharge.status === 200 &&
+      typeof previousBalance === 'number' &&
+      typeof nextBalance === 'number' &&
+      nextBalance === previousBalance + rechargeAmount;
+
+    log('PATCH /auth/wallet recharges balance', passed, `balance: ${previousBalance} -> ${nextBalance}`);
+    allPassed = allPassed && passed;
+  }
+
   return allPassed;
 }
 
@@ -328,6 +347,59 @@ async function testVisits() {
     const { status } = await request('GET', '/visits/my');
     const passed = status === 401;
     log('GET /visits/my requires auth', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Create visit charges wallet for new items
+  {
+    const beforeProfile = await request('GET', '/auth/me', null, authToken);
+    const contentsRes = await request('GET', `/museums/${museumId}/contents`);
+    const itemsRes = await request('GET', '/items', null, authToken);
+
+    const validContentIds = new Set(
+      (contentsRes.data?.contents || []).flatMap((content) =>
+        content.universalId ? [content.universalId, content._id] : [content._id]
+      )
+    );
+
+    const museumItem = (itemsRes.data?.items || []).find((item) => validContentIds.has(item.contentId));
+
+    let passed = false;
+    let details = 'no museum item found';
+
+    if (museumItem && typeof beforeProfile.data?.user?.walletBalance === 'number') {
+      const payload = {
+        title: `Temp visit ${Date.now()}`,
+        museumId,
+        description: 'Temporary billing test',
+        sequence: [{ itemId: museumItem._id, nextDirections: '', prevDirections: '' }],
+        blocks: [{ blockName: 'Room I', items: [museumItem._id] }],
+        isPublic: false,
+        type: 'standard',
+        length: 'normal',
+      };
+
+      const createRes = await request('POST', '/visits', payload, authToken);
+      const afterProfile = await request('GET', '/auth/me', null, authToken);
+      const tempVisitId = createRes.data?.visit?._id || null;
+      const itemPrice = Number(museumItem.price) || 0;
+      const previousBalance = beforeProfile.data.user.walletBalance;
+      const nextBalance = afterProfile.data?.user?.walletBalance;
+
+      passed =
+        createRes.status === 201 &&
+        typeof nextBalance === 'number' &&
+        createRes.data?.chargedAmount === itemPrice &&
+        nextBalance === previousBalance - itemPrice;
+
+      details = `charged: ${createRes.data?.chargedAmount ?? 'n/a'}`;
+
+      if (tempVisitId) {
+        await request('DELETE', `/visits/${tempVisitId}`, null, authToken);
+      }
+    }
+
+    log('POST /visits charges wallet for new items', passed, details);
     allPassed = allPassed && passed;
   }
 

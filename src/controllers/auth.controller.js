@@ -114,6 +114,34 @@ exports.getMe = async (req, res, next) => {
 };
 
 /**
+ * Recharge user wallet
+ * PATCH /api/auth/wallet
+ */
+exports.rechargeWallet = async (req, res, next) => {
+  try {
+    const { amount } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $inc: { walletBalance: amount } },
+      { new: true }
+    ).select('-passwordHash');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      message: 'Wallet recharged successfully',
+      walletBalance: user.walletBalance,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Toggle salvataggio visita nei preferiti
  * POST /api/auth/favorites/visits/:visitId
  */

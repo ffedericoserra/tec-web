@@ -283,6 +283,23 @@
     font-weight: 800;
 }
 
+#artaround-profile .wallet-caption {
+    margin: 0 0 18px;
+    color: rgba(22, 22, 22, 0.68);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+#artaround-profile .wallet-caption.is-success {
+    color: #0f6b3c;
+    font-weight: 700;
+}
+
+#artaround-profile .wallet-caption.is-error {
+    color: #710014;
+    font-weight: 700;
+}
+
 #artaround-profile .profile-actions {
     display: flex;
     flex-direction: column;
@@ -567,6 +584,37 @@
     height: 1px;
     margin: 8px 0 26px;
     background-color: rgba(22, 22, 22, 0.22);
+}
+
+#artaround-profile .wallet-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+#artaround-profile .wallet-quick-btn.active {
+    color: #F2F1ED;
+    background-color: #710014;
+    border-color: #710014;
+}
+
+#artaround-profile .wallet-balance-preview {
+    margin: 0 0 26px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-profile .wallet-balance-preview p {
+    margin: 0 0 10px;
+    color: rgba(22, 22, 22, 0.65);
+    line-height: 1.5;
+}
+
+#artaround-profile .wallet-balance-preview strong {
+    color: #161616;
+    font-size: 1.5rem;
+    font-weight: 800;
 }
 
 #artaround-profile .modal-footer {

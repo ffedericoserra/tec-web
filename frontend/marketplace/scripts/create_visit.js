@@ -10,8 +10,9 @@ if (!token) {
 
 const urlParams = new URLSearchParams(window.location.search);
 const museumId = urlParams.get('museumId');
-const museumName = urlParams.get('museumName');
+const museumName = urlParams.get('museumName') || 'Museo';
 const visitId = urlParams.get('visitId'); 
+const STRUCTURE_TAG = "[Struttura Blocchi Salvata: ";
 
 // Diamo "memoria" al pulsante Back to Museum page
 const backToMuseumBtn = document.getElementById('back-to-museum-btn');
@@ -29,7 +30,7 @@ document.getElementById('cancel-btn').addEventListener('click', () => {
     cancelModal.classList.remove('hidden');
 });
 document.getElementById('confirm-exit-btn').addEventListener('click', () => {
-    window.location.href = `../pages/visits_list.html`; 
+    window.location.href = `visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
 });
 document.getElementById('confirm-save-btn').addEventListener('click', () => {
     cancelModal.classList.add('hidden');
@@ -41,7 +42,24 @@ document.getElementById('close-cancel-modal').addEventListener('click', () => {
 
 const itemModal = document.getElementById('select-item-modal');
 const itemsContainer = document.getElementById('items-container');
+const walletCurrentEl = document.getElementById('visit-wallet-current');
+const walletPendingEl = document.getElementById('visit-wallet-pending');
+const walletRemainingEl = document.getElementById('visit-wallet-remaining');
+const visitVisibilityInput = document.getElementById('v-is-public');
+const visitVisibilityStatus = document.getElementById('visit-visibility-status');
+const visitVisibilityHint = document.getElementById('visit-visibility-hint');
 let activeBlockList = null; 
+let currentWalletBalance = 0;
+let itemCatalog = {};
+let museumContentsCache = [];
+let originalVisitItemCounts = {};
+
+if (visitVisibilityInput) {
+    visitVisibilityInput.addEventListener('change', () => {
+        setVisitVisibility(visitVisibilityInput.checked);
+    });
+    setVisitVisibility(false);
+}
 
 // Funzione Numeri Romani
 function toRoman(num) { 
@@ -67,6 +85,147 @@ function escapeHTML(value) {
 
 function renderBuilderMessage(message, isError = false) {
     return `<p class="builder-empty-message${isError ? ' error-text' : ''}">${escapeHTML(message)}</p>`;
+}
+
+function setVisitVisibility(isPublic) {
+    if (visitVisibilityInput) {
+        visitVisibilityInput.checked = Boolean(isPublic);
+    }
+
+    if (visitVisibilityStatus) {
+        visitVisibilityStatus.textContent = isPublic ? "Pubblica" : "Privata";
+    }
+
+    if (visitVisibilityHint) {
+        visitVisibilityHint.textContent = isPublic
+            ? "Visibile nella lista pubblica del museo"
+            : "Visibile solo dal tuo account";
+    }
+}
+
+function getVisitVisibility() {
+    return Boolean(visitVisibilityInput?.checked);
+}
+
+function formatCurrencyAmount(value) {
+    const numericValue = Number(value) || 0;
+    return Number.isInteger(numericValue) ? `${numericValue} Aα` : `${numericValue.toFixed(2)} Aα`;
+}
+
+async function loadWalletBalance() {
+    try {
+        const res = await fetch(`${myApi}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error("Wallet request failed");
+
+        const data = await res.json();
+        const user = data.user || data;
+        currentWalletBalance = Number(user.walletBalance) || 0;
+        updateWalletPreview();
+    } catch (error) {
+        console.error("Errore nel recupero del saldo utente:", error);
+        currentWalletBalance = 0;
+        updateWalletPreview();
+    }
+}
+
+function countVisitItemsFromDom() {
+    return Array.from(document.querySelectorAll('.draggable-item')).reduce((counts, itemNode) => {
+        const itemId = itemNode.dataset.itemId;
+        if (!itemId) return counts;
+        counts[itemId] = (counts[itemId] || 0) + 1;
+        return counts;
+    }, {});
+}
+
+function calculatePendingVisitCost() {
+    const currentCounts = countVisitItemsFromDom();
+    let total = 0;
+
+    Object.entries(currentCounts).forEach(([itemId, currentCount]) => {
+        const previousCount = originalVisitItemCounts[itemId] || 0;
+        const extraCount = currentCount - previousCount;
+
+        if (extraCount > 0) {
+            const itemPrice = Number(itemCatalog[itemId]?.price) || 0;
+            total += itemPrice * extraCount;
+        }
+    });
+
+    return total;
+}
+
+function updateWalletPreview() {
+    const pendingCost = calculatePendingVisitCost();
+    const remainingBalance = currentWalletBalance - pendingCost;
+
+    if (walletCurrentEl) walletCurrentEl.textContent = formatCurrencyAmount(currentWalletBalance);
+    if (walletPendingEl) walletPendingEl.textContent = formatCurrencyAmount(pendingCost);
+    if (walletRemainingEl) {
+        walletRemainingEl.textContent = formatCurrencyAmount(remainingBalance);
+        walletRemainingEl.classList.toggle('is-warning', remainingBalance < 0);
+    }
+}
+
+function canAffordItemAddition(itemId) {
+    const itemPrice = Number(itemCatalog[itemId]?.price) || 0;
+    const remainingBalance = currentWalletBalance - calculatePendingVisitCost();
+    return itemPrice <= remainingBalance;
+}
+
+function refreshModalItemAvailability() {
+    const remainingBalance = currentWalletBalance - calculatePendingVisitCost();
+
+    Array.from(itemsContainer.querySelectorAll('.modal-artwork-item')).forEach((button) => {
+        const itemId = button.dataset.itemId;
+        const itemPrice = Number(itemCatalog[itemId]?.price) || 0;
+        const canAfford = itemPrice <= remainingBalance;
+
+        button.disabled = !canAfford;
+        button.title = canAfford ? "Add artwork" : "Saldo insufficiente";
+    });
+
+    updateWalletPreview();
+}
+
+async function loadMuseumItemCatalog(forceReload = false) {
+    if (!forceReload && Object.keys(itemCatalog).length > 0 && museumContentsCache.length > 0) {
+        return itemCatalog;
+    }
+
+    const headers = { 'Authorization': `Bearer ${token}` };
+    const [contentsRes, itemsRes] = await Promise.all([
+        fetch(`${myApi}/museums/${museumId}/contents`, { headers }),
+        fetch(`${myApi}/items`, { headers })
+    ]);
+
+    if (!contentsRes.ok || !itemsRes.ok) {
+        throw new Error("Impossibile caricare catalogo opere");
+    }
+
+    const contentsData = await contentsRes.json();
+    const itemsData = await itemsRes.json();
+    const museumContents = contentsData.contents || [];
+    const allItems = itemsData.items || [];
+
+    museumContentsCache = museumContents;
+
+    const validContentIds = new Set();
+    museumContents.forEach((content) => {
+        if (content.universalId) validContentIds.add(content.universalId);
+        validContentIds.add(content._id.toString());
+    });
+
+    itemCatalog = {};
+    allItems
+        .filter((item) => validContentIds.has(item.contentId))
+        .forEach((item) => {
+            itemCatalog[item._id] = createItemInfo(item, museumContents);
+        });
+
+    return itemCatalog;
 }
 
 const blocksContainer = document.getElementById('blocks-container');
@@ -143,66 +302,53 @@ function aggiornaContatoriBlocchi() {
         block.querySelector('.block-count').textContent = `${itemCount} artworks`;
     });
     aggiornaStatoCarte(); 
+    updateWalletPreview();
+    refreshModalItemAvailability();
 }
 
 // --- LOGICA RECUPERO OPERE ED INCROCIO CON I CONTENTS ---
 async function apriModaleOpere() {
     itemModal.classList.remove('hidden');
     itemsContainer.innerHTML = renderBuilderMessage("Loading from server...");
+    updateWalletPreview();
 
     try {
-        // Scarica i Contents (per avere Nomi Veri, Immagini e Autori)
-        const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const contentsData = await contentsRes.json();
-        const museumContents = contentsData.contents || [];
-        
-        const validContentIds = new Set();
-        museumContents.forEach(c => {
-            if (c.universalId) validContentIds.add(c.universalId);
-            validContentIds.add(c._id.toString());
-        });
-
-        // Scarica gli Items (per avere i Prezzi e verificare l'esistenza dell'opera)
-        const itemsRes = await fetch(`${myApi}/items`, { headers: { 'Authorization': `Bearer ${token}` } });
-        const itemsData = await itemsRes.json();
-        const museumItems = (itemsData.items || []).filter(item => validContentIds.has(item.contentId));
+        const catalog = await loadMuseumItemCatalog(true);
+        const museumItems = Object.entries(catalog);
 
         itemsContainer.innerHTML = '';
         if (museumItems.length > 0) {
-            museumItems.forEach(item => {
-                
-                // INCROCIO DATI: Cerchiamo il Content corrispondente a questo Item
-                const relatedContent = museumContents.find(c => c.universalId === item.contentId || c._id.toString() === item.contentId);
-                
-                // Estraiamo i dati reali dal database
-                const contentName = relatedContent ? relatedContent.name : `Opera (${item.contentId})`;
-                const contentAuthor = relatedContent ? relatedContent.author : "Autore Ignoto";
-                const imageUrl = relatedContent ? relatedContent.imageUrl : null;
-                
-                // Usiamo il titolo personalizzato se esiste, altrimenti il nome vero dell'opera dal Content
-                const itemTitle = (item.descriptions && item.descriptions.length > 0 && item.descriptions[0].title) 
-                                  ? item.descriptions[0].title 
-                                  : contentName;
-
+            museumItems.forEach(([itemId, itemInfo]) => {
                 const itemDiv = document.createElement('button');
                 itemDiv.type = 'button';
                 itemDiv.className = 'modal-artwork-item';
-                const priceLabel = item.price > 0 ? `${item.price} EUR` : 'Free';
+                itemDiv.dataset.itemId = itemId;
+                const itemPrice = Number(itemInfo.price) || 0;
+                const priceLabel = itemPrice > 0 ? formatCurrencyAmount(itemPrice) : 'Free';
                 itemDiv.innerHTML = `
                     <span class="modal-artwork-copy">
-                        <strong>${escapeHTML(itemTitle)}</strong>
-                        <small>${escapeHTML(contentAuthor)}</small>
+                        <strong>${escapeHTML(itemInfo.title)}</strong>
+                        <small>${escapeHTML(itemInfo.author)}</small>
                     </span>
                     <span class="modal-artwork-price">${escapeHTML(priceLabel)}</span>
                 `;
-                
+
+                itemDiv.disabled = !canAffordItemAddition(itemId);
+
                 itemDiv.onclick = () => {
-                    // Passiamo anche imageUrl e contentAuthor alla carta!
-                    creaEdAggiungiItem(itemTitle, item._id, activeBlockList, imageUrl, contentAuthor);
+                    creaEdAggiungiItem(
+                        itemInfo.title,
+                        itemId,
+                        activeBlockList,
+                        itemInfo.imageUrl,
+                        itemInfo.author,
+                        itemInfo.contentId
+                    );
                     itemModal.classList.add('hidden');
                 };
                 itemsContainer.appendChild(itemDiv);
             });
+            refreshModalItemAvailability();
         } else {
             itemsContainer.innerHTML = renderBuilderMessage("No artworks found.");
         }
@@ -219,11 +365,15 @@ let placeholder = document.createElement('li');
 placeholder.className = 'placeholder';
 
 // AGGIORNATA: Ora riceve imageUrl e author per stampare la carta vera
-function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, author = "Autore Ignoto") {
+function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, author = "Autore Ignoto", contentId = "") {
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
     li.dataset.itemId = itemId; 
+    li.dataset.title = titoloOpera || "";
+    li.dataset.author = author || "";
+    li.dataset.imageUrl = imageUrl || "";
+    li.dataset.contentId = contentId || "";
 
     // Risolviamo il percorso dell'immagine
     let imgTag = '<span class="image-fallback">IMG</span>';
@@ -271,6 +421,8 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
             author: author || "Autore Ignoto",
             image: imageUrl || ''
         });
+        if (visitId) params.set('visitId', visitId);
+        if (contentId) params.set('contentId', contentId);
         window.location.href = `create_items.html?${params.toString()}`;
     });
 
@@ -343,87 +495,164 @@ function salvaStatoTemporaneo() {
     const visitState = {
         title: title,
         desc: desc,
+        isPublic: getVisitVisibility(),
         blocks: blocksHtml,
-        blockCounter: blockCounter
+        blockCounter: blockCounter,
+        museumId: museumId,
+        visitId: visitId || null
     };
     sessionStorage.setItem('temp_visit_state', JSON.stringify(visitState));
 }
 
-// --- FUNZIONE PER RICOSTRUIRE IL TAVOLO ARCHIDEKT DA UNA VISITA ESISTENTE ---
-// --- FUNZIONE PER RICOSTRUIRE IL TAVOLO ARCHIDEKT (CON DEBUG) ---
-async function caricaVisitaEsistente(vId) {
+function getItemIdFromValue(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
+}
+
+function getItemIdFromSequenceEntry(entry) {
+    return getItemIdFromValue(entry?.itemId || entry);
+}
+
+function getCleanVisitDescription(description = "") {
+    const markerIndex = description.indexOf(STRUCTURE_TAG);
+    if (markerIndex === -1) return description;
+    return description.slice(0, markerIndex).trim();
+}
+
+function parseLegacyBlocksFromDescription(description = "") {
+    const markerIndex = description.indexOf(STRUCTURE_TAG);
+    if (markerIndex === -1) return null;
+
+    const legacyPayload = description.slice(markerIndex + STRUCTURE_TAG.length).trim();
+    const jsonString = legacyPayload.endsWith("]") ? legacyPayload.slice(0, -1) : legacyPayload;
+
     try {
-        console.log("INIZIO CARICAMENTO VISITA ID:", vId);
-        document.querySelector('.editor-title').textContent = "Edit Tour Mode"; 
+        const parsedBlocks = JSON.parse(jsonString);
+        return Array.isArray(parsedBlocks) ? parsedBlocks : null;
+    } catch (error) {
+        console.error("La struttura salvata nella descrizione non e' valida:", error);
+        return null;
+    }
+}
+
+function normalizeVisitBlocks(visit) {
+    const savedBlocks = Array.isArray(visit.blocks) && visit.blocks.length > 0
+        ? visit.blocks
+        : parseLegacyBlocksFromDescription(visit.description || "");
+
+    if (Array.isArray(savedBlocks) && savedBlocks.length > 0) {
+        return savedBlocks.map((block, index) => ({
+            blockName: block.blockName || block.title || `Section ${index + 1}`,
+            items: (block.items || []).map(getItemIdFromValue).filter(Boolean)
+        }));
+    }
+
+    const sequence = Array.isArray(visit.sequence) ? [...visit.sequence] : [];
+    const sequenceItems = sequence
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map(getItemIdFromSequenceEntry)
+        .filter(Boolean);
+
+    return sequenceItems.length > 0
+        ? [{ blockName: "Mainboard", items: sequenceItems }]
+        : [];
+}
+
+function getItemTitle(item, relatedContent) {
+    return item?.descriptions?.[0]?.title || relatedContent?.name || "Opera";
+}
+
+function createItemInfo(item, museumContents) {
+    const relatedContent = museumContents.find(c => c.universalId === item.contentId || c._id?.toString() === item.contentId);
+
+    return {
+        title: getItemTitle(item, relatedContent),
+        author: relatedContent?.author || "Autore Ignoto",
+        imageUrl: relatedContent?.imageUrl || null,
+        contentId: item.contentId || "",
+        price: Number(item.price) || 0
+    };
+}
+
+function addVisitSequenceItemsToMap(itemMap, visit, museumContents) {
+    (visit.sequence || []).forEach(sequenceItem => {
+        const item = sequenceItem.itemId;
+        const itemId = getItemIdFromValue(item);
+
+        if (!itemId || typeof item !== "object" || itemMap[itemId]) return;
+        itemMap[itemId] = createItemInfo(item, museumContents);
+    });
+}
+
+function canRestoreTemporaryState(state) {
+    if (!state) return false;
+    const sameMuseum = !state.museumId || state.museumId === museumId;
+    const sameVisit = (state.visitId || null) === (visitId || null);
+    return sameMuseum && sameVisit;
+}
+
+function createItemCountMapFromSequence(sequence = []) {
+    return sequence.reduce((counts, entry) => {
+        const itemId = getItemIdFromSequenceEntry(entry);
+        if (!itemId) return counts;
+        counts[itemId] = (counts[itemId] || 0) + 1;
+        return counts;
+    }, {});
+}
+
+async function loadOriginalVisitBaseline(vId) {
+    if (!vId) {
+        originalVisitItemCounts = {};
+        return null;
+    }
+
+    const res = await fetch(`${myApi}/visits/${vId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+        throw new Error("Errore nel recupero della visita originale");
+    }
+
+    const data = await res.json();
+    const visit = data.visit || data;
+    originalVisitItemCounts = createItemCountMapFromSequence(visit.sequence || []);
+    return visit;
+}
+
+// --- FUNZIONE PER RICOSTRUIRE IL TAVOLO ARCHIDEKT DA UNA VISITA ESISTENTE ---
+async function caricaVisitaEsistente(vId, preloadedVisit = null) {
+    try {
+        const titleEl = document.querySelector('.visit-builder-title');
+        const kickerEl = document.querySelector('.visit-builder-kicker');
+        const toolbarTitleEl = document.querySelector('.section-title-new');
+
+        if (titleEl) titleEl.textContent = "Edit your visit";
+        if (kickerEl) kickerEl.textContent = "Tour editor";
+        if (toolbarTitleEl) toolbarTitleEl.textContent = "Sequenza salvata";
         
         // 1. Scarichiamo i dati
-        const res = await fetch(`${myApi}/visits/${vId}`); // Se hai sbloccato la rotta pubblica
-        if (!res.ok) throw new Error("Errore nel recupero della visita dal database");
-        const data = await res.json();
-        const visit = data.visit || data;
+        const visit = preloadedVisit || await loadOriginalVisitBaseline(vId);
 
-        console.log("DATI GREZZI DAL DATABASE:", visit);
-
-        // 2. Separiamo la descrizione dai blocchi in modo robusto
-        let cleanDesc = visit.description || "";
-        let structurData = null;
-        const splitTag = "[Struttura Blocchi Salvata: "; // <-- Tolti i \n\n che causavano l'errore!
-        
-        if (cleanDesc.includes(splitTag)) {
-            console.log("Trovata la stringa segreta!");
-            const parts = cleanDesc.split(splitTag);
-            
-            // La descrizione e' la parte prima del tag (pulita da eventuali a capo rimasti)
-            cleanDesc = parts[0].trim(); 
-            
-            const jsonString = parts[1].trim().slice(0, -1); // Toglie la ']' finale
-            console.log("JSON estratto:", jsonString);
-            
-            try { 
-                structurData = JSON.parse(jsonString); 
-                console.log("Struttura interpretata correttamente:", structurData);
-            } catch(e) { 
-                console.error("Il JSON non e' valido (forse il database lo ha tagliato?):", e);
-            }
-        } else {
-            console.warn("Nessuna struttura trovata. Description salvata:", cleanDesc);
-        }
+        const cleanDesc = getCleanVisitDescription(visit.description || "");
+        const structurData = normalizeVisitBlocks(visit);
 
         // 3. Compiliamo titolo e descrizione
         if(document.getElementById('v-title')) document.getElementById('v-title').value = visit.title;
         if(document.getElementById('v-desc')) document.getElementById('v-desc').value = cleanDesc;
+        setVisitVisibility(visit.isPublic === true);
 
         if (!structurData || structurData.length === 0) {
-            console.log("Costruisco tavolo vuoto di default.");
             if(typeof createNewBlock === 'function') createNewBlock("Mainboard");
             return;
         }
 
         // 4. Scarichiamo le opere per stampare le carte vere
-        console.log("Scarico le opere del museo per abbinare i dati...");
-        const token = localStorage.getItem("token");
-        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-
-        const contentsRes = await fetch(`${myApi}/museums/${museumId}/contents`, { headers });
-        const contentsData = await contentsRes.json();
-        const museumContents = contentsData.contents || [];
-
-        const itemsRes = await fetch(`${myApi}/items`, { headers });
-        const itemsData = await itemsRes.json();
-        const allItems = itemsData.items || [];
-
-        const itemMap = {};
-        allItems.forEach(item => {
-            const relatedContent = museumContents.find(c => c.universalId === item.contentId || c._id.toString() === item.contentId);
-            itemMap[item._id] = {
-                title: relatedContent ? relatedContent.name : "Opera",
-                author: relatedContent ? relatedContent.author : "Autore Ignoto",
-                imageUrl: relatedContent ? relatedContent.imageUrl : null
-            };
-        });
+        const itemMap = await loadMuseumItemCatalog(true);
+        addVisitSequenceItemsToMap(itemMap, visit, museumContentsCache);
 
         // 5. Ricreiamo i blocchi
-        console.log("Inizio a costruire le colonne e inserire le carte...");
         structurData.forEach(blockData => {
             createNewBlock(blockData.blockName); 
             
@@ -431,17 +660,15 @@ async function caricaVisitaEsistente(vId) {
             const targetBlock = blocksNodes[blocksNodes.length - 1];
             const targetList = targetBlock.querySelector('.block-list');
 
-            blockData.items.forEach(itemId => {
+            (blockData.items || []).forEach(itemId => {
                 const info = itemMap[itemId];
                 if (info) {
-                    creaEdAggiungiItem(info.title, itemId, targetList, info.imageUrl, info.author);
+                    creaEdAggiungiItem(info.title, itemId, targetList, info.imageUrl, info.author, info.contentId);
                 } else {
                     console.warn(`Opera con ID ${itemId} non trovata nel database!`);
                 }
             });
         });
-        
-        console.log("CARICAMENTO FINITO CON SUCCESSO!");
 
     } catch(err) {
         console.error("ERRORE CRITICO in caricaVisitaEsistente:", err);
@@ -450,15 +677,43 @@ async function caricaVisitaEsistente(vId) {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+    await loadWalletBalance();
 
-    if (visitId && !sessionStorage.getItem('temp_visit_state')) {
-        await caricaVisitaEsistente(visitId);
+    const savedStateRaw = sessionStorage.getItem('temp_visit_state');
+    let savedState = null;
+
+    if (savedStateRaw) {
+        try {
+            savedState = JSON.parse(savedStateRaw);
+        } catch (error) {
+            console.error("Stato temporaneo visita non valido:", error);
+            sessionStorage.removeItem('temp_visit_state');
+        }
+    }
+
+    const shouldRestoreState = canRestoreTemporaryState(savedState);
+    let originalVisit = null;
+
+    if (visitId) {
+        try {
+            originalVisit = await loadOriginalVisitBaseline(visitId);
+        } catch (error) {
+            console.error("Errore nel recupero del baseline della visita:", error);
+            originalVisitItemCounts = {};
+        }
     } else {
-        const savedState = sessionStorage.getItem('temp_visit_state');
-        if (savedState) {
-            const state = JSON.parse(savedState);
+        originalVisitItemCounts = {};
+    }
+
+    if (visitId && !shouldRestoreState) {
+        if (savedStateRaw) sessionStorage.removeItem('temp_visit_state');
+        await caricaVisitaEsistente(visitId, originalVisit);
+    } else {
+        if (shouldRestoreState) {
+            const state = savedState;
             if(document.getElementById('v-title')) document.getElementById('v-title').value = state.title;
             if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
+            setVisitVisibility(state.isPublic === true);
             
             const addBtn = document.getElementById('add-block-btn');
             const tempDiv = document.createElement('div');
@@ -481,7 +736,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                 
                 block.querySelectorAll('.draggable-item').forEach(li => {
                     const itemId = li.dataset.itemId;
-                    const titoloOpera = li.querySelector('strong').innerText;
+                    const titoloOpera = li.dataset.title || li.querySelector('strong').innerText;
+                    const author = li.dataset.author || "Autore Ignoto";
+                    const imageUrl = li.dataset.imageUrl || "";
+                    const contentId = li.dataset.contentId || "";
 
                     li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
                     
@@ -508,7 +766,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                     li.addEventListener('click', function(e) {
                         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
                         salvaStatoTemporaneo();
-                        window.location.href = `create_items.html?itemId=${itemId}&museumId=${museumId}&museumName=${encodeURIComponent(museumName)}&title=${encodeURIComponent(titoloOpera)}`;
+                        const params = new URLSearchParams({
+                            itemId: itemId,
+                            museumId: museumId,
+                            museumName: museumName,
+                            title: titoloOpera,
+                            author: author,
+                            image: imageUrl
+                        });
+                        if (visitId) params.set('visitId', visitId);
+                        if (contentId) params.set('contentId', contentId);
+                        window.location.href = `create_items.html?${params.toString()}`;
                     });
                 });
             });
@@ -520,7 +788,14 @@ window.addEventListener('DOMContentLoaded', async () => {
             createNewBlock("Mainboard");
         }
     }
-    
+
+    try {
+        await loadMuseumItemCatalog(true);
+    } catch (error) {
+        console.error("Errore nel caricamento del catalogo prezzi:", error);
+    }
+
+    updateWalletPreview();
 });
 
 // --- SALVATAGGIO FINALE NEL DATABASE ---
@@ -564,10 +839,11 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     // Costruiamo il payload perfetto
     const payload = {
         title: title,
-        description: desc + "\n\n[Struttura Blocchi Salvata: " + JSON.stringify(structurData) + "]",
+        description: desc,
         museumId: museumId,
         sequence: sequenceObjects,
-        isPublic: false,
+        blocks: structurData,
+        isPublic: getVisitVisibility(),
         type: "standard", 
         length: "normal"  
     };
@@ -587,15 +863,26 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         });
 
         if (res.ok) {
-            alert("Visita salvata con successo nel database!");
+            const data = await res.json().catch(() => ({}));
+            if (typeof data.walletBalance === 'number') {
+                currentWalletBalance = data.walletBalance;
+            }
+            originalVisitItemCounts = createItemCountMapFromSequence(sequenceObjects);
+            updateWalletPreview();
             sessionStorage.removeItem('temp_visit_state');
+
+            const chargedAmount = Number(data.chargedAmount) || 0;
+            const successMessage = chargedAmount > 0
+                ? `Visita salvata. Addebito effettuato: ${formatCurrencyAmount(chargedAmount)}.`
+                : "Visita salvata con successo nel database!";
+            alert(successMessage);
             
             // Reindirizziamo al Marketplace
             window.location.href = `visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`; 
         } else {
-            const errorText = await res.text();
-            console.error("Errore Backend:", errorText);
-            alert("Impossibile salvare. Controlla la console per i dettagli.");
+            const errorData = await res.json().catch(() => ({}));
+            console.error("Errore Backend:", errorData);
+            alert(errorData.error || "Impossibile salvare la visita.");
         }
     } catch(err) {
         console.error("Errore di rete:", err);

@@ -10,6 +10,7 @@ const currMuseumId = urlParams.get('museumId');
 const currMuseumName = urlParams.get('museumName') || 'Museo';
 
 let allTours = [];
+let currentUserId = null;
 
 const dayLabels = {
     mon: "Mon",
@@ -225,6 +226,57 @@ function cleanVisitDescription(description) {
     return cleanDesc || "Nessuna descrizione fornita per questo tour.";
 }
 
+function getEntityId(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
+}
+
+async function loadCurrentUserId(token) {
+    if (!token) return null;
+
+    try {
+        const res = await fetch(`${myApi}/auth/me`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (!res.ok) return null;
+
+        const data = await res.json();
+        const user = data.user || data;
+        return getEntityId(user);
+    } catch (err) {
+        console.error("Errore durante il caricamento dell'utente corrente:", err);
+        return null;
+    }
+}
+
+function mergePublicAndOwnedVisits(publicVisits = [], ownedVisits = []) {
+    const visitsById = new Map();
+
+    publicVisits.forEach((visit) => {
+        const visitId = getEntityId(visit);
+        const creatorId = getEntityId(visit.creatorId);
+
+        visitsById.set(visitId, {
+            ...visit,
+            _isOwner: currentUserId && creatorId === currentUserId
+        });
+    });
+
+    ownedVisits.forEach((visit) => {
+        const visitId = getEntityId(visit);
+
+        visitsById.set(visitId, {
+            ...(visitsById.get(visitId) || {}),
+            ...visit,
+            _isOwner: true
+        });
+    });
+
+    return Array.from(visitsById.values());
+}
+
 function renderVisitsList(visitsArr) {
     visitsContainer.innerHTML = "";
 
@@ -238,6 +290,13 @@ function renderVisitsList(visitsArr) {
     visitsArr.forEach((v) => {
         const cleanDesc = cleanVisitDescription(v.description);
         const visitTitle = escapeHTML(v.title || "Untitled tour");
+        const isOwner = v._isOwner === true;
+        const ownerActions = isOwner ? `
+                <button class="visit-action-btn edit-btn" type="button">Edit</button>
+                <button class="visit-action-btn delete-btn" type="button" aria-label="Delete visit">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+        ` : "";
 
         const visitIcon = document.createElement("article");
         visitIcon.className = "visit-card-modern";
@@ -256,10 +315,7 @@ function renderVisitsList(visitsArr) {
 
             <div class="visit-card-actions">
                 <button class="visit-action-btn start-btn" type="button">Start</button>
-                <button class="visit-action-btn edit-btn" type="button">Edit</button>
-                <button class="visit-action-btn delete-btn" type="button" aria-label="Delete visit">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                ${ownerActions}
             </div>
         `;
 
@@ -315,75 +371,79 @@ function renderVisitsList(visitsArr) {
             window.location.href = `navigator.html?museumId=${currMuseumId}&visitId=${v._id}`;
         };
 
-        editBtn.onclick = (e) => {
-            e.stopPropagation();
-            const token = localStorage.getItem("token");
+        if (editBtn) {
+            editBtn.onclick = (e) => {
+                e.stopPropagation();
+                const token = localStorage.getItem("token");
 
-            if (!token) {
-                alert("Devi effettuare il login per modificare una visita.");
-                window.location.href = "login.html";
-                return;
-            }
-
-            window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}&visitId=${v._id}`;
-        };
-
-        deleteBtn.onclick = (e) => {
-            e.stopPropagation();
-            const token = localStorage.getItem("token");
-
-            if (!token) {
-                alert("Devi effettuare il login per eliminare una visita.");
-                window.location.href = "login.html";
-                return;
-            }
-
-            const deleteModal = document.getElementById("delete-confirm-modal");
-            const deleteText = document.getElementById("delete-modal-text");
-            const confirmBtn = document.getElementById("confirm-delete-btn");
-            const cancelBtn = document.getElementById("cancel-delete-btn");
-
-            deleteText.innerHTML = `
-                Sei sicuro di voler eliminare la visita<br>
-                <strong>"${visitTitle}"</strong>
-                <span>Questa azione &egrave; irreversibile.</span>
-            `;
-            deleteModal.classList.remove("hidden");
-
-            cancelBtn.onclick = () => {
-                deleteModal.classList.add("hidden");
-            };
-
-            confirmBtn.onclick = async () => {
-                try {
-                    confirmBtn.textContent = "Eliminazione...";
-                    confirmBtn.classList.add("is-loading");
-                    confirmBtn.disabled = true;
-
-                    const res = await fetch(`${myApi}/visits/${v._id}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-
-                    if (res.ok) {
-                        deleteModal.classList.add("hidden");
-                        loadList();
-                    } else {
-                        const errorData = await res.json();
-                        alert(`Impossibile eliminare: ${errorData.error || "Non sei autorizzato"}`);
-                        deleteModal.classList.add("hidden");
-                    }
-                } catch (err) {
-                    console.error("Errore eliminazione:", err);
-                    alert("Errore di rete.");
-                    deleteModal.classList.add("hidden");
-                } finally {
-                    confirmBtn.textContent = "Elimina";
-                    confirmBtn.classList.remove("is-loading");
-                    confirmBtn.disabled = false;
+                if (!token) {
+                    alert("Devi effettuare il login per modificare una visita.");
+                    window.location.href = "login.html";
+                    return;
                 }
+
+                window.location.href = `create_visits.html?museumId=${currMuseumId}&museumName=${encodeURIComponent(currMuseumName)}&visitId=${v._id}`;
             };
-        };
+        }
+
+        if (deleteBtn) {
+            deleteBtn.onclick = (e) => {
+                e.stopPropagation();
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    alert("Devi effettuare il login per eliminare una visita.");
+                    window.location.href = "login.html";
+                    return;
+                }
+
+                const deleteModal = document.getElementById("delete-confirm-modal");
+                const deleteText = document.getElementById("delete-modal-text");
+                const confirmBtn = document.getElementById("confirm-delete-btn");
+                const cancelBtn = document.getElementById("cancel-delete-btn");
+
+                deleteText.innerHTML = `
+                    Sei sicuro di voler eliminare la visita<br>
+                    <strong>"${visitTitle}"</strong>
+                    <span>Questa azione &egrave; irreversibile.</span>
+                `;
+                deleteModal.classList.remove("hidden");
+
+                cancelBtn.onclick = () => {
+                    deleteModal.classList.add("hidden");
+                };
+
+                confirmBtn.onclick = async () => {
+                    try {
+                        confirmBtn.textContent = "Eliminazione...";
+                        confirmBtn.classList.add("is-loading");
+                        confirmBtn.disabled = true;
+
+                        const res = await fetch(`${myApi}/visits/${v._id}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+
+                        if (res.ok) {
+                            deleteModal.classList.add("hidden");
+                            loadList();
+                        } else {
+                            const errorData = await res.json();
+                            alert(`Impossibile eliminare: ${errorData.error || "Non sei autorizzato"}`);
+                            deleteModal.classList.add("hidden");
+                        }
+                    } catch (err) {
+                        console.error("Errore eliminazione:", err);
+                        alert("Errore di rete.");
+                        deleteModal.classList.add("hidden");
+                    } finally {
+                        confirmBtn.textContent = "Elimina";
+                        confirmBtn.classList.remove("is-loading");
+                        confirmBtn.disabled = false;
+                    }
+                };
+            };
+        }
 
         visitsContainer.appendChild(visitIcon);
     });
@@ -414,22 +474,33 @@ async function loadList() {
 
     const token = localStorage.getItem("token");
 
-    if (!token) {
-        renderLoginRequiredState();
-        return;
-    }
-
     try {
-        const res = await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
+        currentUserId = await loadCurrentUserId(token);
+
+        const publicRes = await fetch(`${myApi}/museums/${currMuseumId}/visits`, {
+            headers: token ? { "Authorization": `Bearer ${token}` } : {}
         });
 
-        if (!res.ok) throw new Error("Errore dal server o token scaduto");
+        if (!publicRes.ok) throw new Error("Errore dal server durante il caricamento delle visite pubbliche");
 
-        const data = await res.json();
-        allTours = data.visits || data || [];
+        const publicData = await publicRes.json();
+        const publicVisits = publicData.visits || publicData || [];
+        let ownedVisits = [];
+
+        if (token) {
+            const ownedRes = await fetch(`${myApi}/visits/my?museumId=${currMuseumId}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (ownedRes.ok) {
+                const ownedData = await ownedRes.json();
+                ownedVisits = ownedData.visits || ownedData || [];
+            }
+        }
+
+        allTours = mergePublicAndOwnedVisits(publicVisits, ownedVisits);
         renderVisitsList(allTours);
     } catch (err) {
         console.error("Errore durante il caricamento delle visite: " + err);
@@ -443,11 +514,6 @@ function setupSearchListeners() {
     if (!searchBar) return;
 
     searchBar.addEventListener("input", (e) => {
-        if (!localStorage.getItem("token")) {
-            renderLoginRequiredState();
-            return;
-        }
-
         const searchTerm = e.target.value.toLowerCase().trim();
         const filteredArr = allTours.filter((visit) => {
             const matchingName = visit.title && visit.title.toLowerCase().includes(searchTerm);
