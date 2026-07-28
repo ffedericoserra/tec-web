@@ -1,0 +1,85 @@
+[
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5248'),
+    contentId: 'uffizi-botticelli-venere'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f524a'),
+    contentId: 'uffizi-botticelli-primavera'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f524c'),
+    contentId: 'uffizi-leonardo-annunciazione'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f524e'),
+    contentId: 'uffizi-michelangelo-tondodoni'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5250'),
+    contentId: 'uffizi-raffaello-cardellino'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5252'),
+    contentId: 'uffizi-tiziano-venere'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5254'),
+    contentId: 'uffizi-caravaggio-bacco'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5256'),
+    contentId: 'uffizi-caravaggio-medusa'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5258'),
+    contentId: 'uffizi-gentile-magi'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f525a'),
+    contentId: 'uffizi-giotto-maesta'
+  },
+
+
+  ------------DA SCARICARE--------------------
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f525c'),
+    contentId: 'mambo-morandi-natura-morta-1946'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f525e'),
+    contentId: 'mambo-morandi-paesaggio' 
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5260'),
+    contentId: 'mambo-burri-rosso-plastica'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5262'),
+    contentId: 'mambo-fontana-concetto-spaziale'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5264'),
+    contentId: 'mambo-de-chirico-ettore-andromaca'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5266'),
+    contentId: 'mambo-vedova-plurimo'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f5268'),
+    contentId: 'mambo-kounellis-senza-titolo'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f526a'),
+    contentId: 'mambo-paolini-giovane-guardando-lorenzo-lotto'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f526c'),
+    contentId: 'mambo-pascali-bachi-da-setola'
+  },
+  {
+    _id: ObjectId('69f65dbfdb5b9cabae5f526e'),
+    contentId: 'mambo-pistoletto-venere-stracci'
+  }
+]

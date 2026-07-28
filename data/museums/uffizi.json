@@ -37,7 +37,8 @@
       "author": "Sandro Botticelli",
       "year": "1485",
       "coordinates": { "lat": 43.7683, "lng": 11.2553 },
-      "qrCode": "QR-uffizi-botticelli-venere"
+      "qrCode": "QR-uffizi-botticelli-venere",
+      "imgPath": "/uploads/contents/artworks/venere_botticelli.jpg"
     },
     {
       "type": "Artwork",
@@ -46,7 +47,8 @@
       "author": "Sandro Botticelli",
       "year": "1482",
       "coordinates": { "lat": 43.7683, "lng": 11.2555 },
-      "qrCode": "QR-uffizi-botticelli-primavera"
+      "qrCode": "QR-uffizi-botticelli-primavera",
+      "imgPath": "/uploads/contents/artworks/primavera_botticelli.jpg"
     },
     {
       "type": "Artwork",
@@ -55,7 +57,8 @@
       "author": "Leonardo da Vinci",
       "year": "1472",
       "coordinates": { "lat": 43.7684, "lng": 11.2551 },
-      "qrCode": "QR-uffizi-leonardo-annunciazione"
+      "qrCode": "QR-uffizi-leonardo-annunciazione",
+      "imgPath": "/uploads/contents/artworks/annunciazione_leonardo.jpg"
     },
     {
       "type": "Artwork",
@@ -64,7 +67,8 @@
       "author": "Michelangelo Buonarroti",
       "year": "1507",
       "coordinates": { "lat": 43.7685, "lng": 11.2554 },
-      "qrCode": "QR-uffizi-michelangelo-tondodoni"
+      "qrCode": "QR-uffizi-michelangelo-tondodoni",
+      "imgPath": "/uploads/contents/artworks/tondo-doni_michelangelo.jpg"
     },
     {
       "type": "Artwork",
@@ -73,7 +77,8 @@
       "author": "Raffaello Sanzio",
       "year": "1506",
       "coordinates": { "lat": 43.7682, "lng": 11.2552 },
-      "qrCode": "QR-uffizi-raffaello-cardellino"
+      "qrCode": "QR-uffizi-raffaello-cardellino",
+      "imgPath": "/uploads/contents/artworks/madonna-cardellino_raffaello.jpg"
     },
     {
       "type": "Artwork",
@@ -82,7 +87,8 @@
       "author": "Tiziano Vecellio",
       "year": "1538",
       "coordinates": { "lat": 43.7681, "lng": 11.2556 },
-      "qrCode": "QR-uffizi-tiziano-venere"
+      "qrCode": "QR-uffizi-tiziano-venere",
+      "imgPath": "/uploads/contents/artworks/venere_tiziano.jpg"
     },
     {
       "type": "Artwork",
@@ -91,7 +97,8 @@
       "author": "Caravaggio",
       "year": "1597",
       "coordinates": { "lat": 43.7680, "lng": 11.2553 },
-      "qrCode": "QR-uffizi-caravaggio-bacco"
+      "qrCode": "QR-uffizi-caravaggio-bacco",
+      "imgPath": "/uploads/contents/artworks/bacco_caravaggio.jpg"
     },
     {
       "type": "Artwork",
@@ -100,7 +107,8 @@
       "author": "Caravaggio",
       "year": "1597",
       "coordinates": { "lat": 43.7680, "lng": 11.2555 },
-      "qrCode": "QR-uffizi-caravaggio-medusa"
+      "qrCode": "QR-uffizi-caravaggio-medusa",
+      "imgPath": "/uploads/contents/artworks/medusa_caravaggio.jpg"
     },
     {
       "type": "Artwork",
@@ -109,7 +117,8 @@
       "author": "Gentile da Fabriano",
       "year": "1423",
       "coordinates": { "lat": 43.7684, "lng": 11.2557 },
-      "qrCode": "QR-uffizi-gentile-magi"
+      "qrCode": "QR-uffizi-gentile-magi",
+      "imgPath": "/uploads/contents/artworks/magi_gentile.jpg"
     },
     {
       "type": "Artwork",
@@ -118,7 +127,8 @@
       "author": "Giotto",
       "year": "1310",
       "coordinates": { "lat": 43.7686, "lng": 11.2551 },
-      "qrCode": "QR-uffizi-giotto-maesta"
+      "qrCode": "QR-uffizi-giotto-maesta",
+      "imgPath": "/uploads/contents/artworks/maesta_giotto.jpg"
     },
     {
       "type": "Artist",
@@ -126,7 +136,8 @@
       "name": "Sandro Botticelli",
       "year": "1445-1510",
       "coordinates": { "lat": 43.7683, "lng": 11.2554 },
-      "qrCode": "QR-uffizi-artist-botticelli"
+      "qrCode": "QR-uffizi-artist-botticelli",
+      "imgPath": "/uploads/contents/artists/sandro-botticelli.jpg"
     },
     {
       "type": "Artist",
@@ -134,7 +145,8 @@
       "name": "Leonardo da Vinci",
       "year": "1452-1519",
       "coordinates": { "lat": 43.7684, "lng": 11.2552 },
-      "qrCode": "QR-uffizi-artist-leonardo"
+      "qrCode": "QR-uffizi-artist-leonardo",
+      "imgPath": "/uploads/contents/artists/leonardo-da-vinci.jpg"
     },
     {
       "type": "Movement",
@@ -142,7 +154,8 @@
       "name": "Rinascimento Fiorentino",
       "year": "XV-XVI secolo",
       "coordinates": { "lat": 43.7682, "lng": 11.2554 },
-      "qrCode": "QR-uffizi-movement-rinascimento"
+      "qrCode": "QR-uffizi-movement-rinascimento",
+      "imgPath": "/uploads/contents/movement/rinascimento.jpg"
     }
   ]
 }

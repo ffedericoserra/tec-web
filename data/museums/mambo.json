@@ -37,7 +37,8 @@
       "author": "Giorgio Morandi",
       "year": "1946",
       "coordinates": { "lat": 44.4999, "lng": 11.3388 },
-      "qrCode": "QR-mambo-morandi-natura-morta-1946"
+      "qrCode": "QR-mambo-morandi-natura-morta-1946",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -46,7 +47,8 @@
       "author": "Giorgio Morandi",
       "year": "1943",
       "coordinates": { "lat": 44.4999, "lng": 11.3390 },
-      "qrCode": "QR-mambo-morandi-paesaggio"
+      "qrCode": "QR-mambo-morandi-paesaggio",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -55,7 +57,8 @@
       "author": "Alberto Burri",
       "year": "1962",
       "coordinates": { "lat": 44.5000, "lng": 11.3385 },
-      "qrCode": "QR-mambo-burri-rosso-plastica"
+      "qrCode": "QR-mambo-burri-rosso-plastica",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -64,7 +67,8 @@
       "author": "Lucio Fontana",
       "year": "1960",
       "coordinates": { "lat": 44.5000, "lng": 11.3387 },
-      "qrCode": "QR-mambo-fontana-concetto-spaziale"
+      "qrCode": "QR-mambo-fontana-concetto-spaziale",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -73,7 +77,8 @@
       "author": "Giorgio de Chirico",
       "year": "1924",
       "coordinates": { "lat": 44.5001, "lng": 11.3389 },
-      "qrCode": "QR-mambo-de-chirico-ettore-andromaca"
+      "qrCode": "QR-mambo-de-chirico-ettore-andromaca",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -82,7 +87,8 @@
       "author": "Emilio Vedova",
       "year": "1962",
       "coordinates": { "lat": 44.5001, "lng": 11.3386 },
-      "qrCode": "QR-mambo-vedova-plurimo"
+      "qrCode": "QR-mambo-vedova-plurimo",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -91,7 +97,8 @@
       "author": "Jannis Kounellis",
       "year": "1979",
       "coordinates": { "lat": 44.5000, "lng": 11.3383 },
-      "qrCode": "QR-mambo-kounellis-senza-titolo"
+      "qrCode": "QR-mambo-kounellis-senza-titolo",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -100,7 +107,8 @@
       "author": "Giulio Paolini",
       "year": "1967",
       "coordinates": { "lat": 44.4998, "lng": 11.3384 },
-      "qrCode": "QR-mambo-paolini-giovane-guardando-lorenzo-lotto"
+      "qrCode": "QR-mambo-paolini-giovane-guardando-lorenzo-lotto",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -109,7 +117,8 @@
       "author": "Pino Pascali",
       "year": "1968",
       "coordinates": { "lat": 44.4998, "lng": 11.3392 },
-      "qrCode": "QR-mambo-pascali-bachi-da-setola"
+      "qrCode": "QR-mambo-pascali-bachi-da-setola",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artwork",
@@ -118,7 +127,8 @@
       "author": "Michelangelo Pistoletto",
       "year": "1967",
       "coordinates": { "lat": 44.5002, "lng": 11.3387 },
-      "qrCode": "QR-mambo-pistoletto-venere-stracci"
+      "qrCode": "QR-mambo-pistoletto-venere-stracci",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artist",
@@ -126,7 +136,8 @@
       "name": "Giorgio Morandi",
       "year": "1890-1964",
       "coordinates": { "lat": 44.4999, "lng": 11.3389 },
-      "qrCode": "QR-mambo-artist-morandi"
+      "qrCode": "QR-mambo-artist-morandi",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Artist",
@@ -134,7 +145,8 @@
       "name": "Lucio Fontana",
       "year": "1899-1968",
       "coordinates": { "lat": 44.5000, "lng": 11.3388 },
-      "qrCode": "QR-mambo-artist-fontana"
+      "qrCode": "QR-mambo-artist-fontana",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     },
     {
       "type": "Movement",
@@ -142,7 +154,8 @@
       "name": "Arte Povera",
       "year": "1960-1970",
       "coordinates": { "lat": 44.5001, "lng": 11.3387 },
-      "qrCode": "QR-mambo-movement-arte-povera"
+      "qrCode": "QR-mambo-movement-arte-povera",
+      "imgPath": "/uploads/contents/placeholder.jpg"
     }
   ]
 }
