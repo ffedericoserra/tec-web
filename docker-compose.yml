@@ -28,10 +28,14 @@ services:
     depends_on:
       - mongo_db
     environment:
-      # We override the DB host for local dev. 
-      # 'mongo_db' is the service name defined above.
+      # Passiamo TUTTE le variabili necessarie al DB
       DB_HOST: mongo_db 
-    # Command to install dependencies and run the server
+      DB_USER: site242557
+      DB_PASS: UgeeJie6
+      DB_NAME: mongo_site242557
+      PORT: 8000
+      JWT_SECRET: super-segreto-temporaneo
+      JWT_EXPIRES_IN: 1d    
     command: sh -c "npm install && npm start"
 
 volumes:

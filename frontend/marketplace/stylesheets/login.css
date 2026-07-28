@@ -1,0 +1,297 @@
+/* ==========================================================================
+   ARTAROUND - LOGIN EDITORIAL STYLES
+   Colors: #710014 (Burgundy), #F2F1ED (Cream), #161616 (Anthracite)
+   Font: Helvetica
+   ========================================================================== */
+
+#artaround-login {
+    font-family: 'Helvetica', Arial, sans-serif;
+    background-color: #F2F1ED;
+    color: #161616;
+    margin: 0;
+    padding: 0;
+    padding-top: 80px;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#artaround-login .hidden { display: none !important; }
+
+#artaround-login .login-page-shell {
+    min-height: calc(100vh - 80px);
+    background-color: #F2F1ED;
+}
+
+#artaround-login .login-hero {
+    position: relative;
+    min-height: calc(100vh - 80px);
+    padding: 70px 10vw 60px;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+}
+
+#artaround-login .page-grid-lines {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+#artaround-login .grid-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid rgba(22, 22, 22, 0.15);
+}
+
+#artaround-login .line-25 { left: 25%; }
+#artaround-login .line-50 { left: 50%; }
+#artaround-login .line-75 { left: 75%; }
+
+#artaround-login .shape-circle {
+    position: absolute;
+    z-index: 1;
+    border-radius: 50%;
+    mix-blend-mode: multiply;
+}
+
+#artaround-login .circle-small {
+    width: 12vw;
+    height: 12vw;
+    top: 12%;
+    left: 8%;
+    background-color: rgba(113, 0, 20, 0.15);
+}
+
+#artaround-login .circle-large {
+    width: 40vw;
+    height: 40vw;
+    right: 4%;
+    bottom: 5%;
+    background-color: rgba(113, 0, 20, 0.15);
+}
+
+#artaround-login .login-layout {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+    gap: 70px;
+    align-items: center;
+    min-height: calc(100vh - 210px);
+}
+
+#artaround-login .login-heading-block {
+    max-width: 760px;
+}
+
+#artaround-login .login-kicker,
+#artaround-login .text-label {
+    display: block;
+    margin-bottom: 10px;
+    color: #710014;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-login .login-kicker {
+    margin-bottom: 14px;
+    letter-spacing: 3px;
+}
+
+#artaround-login .login-title {
+    margin: 0 0 28px;
+    color: #161616;
+    font-size: clamp(4rem, 10vw, 7.2rem);
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -1px;
+}
+
+#artaround-login .font-light {
+    color: rgba(22, 22, 22, 0.6);
+    font-weight: 300;
+}
+
+#artaround-login .burgundy-text {
+    color: #710014;
+    font-weight: 800;
+}
+
+#artaround-login .login-copy {
+    max-width: 560px;
+    margin: 0;
+    color: rgba(22, 22, 22, 0.72);
+    font-size: 1rem;
+    line-height: 1.7;
+}
+
+#artaround-login .login-panel {
+    padding: 34px 0 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.22);
+}
+
+#artaround-login .login-panel-header {
+    margin-bottom: 34px;
+}
+
+#artaround-login .login-panel-header h2 {
+    margin: 0;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+}
+
+#artaround-login .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 34px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.22);
+    border-radius: 0;
+    box-shadow: none;
+}
+
+#artaround-login .input-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0;
+    text-align: left;
+}
+
+#artaround-login .input-slot {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 0 12px;
+    color: #161616;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.3);
+    border-radius: 0;
+    outline: none;
+    font-family: inherit;
+    font-size: 1.1rem;
+    transition: border-color 0.3s ease;
+}
+
+#artaround-login .input-slot:focus {
+    border-color: #710014;
+    background: transparent;
+    box-shadow: none;
+}
+
+#artaround-login .input-slot::placeholder {
+    color: rgba(22, 22, 22, 0.42);
+}
+
+#artaround-login .main-btn {
+    width: 100%;
+    min-height: 48px;
+    margin-top: 4px;
+    padding: 15px 28px;
+    color: #F2F1ED;
+    background-color: #161616;
+    border: 1px solid #161616;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+}
+
+#artaround-login .main-btn:hover {
+    color: #F2F1ED;
+    background-color: #710014;
+    border-color: #710014;
+    box-shadow: none;
+}
+
+#artaround-login .main-btn:disabled,
+#artaround-login .main-btn.is-loading {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+#artaround-login .login-error {
+    display: none;
+    margin: 0;
+    padding: 0;
+    color: #710014;
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+#artaround-login .login-error.is-visible {
+    display: block;
+}
+
+#artaround-login .register-prompt {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 28px 0 0;
+    color: rgba(22, 22, 22, 0.62);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+#artaround-login .register-prompt a {
+    color: #161616;
+    font-weight: 800;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    transition: color 0.3s ease;
+}
+
+#artaround-login .register-prompt a:hover {
+    color: #710014;
+}
+
+@media (max-width: 900px) {
+    #artaround-login .login-hero {
+        min-height: auto;
+        padding: 56px 7vw 60px;
+    }
+
+    #artaround-login .login-layout {
+        grid-template-columns: 1fr;
+        gap: 48px;
+        min-height: 0;
+    }
+}
+
+@media (max-width: 640px) {
+    #artaround-login .login-hero {
+        padding: 44px 6vw 56px;
+    }
+
+    #artaround-login .login-title {
+        font-size: clamp(3.2rem, 18vw, 5rem);
+    }
+
+    #artaround-login .circle-small {
+        width: 28vw;
+        height: 28vw;
+    }
+
+    #artaround-login .circle-large {
+        width: 72vw;
+        height: 72vw;
+        right: -22vw;
+    }
+}

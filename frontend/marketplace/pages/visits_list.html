@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Visits</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/visits_list.css" />
+  </head>
+  <body id="artaround-visits" class="visits-body">
+    <!-- NAVBAR -->
+    <header class="top-nav editorial-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+
+        <ul class="nav-links">
+          <li>
+            <a href="homepage.html#destinazioni" id="nav-plan" class="active"
+              >Plan your visit</a
+            >
+          </li>
+          <li><a href="#" id="nav-add-museum">Add museum</a></li>
+          <li><a href="about.html" id="nav-about">About us</a></li>
+        </ul>
+
+        <div class="nav-auth-wrapper">
+          <ul class="nav-auth">
+            <li class="guest-only"><a href="login.html">Login</a></li>
+            <li class="guest-only"><a href="register.html">Sign-up</a></li>
+            <li class="user-only hidden">
+              <a href="user_profile.html">Account</a>
+            </li>
+            <li class="user-only hidden">
+              <a href="#" id="logout-btn">Log out</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="visits-page-shell">
+      <section class="visits-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
+        </div>
+
+        <div class="visits-hero-layout">
+          <div class="visits-heading-block">
+            <a href="homepage.html#destinazioni" class="header-back-link"
+              >Back to museums</a
+            >
+            <span class="visits-kicker">Visite del museo</span>
+            <h1 class="visits-title" id="museum-title-display">Museo</h1>
+          </div>
+
+          <aside
+            id="QUESTA"
+            class="museum-details-panel"
+            aria-live="polite"
+            aria-label="Dettagli del museo"
+          >
+            <div class="museum-details-loading">
+              Caricamento dettagli museo...
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="visits-list-section">
+        <div class="visits-toolbar">
+          <div class="visit-search-wrapper">
+            <label for="search-bar" class="search-label">Cerca</label>
+            <input
+              type="text"
+              id="search-bar"
+              class="search-bar-input"
+              placeholder="Movimento, autore o periodo..."
+            />
+          </div>
+
+          <div class="visits-section-heading">
+            <h2 class="section-title-new">Visite</h2>
+            <p>Seleziona un tour per iniziare</p>
+          </div>
+        </div>
+
+        <div id="tours-list" class="modern-grid"></div>
+      </section>
+    </main>
+
+    <button
+      class="floating-add-btn add-btn"
+      id="add-visit-btn"
+      aria-label="Add a new visit"
+      title="Crea una nuova visita per questo museo"
+    >
+      +
+    </button>
+
+    <!-- MODALE ELIMINAZIONE VISITA -->
+    <div id="delete-confirm-modal" class="modal-overlay hidden">
+      <div class="modal-content delete-modal-content">
+        <h2 class="warning-title">Attenzione!</h2>
+
+        <p class="warning-text" id="delete-modal-text">
+          Sei sicuro di voler eliminare questa visita?
+        </p>
+
+        <div class="delete-modal-actions">
+          <button id="cancel-delete-btn" class="modal-btn modal-btn-secondary">
+            Annulla
+          </button>
+
+          <button id="confirm-delete-btn" class="modal-btn modal-btn-danger">
+            Elimina
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/visits_list.js"></script>
+  </body>
+</html>

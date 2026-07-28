@@ -11,6 +11,11 @@ const sequenceItemSchema = z.object({
   overrideImage: z.string().url().optional(),
 });
 
+const visitBlockSchema = z.object({
+  blockName: z.string().trim().default('Mainboard'),
+  items: z.array(z.string().min(1, 'Item ID is required')).default([]),
+});
+
 const quizQuestionSchema = z.object({
   question: z.string().min(1, 'Question is required'),
   options: z.array(z.string()).min(2, 'At least 2 options are required'),
@@ -23,6 +28,7 @@ const createVisitSchema = z.object({
   description: z.string().trim().optional(),
   imageUrl: z.string().url().optional(),
   sequence: z.array(sequenceItemSchema).optional(),
+  blocks: z.array(visitBlockSchema).optional(),
   type: z.enum(['standard', 'synchronized']).default('standard'),
   length: z.enum(['quick', 'normal', 'deep']).default('normal'),
   isPublic: z.boolean().default(true),
@@ -34,6 +40,7 @@ const updateVisitSchema = z.object({
   description: z.string().trim().optional(),
   imageUrl: z.string().url().optional(),
   sequence: z.array(sequenceItemSchema).optional(),
+  blocks: z.array(visitBlockSchema).optional(),
   type: z.enum(['standard', 'synchronized']).optional(),
   length: z.enum(['quick', 'normal', 'deep']).optional(),
   isPublic: z.boolean().optional(),

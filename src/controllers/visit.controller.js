@@ -5,6 +5,113 @@
 
 const Visit = require('../models/Visit');
 const User = require('../models/User');
+const Item = require('../models/Item');
+
+function processSequence(sequence = []) {
+  return sequence.map((item, index) => ({
+    ...item,
+    order: index,
+  }));
+}
+
+function processBlocks(blocks = []) {
+  return blocks.map((block) => ({
+    blockName: block.blockName || 'Mainboard',
+    items: block.items || [],
+  }));
+}
+
+function buildItemCountMap(sequence = []) {
+  return sequence.reduce((counts, item) => {
+    const itemId = String(item.itemId);
+    counts[itemId] = (counts[itemId] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function getAdditionalItemIds(nextSequence = [], previousSequence = []) {
+  const previousCounts = buildItemCountMap(previousSequence);
+  const nextCounts = buildItemCountMap(nextSequence);
+  const additionalItemIds = [];
+
+  Object.entries(nextCounts).forEach(([itemId, nextCount]) => {
+    const previousCount = previousCounts[itemId] || 0;
+    const difference = nextCount - previousCount;
+
+    if (difference > 0) {
+      for (let index = 0; index < difference; index += 1) {
+        additionalItemIds.push(itemId);
+      }
+    }
+  });
+
+  return additionalItemIds;
+}
+
+async function chargeVisitItems(userId, additionalItemIds = []) {
+  if (!additionalItemIds.length) {
+    const user = await User.findById(userId).select('walletBalance');
+    return {
+      chargedAmount: 0,
+      walletBalance: user ? user.walletBalance : 0,
+    };
+  }
+
+  const items = await Item.find({ _id: { $in: additionalItemIds } }).select('price creatorId');
+  const itemsMap = new Map(items.map((item) => [String(item._id), item]));
+
+  let chargedAmount = 0;
+  const creatorCredits = new Map();
+
+  additionalItemIds.forEach((itemId) => {
+    const item = itemsMap.get(String(itemId));
+
+    if (!item) {
+      return;
+    }
+
+    const price = Number(item.price) || 0;
+    chargedAmount += price;
+
+    if (price > 0 && String(item.creatorId) !== String(userId)) {
+      const creatorKey = String(item.creatorId);
+      creatorCredits.set(creatorKey, (creatorCredits.get(creatorKey) || 0) + price);
+    }
+  });
+
+  if (chargedAmount > 0) {
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId, walletBalance: { $gte: chargedAmount } },
+      { $inc: { walletBalance: -chargedAmount } },
+      { new: true }
+    ).select('walletBalance');
+
+    if (!updatedUser) {
+      const error = new Error('Insufficient balance');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    await Promise.all(
+      Array.from(creatorCredits.entries()).map(([creatorId, amount]) =>
+        User.findByIdAndUpdate(creatorId, {
+          $inc: { walletBalance: amount },
+        })
+      )
+    );
+
+    return {
+      chargedAmount,
+      walletBalance: updatedUser.walletBalance,
+    };
+  }
+
+  const user = await User.findById(userId).select('walletBalance');
+  return {
+    chargedAmount: 0,
+    walletBalance: user ? user.walletBalance : 0,
+  };
+}
 
 /**
  * Get user's own visits
@@ -62,13 +169,14 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { title, museumId, description, imageUrl, sequence, type, length, isPublic, quiz } = req.body;
+    const { title, museumId, description, imageUrl, sequence, blocks, type, length, isPublic, quiz } = req.body;
 
     // Process sequence to add order
-    const processedSequence = (sequence || []).map((item, index) => ({
-      ...item,
-      order: index,
-    }));
+    const processedSequence = processSequence(sequence || []);
+    const processedBlocks = processBlocks(blocks || []);
+    const additionalItemIds = getAdditionalItemIds(processedSequence, []);
+
+    const billing = await chargeVisitItems(req.user._id, additionalItemIds);
 
     const visit = new Visit({
       title,
@@ -77,6 +185,7 @@ exports.create = async (req, res, next) => {
       description,
       imageUrl,
       sequence: processedSequence,
+      blocks: processedBlocks,
       type: type || 'standard',
       length: length || 'normal',
       isPublic: isPublic !== false,
@@ -89,7 +198,11 @@ exports.create = async (req, res, next) => {
       $push: { myVisits: visit._id },
     });
 
-    res.status(201).json({ visit });
+    res.status(201).json({
+      visit,
+      chargedAmount: billing.chargedAmount,
+      walletBalance: billing.walletBalance,
+    });
   } catch (error) {
     next(error);
   }
@@ -112,22 +225,30 @@ exports.update = async (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to update this visit' });
     }
 
-    const { title, description, imageUrl, sequence, type, length, isPublic, quiz } = req.body;
+    const { title, description, imageUrl, sequence, blocks, type, length, isPublic, quiz } = req.body;
 
     // Process sequence to add order
     let processedSequence;
     if (sequence) {
-      processedSequence = sequence.map((item, index) => ({
-        ...item,
-        order: index,
-      }));
+      processedSequence = processSequence(sequence);
     }
+
+    let processedBlocks;
+    if (blocks) {
+      processedBlocks = processBlocks(blocks);
+    }
+
+    const additionalItemIds = processedSequence
+      ? getAdditionalItemIds(processedSequence, visit.sequence || [])
+      : [];
+    const billing = await chargeVisitItems(req.user._id, additionalItemIds);
 
     Object.assign(visit, {
       ...(title && { title }),
       ...(description !== undefined && { description }),
       ...(imageUrl !== undefined && { imageUrl }),
       ...(processedSequence && { sequence: processedSequence }),
+      ...(processedBlocks && { blocks: processedBlocks }),
       ...(type && { type }),
       ...(length && { length }),
       ...(isPublic !== undefined && { isPublic }),
@@ -135,7 +256,11 @@ exports.update = async (req, res, next) => {
     });
 
     await visit.save();
-    res.json({ visit });
+    res.json({
+      visit,
+      chargedAmount: billing.chargedAmount,
+      walletBalance: billing.walletBalance,
+    });
   } catch (error) {
     next(error);
   }

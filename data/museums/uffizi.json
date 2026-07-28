@@ -3,12 +3,19 @@
     "name": "Galleria degli Uffizi",
     "address": "Piazzale degli Uffizi, 6, 50122 Firenze FI",
     "description": "Una delle più famose gallerie d'arte al mondo, ospita capolavori del Rinascimento italiano.",
-    "imageUrl": "/uploads/museums/uffizi.jpg",
-    "theme": {
-      "primaryColor": "#8B4513",
-      "secondaryColor": "#F5F5DC",
-      "font": "Georgia"
+    "website": "https://www.uffizi.it",
+    "email": "infouffizi@beniculturali.it",
+    "phone": "055 294883",
+    "openingHours": {
+      "mon": "Chiuso",
+      "tue": "08:15 - 18:30",
+      "wed": "08:15 - 18:30",
+      "thu": "08:15 - 18:30",
+      "fri": "08:15 - 18:30",
+      "sat": "08:15 - 18:30",
+      "sun": "08:15 - 18:30"
     },
+    "imageUrl": "/uploads/museums/uffizi.jpg",
     "mapData": {
       "imageUrl": "/uploads/maps/uffizi-map.png",
       "bounds": {

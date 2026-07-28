@@ -4,9 +4,9 @@
  */
 
 const http = require('http');
-const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const path = require('path'); //aggiunto per il deploy
 const { connectDB } = require('./config/db');
 const env = require('./config/env');
 const apiRoutes = require('./routes');
@@ -24,28 +24,23 @@ app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// Marketplace frontend (vanilla HTML/CSS/JS)
-const marketplaceDir = path.join(__dirname, '..', 'frontend-marketplace');
-app.use('/marketplace/css', express.static(path.join(marketplaceDir, 'css')));
-app.use('/marketplace/js', express.static(path.join(marketplaceDir, 'js')));
-app.use('/marketplace/assets', express.static(path.join(marketplaceDir, 'assets')));
+// Marketplace frontend (vanilla HTML/CSS/JS, served from frontend/marketplace).
+// Bare /marketplace redirects to the homepage; everything else under
+// /marketplace/* is served as a static asset.
+const marketplaceDir = path.join(__dirname, '../frontend/marketplace');
 app.get('/marketplace', (req, res) => {
-  res.sendFile(path.join(marketplaceDir, 'pages', 'home.html'));
+  res.redirect('/marketplace/pages/homepage.html');
 });
-app.get('/marketplace/museums', (req, res) => {
-  res.sendFile(path.join(marketplaceDir, 'pages', 'museums.html'));
-});
-app.get('/marketplace/museums/:slug', (req, res) => {
-  res.sendFile(path.join(marketplaceDir, 'pages', 'museum.html'));
-});
+app.use('/marketplace', express.static(marketplaceDir));
 
 // API routes
 app.use('/api', apiRoutes);
 
-// Navigator frontend (React SPA, Vite-built). Mounted last so it doesn't
-// shadow /api, /marketplace, or /uploads. The catch-all only matches paths
-// without a file extension so missing assets still 404 instead of returning
-// HTML.
+// Navigator frontend (React SPA, Vite-built into frontend-navigator/dist).
+// Mounted after /api and /marketplace so it doesn't shadow them. The catch-all
+// only matches paths without a file extension so missing assets still 404
+// instead of returning HTML. Everything not under /api, /marketplace, or
+// /uploads is owned by the navigator.
 const navigatorDir = path.join(__dirname, '..', 'frontend-navigator', 'dist');
 app.use(express.static(navigatorDir));
 app.get(/^\/(?!api|marketplace|uploads)[^.]*$/, (req, res) => {

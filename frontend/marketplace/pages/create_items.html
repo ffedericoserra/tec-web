@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Editorial Item Edit</title>
+    <!-- Fogli di stile -->
+    <link rel="stylesheet" href="../stylesheets/navbar.css">
+    <link rel="stylesheet" href="../stylesheets/create_items.css" />
+  </head>
+  
+  <body id="artaround-item-edit">
+
+    <!-- NAVBAR FISSA -->
+    <header class="top-nav editorial-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+        <ul class="nav-links">
+          <li><a href="homepage.html#destinazioni">Plan your visit</a></li>
+          <li><a href="add_museum.html">Add museum</a></li>
+          <li><a href="about.html">About us</a></li>
+        </ul>
+        <div class="nav-auth-wrapper">
+            <ul class="nav-auth">
+                <li class="user-only"><a href="user_profile.html">Account</a></li>
+                <li class="user-only"><a href="#" id="logout-btn">Log out</a></li>
+            </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="item-edit-container">
+        
+        <!-- INTESTAZIONE GIGANTE TIPO HOMEPAGE -->
+        <div class="editorial-header-section">
+            <div class="museum-context-info">
+                MUSEO / <span id="museum-name-display" class="burgundy-text">CARICAMENTO...</span>
+            </div>
+            <h1 class="artwork-title" id="artwork-title-display">CARICAMENTO OPERA...</h1>
+        </div>
+
+        <!-- DROPDOWN CUSTOM MINIMALE -->
+        <div class="custom-dropdown-container">
+            <div class="dropdown-trigger" id="dropdown-trigger">
+                <span id="dropdown-selected-text" class="dropdown-label">Select (and edit) an existing item or create a new one</span> 
+                <span class="arrow">▼</span>
+            </div>
+            
+            <div class="dropdown-menu hidden" id="dropdown-menu">
+                <ul id="existing-items-list">
+                    <!-- Iniettati da JS -->
+                </ul>
+                <div class="dropdown-action">
+                    <button id="btn-create-new" class="create-new-btn">Crea il tuo item (Nuovo)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="item-editor-grid">
+            
+            <!-- COLONNA SINISTRA: IMMAGINE E METADATI A RIGHE -->
+            <div class="item-image-col">
+                <div class="image-placeholder" id="image-preview">
+                    <span>Nessuna Immagine</span>
+                </div>
+                <div class="item-metadata">
+                    <div class="meta-row">
+                        <span class="meta-label">ANNO</span>
+                        <input type="text" id="item-anno" class="readonly-input" readonly>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">PREZZO</span>
+                        <input type="text" id="item-prezzo" class="readonly-input" readonly>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">AUTORE ITEM</span>
+                        <input type="text" id="item-creatore" class="readonly-input" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLONNA DESTRA: ACCORDION EDITORIALI -->
+            <div class="item-content-col">
+                
+                <div class="audience-section">
+                    <div class="audience-header" data-aud="children">
+                        <span>PER BAMBINI</span>
+                        <span class="arrow-icon" id="arrow-children">▼</span>
+                    </div>
+                    <textarea id="text-children" class="audience-textarea hidden" placeholder="Scrivi qui la descrizione semplificata..."></textarea>
+                </div>
+
+                <!-- STANDARD -->
+                <div class="audience-section">
+                    <div class="audience-header" data-aud="standard">
+                        <span>STANDARD</span>
+                        <span class="arrow-icon open" id="arrow-standard">▼</span>
+                    </div>
+                    <textarea id="text-standard" class="audience-textarea" placeholder="Scrivi qui la descrizione principale dell'opera..."></textarea>
+                </div>
+
+                <div class="audience-section">
+                    <div class="audience-header" data-aud="expert">
+                        <span>PER ESPERTI</span>
+                        <span class="arrow-icon" id="arrow-expert">▼</span>
+                    </div>
+                    <textarea id="text-expert" class="audience-textarea hidden" placeholder="Scrivi qui l'analisi tecnica, storica o artistica..."></textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- AZIONI FINALI: BOTTONI SQUADRATI -->
+        <div class="item-actions">
+            <!-- Il bottone elimina è rosso e nascosto di default -->
+            <button id="btn-delete-item" class="secondary-btn hidden" type="button">Elimina il mio Item</button>
+            
+            <button id="btn-cancel-exit" class="secondary-btn">Annulla</button>
+            <button id="btn-save-exit" class="primary-btn">Salva Item Pubblico</button>
+        </div>
+
+    </main>
+
+    <!-- POP-UP -->
+    <div id="toast-container"></div>
+
+    <!-- SCRIPT -->
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/create_item.js"></script>
+  </body>
+</html>

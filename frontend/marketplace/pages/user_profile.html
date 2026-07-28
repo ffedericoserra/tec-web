@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Il Mio Profilo</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/user_profile.css" />
+  </head>
+  <body id="artaround-profile" class="profile-body">
+    <header class="top-nav editorial-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="homepage.html#destinazioni">Plan your visit</a></li>
+          <li><a href="add_museum.html">Add museum</a></li>
+          <li><a href="about.html">About us</a></li>
+        </ul>
+
+        <div class="nav-auth-wrapper">
+          <ul class="nav-auth">
+            <li class="user-only">
+              <a href="user_profile.html" class="active">Account</a>
+            </li>
+            <li class="user-only"><a href="#" id="logout-btn">Log out</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="profile-page-shell">
+      <section class="profile-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
+        </div>
+
+        <div class="profile-hero-layout">
+          <div class="profile-heading-block">
+            <a href="homepage.html#destinazioni" class="header-back-link"
+              >Back to museums</a
+            >
+            <span class="profile-kicker">Area personale</span>
+            <h1 class="profile-title">Il tuo profilo</h1>
+          </div>
+
+          <aside class="profile-meta-panel" aria-label="Account summary">
+            <strong>Curator</strong>
+            <p>
+              Gestisci le visite create, i tour salvati e le impostazioni del
+              tuo account.
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="profile-content-section">
+        <div class="profile-section-header">
+          <h2 class="section-title-new">Dashboard</h2>
+          <p>Visite, preferiti e impostazioni</p>
+        </div>
+
+        <div class="profile-grid">
+          <aside class="profile-sidebar">
+            <div class="avatar-container">
+              <img
+                src="https://c8.alamy.com/compit/d3nnwt/spagnolo-di-formula-uno-pilota-fernando-alonso-del-team-renault-f1-festeggia-dopo-aver-vinto-il-gran-premio-di-gran-bretagna-a-silverstone-race-track-nel-northamptonshire-gran-bretagna-domenica-11-giugno-2006-foto-jens-buettner-d3nnwt.jpg"
+                alt="Avatar Utente"
+                class="profile-avatar"
+              />
+            </div>
+
+            <h2 class="profile-name" id="profile-user-name">Caricamento...</h2>
+            <p class="profile-role">Curator</p>
+
+            <div class="wallet-box">
+              <span class="text-label">Account balance</span>
+              <div class="wallet-balance">
+                <span class="balance-amount" id="profile-wallet-balance"
+                  >0</span
+                >
+                <span class="balance-currency">A&alpha;</span>
+              </div>
+              <p class="wallet-caption" id="wallet-feedback">
+                Usa il wallet per aggiungere item alle visite.
+              </p>
+              <button
+                class="btn-ghost small-btn"
+                id="recharge-wallet-btn"
+                type="button"
+              >
+                Ricarica saldo
+              </button>
+            </div>
+
+            <div class="profile-actions">
+              <button class="btn-primary w-100" type="button">
+                Modifica profilo
+              </button>
+              <button
+                class="btn-ghost w-100 logout-text"
+                id="logout-sidebar-btn"
+                type="button"
+              >
+                Disconnetti
+              </button>
+            </div>
+          </aside>
+
+          <section class="profile-main-content">
+            <nav class="profile-tabs" aria-label="Profile sections">
+              <button
+                class="tab-btn active"
+                type="button"
+                data-target="tab-visits"
+              >
+                Le mie visite
+              </button>
+              <button class="tab-btn" type="button" data-target="tab-saved">
+                Salvati
+              </button>
+              <button class="tab-btn" type="button" data-target="tab-settings">
+                Impostazioni
+              </button>
+            </nav>
+
+            <div id="tab-visits" class="tab-content active">
+              <div class="tab-header">
+                <h3 class="tab-title">Visite create</h3>
+              </div>
+
+              <div class="profile-list" id="user-visits-list">
+                <p class="profile-empty-message">
+                  Caricamento visite in corso...
+                </p>
+              </div>
+            </div>
+
+            <div id="tab-saved" class="tab-content hidden">
+              <div class="tab-header">
+                <h3 class="tab-title">Elementi salvati</h3>
+              </div>
+              <div class="profile-list">
+                <p class="profile-empty-message">Nessun elemento salvato.</p>
+              </div>
+            </div>
+
+            <div id="tab-settings" class="tab-content hidden">
+              <div class="tab-header">
+                <h3 class="tab-title">Impostazioni account</h3>
+              </div>
+              <p class="profile-empty-message">
+                Usa il pannello laterale per modificare il profilo.
+              </p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/user_profile.js"></script>
+  </body>
+</html>

@@ -1,403 +1,662 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-  <meta charset="UTF-8" />
-  <title>ArtAround | Editor</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ArtAround | Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <style>
-    :root {
-      --bg-gradient: radial-gradient(circle at 0% 0%, #ff9a9e 0, transparent 55%),
-                     radial-gradient(circle at 100% 100%, #a18cd1 0, transparent 55%),
-                     linear-gradient(135deg, #111827 0%, #020617 100%);
-      --glass-bg: rgba(15, 23, 42, 0.65);
-      --glass-panel: rgba(30, 41, 59, 0.7);
-      --input-bg: rgba(2, 6, 23, 0.5);
-      --accent: #f97316;
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --border-subtle: rgba(148, 163, 184, 0.2);
-      --radius-xl: 1.5rem;
-      --radius-md: 0.75rem;
-      --transition: 250ms ease;
-    }
+    <style>
+      :root {
+        --bg-gradient:
+          radial-gradient(circle at 0% 0%, #ff9a9e 0, transparent 55%),
+          radial-gradient(circle at 100% 100%, #a18cd1 0, transparent 55%),
+          linear-gradient(135deg, #111827 0%, #020617 100%);
+        --glass-bg: rgba(15, 23, 42, 0.65);
+        --glass-panel: rgba(30, 41, 59, 0.7);
+        --input-bg: rgba(2, 6, 23, 0.5);
+        --accent: #f97316;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --border-subtle: rgba(148, 163, 184, 0.2);
+        --radius-xl: 1.5rem;
+        --radius-md: 0.75rem;
+        --transition: 250ms ease;
+      }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        outline: none;
+      }
 
-    body {
-      min-height: 100vh;
-      font-family: "Poppins", sans-serif;
-      background: var(--bg-gradient);
-      color: var(--text-main);
-      overflow-x: hidden;
-    }
+      body {
+        min-height: 100vh;
+        font-family: "Poppins", sans-serif;
+        background: var(--bg-gradient);
+        color: var(--text-main);
+        overflow-x: hidden;
+      }
 
-    /* SFONDO */
-    .noise-overlay {
-      position: fixed; inset: 0; pointer-events: none; opacity: 0.08;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='noStitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-      z-index: 0;
-    }
-    .orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.5; z-index: 0; pointer-events: none;}
-    .orb--1 { width: 300px; height: 300px; background: #f97316; top: -50px; left: -50px; }
-    .orb--2 { width: 400px; height: 400px; background: #6366f1; bottom: -50px; right: -50px; }
+      /* SFONDO */
+      .noise-overlay {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.08;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 160 160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='noStitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+        z-index: 0;
+      }
+      .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(70px);
+        opacity: 0.5;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .orb--1 {
+        width: 300px;
+        height: 300px;
+        background: #f97316;
+        top: -50px;
+        left: -50px;
+      }
+      .orb--2 {
+        width: 400px;
+        height: 400px;
+        background: #6366f1;
+        bottom: -50px;
+        right: -50px;
+      }
 
-    /* LAYOUT GENERALE */
-    .shell {
-      position: relative; z-index: 1;
-      width: min(1200px, 100% - 2rem);
-      margin: 0 auto;
-      padding: 2rem 0;
-    }
+      /* LAYOUT GENERALE */
+      .shell {
+        position: relative;
+        z-index: 1;
+        width: min(1200px, 100% - 2rem);
+        margin: 0 auto;
+        padding: 2rem 0;
+      }
 
-    /* HEADER */
-    .top-nav {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 1rem 1.5rem;
-      margin-bottom: 2rem;
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      border-radius: 99px;
-      border: 1px solid var(--border-subtle);
-    }
-    .brand { font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #fff; text-decoration: none; }
-    
-    .nav-link {
-      color: var(--text-muted); text-decoration: none; font-size: 0.9rem; font-weight: 500;
-      transition: color var(--transition); display: flex; align-items: center; gap: 0.5rem;
-    }
-    .nav-link:hover { color: #fff; }
+      /* HEADER */
+      .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border-radius: 99px;
+        border: 1px solid var(--border-subtle);
+      }
+      .brand {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #fff;
+        text-decoration: none;
+      }
 
-    /* BARRA DI RICERCA */
-    .search-wrapper {
-      position: relative;
-      flex: 1; margin: 0 2rem; max-width: 400px;
-    }
-    .search-input {
-      width: 100%; padding: 0.6rem 1rem 0.6rem 2.5rem;
-      border-radius: 99px; border: 1px solid var(--border-subtle);
-      background: var(--input-bg); color: #fff; font-family: inherit;
-    }
-    .search-input:focus { border-color: var(--accent); }
-    .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); width: 14px; opacity: 0.6; }
+      .nav-link {
+        color: var(--text-muted);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: color var(--transition);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .nav-link:hover {
+        color: #fff;
+      }
 
-    /* VISTA 1: GRID MUSEI */
-    #selection-view { display: block; animation: fadeIn 0.5s ease; }
-    
-    .section-title { margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 400; }
-    
-    .museum-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
-    }
+      /* BARRA DI RICERCA */
+      .search-wrapper {
+        position: relative;
+        flex: 1;
+        margin: 0 2rem;
+        max-width: 400px;
+      }
+      .search-input {
+        width: 100%;
+        padding: 0.6rem 1rem 0.6rem 2.5rem;
+        border-radius: 99px;
+        border: 1px solid var(--border-subtle);
+        background: var(--input-bg);
+        color: #fff;
+        font-family: inherit;
+      }
+      .search-input:focus {
+        border-color: var(--accent);
+      }
+      .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        opacity: 0.6;
+      }
 
-    .museum-card {
-      position: relative; aspect-ratio: 1;
-      border-radius: var(--radius-xl);
-      overflow: hidden; cursor: pointer;
-      border: 1px solid var(--border-subtle);
-      transition: transform var(--transition), box-shadow var(--transition);
-      background: #0f172a;
-    }
-    .museum-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); border-color: var(--accent); }
-    
-    .card-bg {
-      position: absolute; inset: 0; background-size: cover; background-position: center;
-      transition: transform 0.6s ease; opacity: 0.7;
-    }
-    .museum-card:hover .card-bg { transform: scale(1.1); opacity: 0.4; }
+      /* VISTA 1: GRID MUSEI */
+      #selection-view {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
 
-    .card-info {
-      position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem;
-      background: linear-gradient(to top, rgba(2,6,23,0.95), transparent);
-    }
-    .card-info h3 { font-size: 1.25rem; margin-bottom: 0.25rem; }
-    .card-info p { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
+      .section-title {
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 400;
+      }
 
-    /* VISTA 2: EDITOR INTERFACE */
-    #editor-view { display: none; animation: slideUp 0.4s ease; }
+      .museum-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
 
-    .editor-layout {
-      display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem;
-      min-height: 60vh;
-    }
+      .museum-card {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+        cursor: pointer;
+        border: 1px solid var(--border-subtle);
+        transition:
+          transform var(--transition),
+          box-shadow var(--transition);
+        background: #0f172a;
+      }
+      .museum-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border-color: var(--accent);
+      }
 
-    /* Area centrale (Canvas) */
-    .editor-canvas {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-      padding: 2rem;
-      min-height: 500px;
-    }
-    .editor-header {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle);
-    }
-    .editor-header h2 { font-size: 1.5rem; color: var(--accent); }
-    .back-btn {
-      background: transparent; border: 1px solid var(--border-subtle);
-      color: var(--text-muted); padding: 0.5rem 1rem; border-radius: 99px;
-      cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
-      font-family: inherit; font-size: 0.85rem; transition: all 0.2s;
-    }
-    .back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+      .card-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.6s ease;
+        opacity: 0.7;
+      }
+      .museum-card:hover .card-bg {
+        transform: scale(1.1);
+        opacity: 0.4;
+      }
 
-    /* Lista degli items aggiunti */
-    #items-container { display: flex; flex-direction: column; gap: 1.5rem; }
+      .card-info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 1.5rem;
+        background: linear-gradient(to top, rgba(2, 6, 23, 0.95), transparent);
+      }
+      .card-info h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.25rem;
+      }
+      .card-info p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
 
-    /* Stile degli items nell'editor */
-    .editor-item {
-      position: relative;
-      background: var(--glass-panel);
-      padding: 1.25rem; border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
-      animation: fadeIn 0.3s ease;
-    }
-    .editor-item:hover { border-color: rgba(255,255,255,0.2); }
-    
-    .item-label {
-      position: absolute; top: -10px; left: 10px;
-      background: var(--accent); color: #000;
-      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 4px;
-    }
-    .delete-btn {
-      position: absolute; top: 10px; right: 10px;
-      background: transparent; border: none; color: #ef4444;
-      font-weight: bold; cursor: pointer; opacity: 0.5;
-    }
-    .delete-btn:hover { opacity: 1; }
+      /* VISTA 2: EDITOR INTERFACE */
+      #editor-view {
+        display: none;
+        animation: slideUp 0.4s ease;
+      }
 
-    /* Campi Input Generici */
-    .glass-input, .glass-textarea {
-      width: 100%; background: var(--input-bg); border: 1px solid rgba(255,255,255,0.1);
-      color: #fff; padding: 0.6rem; border-radius: 6px; font-family: inherit; font-size: 0.9rem;
-      margin-bottom: 0.5rem;
-    }
-    .glass-textarea { resize: vertical; min-height: 60px; }
-    .glass-input::placeholder, .glass-textarea::placeholder { color: rgba(255,255,255,0.3); }
+      .editor-layout {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 1.5rem;
+        min-height: 60vh;
+      }
 
-    /* Sidebar Tools */
-    .tools-panel {
-      background: var(--glass-bg);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-xl);
-      padding: 1.5rem;
-      height: fit-content;
-      position: sticky; top: 1rem;
-    }
-    .tools-title { font-size: 0.9rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; letter-spacing: 0.1em; }
-    
-    .tool-btn {
-      display: flex; align-items: center; gap: 0.75rem;
-      width: 100%; padding: 0.8rem 1rem;
-      margin-bottom: 0.8rem;
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid var(--border-subtle);
-      color: #e2e8f0; border-radius: var(--radius-md);
-      cursor: pointer; text-align: left; font-family: inherit; font-size: 0.9rem;
-      transition: all 0.2s;
-    }
-    .tool-btn:hover { background: var(--accent); border-color: var(--accent); color: #000; }
-    .tool-icon { width: 18px; height: 18px; }
+      /* Area centrale (Canvas) */
+      .editor-canvas {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xl);
+        padding: 2rem;
+        min-height: 500px;
+      }
+      .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border-subtle);
+      }
+      .editor-header h2 {
+        font-size: 1.5rem;
+        color: var(--accent);
+      }
+      .back-btn {
+        background: transparent;
+        border: 1px solid var(--border-subtle);
+        color: var(--text-muted);
+        padding: 0.5rem 1rem;
+        border-radius: 99px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: inherit;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+      }
+      .back-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
 
-    /* Utility Helpers */
-    .hidden { display: none !important; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+      /* Lista degli items aggiunti */
+      #items-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
 
-    @media(max-width: 800px) {
-      .editor-layout { grid-template-columns: 1fr; }
-      .tools-panel { position: relative; order: -1; }
-    }
-  </style>
-</head>
-<body>
+      /* Stile degli items nell'editor */
+      .editor-item {
+        position: relative;
+        background: var(--glass-panel);
+        padding: 1.25rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-subtle);
+        animation: fadeIn 0.3s ease;
+      }
+      .editor-item:hover {
+        border-color: rgba(255, 255, 255, 0.2);
+      }
 
-  <div class="noise-overlay"></div>
-  <div class="orb orb--1"></div>
-  <div class="orb orb--2"></div>
+      .item-label {
+        position: absolute;
+        top: -10px;
+        left: 10px;
+        background: var(--accent);
+        color: #000;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+      .delete-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: transparent;
+        border: none;
+        color: #ef4444;
+        font-weight: bold;
+        cursor: pointer;
+        opacity: 0.5;
+      }
+      .delete-btn:hover {
+        opacity: 1;
+      }
 
-  <div class="shell">
-    
-    <nav class="top-nav">
-      <a href="#" class="brand" onclick="closeEditor()">ArtAround</a>
-      
-      <div class="search-wrapper" id="searchBox">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        </svg>
-        <input type="text" id="searchInput" class="search-input" placeholder="Cerca museo...">
-      </div>
+      /* Campi Input Generici */
+      .glass-input,
+      .glass-textarea {
+        width: 100%;
+        background: var(--input-bg);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        padding: 0.6rem;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+      .glass-textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+      .glass-input::placeholder,
+      .glass-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
 
-      <a href="navigator.html" class="nav-link">
-        Navigator
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path>
-        </svg>
-      </a>
-    </nav>
+      /* Sidebar Tools */
+      .tools-panel {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        height: fit-content;
+        position: sticky;
+        top: 1rem;
+      }
+      .tools-title {
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        letter-spacing: 0.1em;
+      }
 
-    <section id="selection-view">
-      <h2 class="section-title">Seleziona un Museo per iniziare</h2>
-      
-      <div class="museum-grid">
-        <div class="museum-card" onclick="openEditor('Galleria degli Uffizi')" data-name="galleria degli uffizi firenze">
-          <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1541624775417-64906d4e84b8?q=80&w=600&auto=format&fit=crop');"></div>
-          <div class="card-info">
-            <h3>Galleria degli Uffizi</h3>
-            <p>📍 Firenze, Italia</p>
-          </div>
+      .tool-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.8rem 1rem;
+        margin-bottom: 0.8rem;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid var(--border-subtle);
+        color: #e2e8f0;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+      }
+      .tool-btn:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #000;
+      }
+      .tool-icon {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* Utility Helpers */
+      .hidden {
+        display: none !important;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 800px) {
+        .editor-layout {
+          grid-template-columns: 1fr;
+        }
+        .tools-panel {
+          position: relative;
+          order: -1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="noise-overlay"></div>
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+
+    <div class="shell">
+      <nav class="top-nav">
+        <a href="#" class="brand" onclick="closeEditor()">ArtAround</a>
+
+        <div class="search-wrapper" id="searchBox">
+          <svg
+            class="search-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Cerca museo..."
+          />
         </div>
 
-        <div class="museum-card" onclick="openEditor('Musée du Louvre')" data-name="louvre museum parigi paris">
-          <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1499856871940-a09627c6dcf6?q=80&w=600&auto=format&fit=crop');"></div>
-          <div class="card-info">
-            <h3>Musée du Louvre</h3>
-            <p>📍 Parigi, Francia</p>
+        <a href="navigator.html" class="nav-link">
+          Navigator
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M5 12h14"></path>
+            <path d="M12 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      </nav>
+
+      <section id="selection-view">
+        <h2 class="section-title">Seleziona un Museo per iniziare</h2>
+
+        <div class="museum-grid">
+          <div
+            class="museum-card"
+            onclick="openEditor('Galleria degli Uffizi')"
+            data-name="galleria degli uffizi firenze"
+          >
+            <div
+              class="card-bg"
+              style="
+                background-image: url(&quot;https://images.unsplash.com/photo-1541624775417-64906d4e84b8?q=80&w=600&auto=format&fit=crop&quot;);
+              "
+            ></div>
+            <div class="card-info">
+              <h3>Galleria degli Uffizi</h3>
+              <p>Firenze, Italia</p>
+            </div>
+          </div>
+
+          <div
+            class="museum-card"
+            onclick="openEditor('Musée du Louvre')"
+            data-name="louvre museum parigi paris"
+          >
+            <div
+              class="card-bg"
+              style="
+                background-image: url(&quot;https://images.unsplash.com/photo-1499856871940-a09627c6dcf6?q=80&w=600&auto=format&fit=crop&quot;);
+              "
+            ></div>
+            <div class="card-info">
+              <h3>Musée du Louvre</h3>
+              <p>Parigi, Francia</p>
+            </div>
+          </div>
+
+          <div
+            class="museum-card"
+            onclick="openEditor('MoMA')"
+            data-name="moma museum of modern art new york"
+          >
+            <div
+              class="card-bg"
+              style="
+                background-image: url(&quot;https://images.unsplash.com/photo-1570469032733-dc0c541cd64d?q=80&w=600&auto=format&fit=crop&quot;);
+              "
+            ></div>
+            <div class="card-info">
+              <h3>MoMA</h3>
+              <p>New York, USA</p>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div class="museum-card" onclick="openEditor('MoMA')" data-name="moma museum of modern art new york">
-          <div class="card-bg" style="background-image: url('https://images.unsplash.com/photo-1570469032733-dc0c541cd64d?q=80&w=600&auto=format&fit=crop');"></div>
-          <div class="card-info">
-            <h3>MoMA</h3>
-            <p>📍 New York, USA</p>
+      <section id="editor-view">
+        <div class="editor-layout">
+          <div class="editor-canvas">
+            <div class="editor-header">
+              <h2 id="editorTitle">Museo</h2>
+              <button class="back-btn" onclick="closeEditor()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M19 12H5"></path>
+                  <path d="M12 19l-7-7 7-7"></path>
+                </svg>
+                Indietro
+              </button>
+            </div>
+
+            <div id="items-container">
+              <p
+                style="
+                  text-align: center;
+                  color: var(--text-muted);
+                  margin-top: 2rem;
+                  font-style: italic;
+                "
+                id="empty-msg"
+              >
+                Il percorso è vuoto. Aggiungi elementi dal pannello laterale.
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <section id="editor-view">
-      <div class="editor-layout">
-        
-        <div class="editor-canvas">
-          <div class="editor-header">
-            <h2 id="editorTitle">Museo</h2>
-            <button class="back-btn" onclick="closeEditor()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path>
-              </svg>
-              Indietro
+          <aside class="tools-panel">
+            <div class="tools-title">Aggiungi Elemento</div>
+
+            <button class="tool-btn" onclick="addArtwork()">
+              <span class="tool-icon">🖼️</span>
+              Artwork
             </button>
-          </div>
-          
-          <div id="items-container">
-            <p style="text-align:center; color: var(--text-muted); margin-top: 2rem; font-style: italic;" id="empty-msg">
-              Il percorso è vuoto. Aggiungi elementi dal pannello laterale.
-            </p>
-          </div>
+
+            <button class="tool-btn" onclick="addIntro()">
+              <span class="tool-icon">📝</span>
+              Testo Intro
+            </button>
+
+            <button class="tool-btn" onclick="addArtist()">
+              <span class="tool-icon">👨‍🎨</span>
+              Artista
+            </button>
+          </aside>
         </div>
+      </section>
+    </div>
 
-        <aside class="tools-panel">
-          <div class="tools-title">Aggiungi Elemento</div>
-          
-          <button class="tool-btn" onclick="addArtwork()">
-            <span class="tool-icon">🖼️</span>
-            Artwork
-          </button>
-          
-          <button class="tool-btn" onclick="addIntro()">
-            <span class="tool-icon">📝</span>
-            Testo Intro
-          </button>
-          
-          <button class="tool-btn" onclick="addArtist()">
-            <span class="tool-icon">👨‍🎨</span>
-            Artista
-          </button>
-        </aside>
+    <script>
+      // --- GESTIONE VISTE ---
+      const selectionView = document.getElementById("selection-view");
+      const editorView = document.getElementById("editor-view");
+      const searchBox = document.getElementById("searchBox");
+      const editorTitle = document.getElementById("editorTitle");
+      const itemsContainer = document.getElementById("items-container");
+      const emptyMsg = document.getElementById("empty-msg");
 
-      </div>
-    </section>
+      function openEditor(museumName) {
+        selectionView.style.display = "none";
+        searchBox.style.visibility = "hidden"; // Nascondi search bar nell'editor
+        editorView.style.display = "block";
+        editorTitle.innerText = museumName;
 
-  </div>
+        // Reset contenuto (opzionale, se vuoi pulire ogni volta)
+        // itemsContainer.innerHTML = '';
+        // itemsContainer.appendChild(emptyMsg);
+        // emptyMsg.style.display = 'block';
+      }
 
-  <script>
-    // --- GESTIONE VISTE ---
-    const selectionView = document.getElementById('selection-view');
-    const editorView = document.getElementById('editor-view');
-    const searchBox = document.getElementById('searchBox');
-    const editorTitle = document.getElementById('editorTitle');
-    const itemsContainer = document.getElementById('items-container');
-    const emptyMsg = document.getElementById('empty-msg');
+      function closeEditor() {
+        editorView.style.display = "none";
+        selectionView.style.display = "block";
+        searchBox.style.visibility = "visible";
+      }
 
-    function openEditor(museumName) {
-      selectionView.style.display = 'none';
-      searchBox.style.visibility = 'hidden'; // Nascondi search bar nell'editor
-      editorView.style.display = 'block';
-      editorTitle.innerText = museumName;
-      
-      // Reset contenuto (opzionale, se vuoi pulire ogni volta)
-      // itemsContainer.innerHTML = ''; 
-      // itemsContainer.appendChild(emptyMsg);
-      // emptyMsg.style.display = 'block';
-    }
+      // --- LOGICA SEARCH GRID ---
+      const searchInput = document.getElementById("searchInput");
+      const cards = document.querySelectorAll(".museum-card");
 
-    function closeEditor() {
-      editorView.style.display = 'none';
-      selectionView.style.display = 'block';
-      searchBox.style.visibility = 'visible';
-    }
-
-    // --- LOGICA SEARCH GRID ---
-    const searchInput = document.getElementById('searchInput');
-    const cards = document.querySelectorAll('.museum-card');
-
-    searchInput.addEventListener('input', (e) => {
-      const filter = e.target.value.toLowerCase();
-      cards.forEach(card => {
-        const name = card.getAttribute('data-name');
-        card.style.display = name.includes(filter) ? 'block' : 'none';
+      searchInput.addEventListener("input", (e) => {
+        const filter = e.target.value.toLowerCase();
+        cards.forEach((card) => {
+          const name = card.getAttribute("data-name");
+          card.style.display = name.includes(filter) ? "block" : "none";
+        });
       });
-    });
 
-    // --- LOGICA EDITOR (AGGIUNTA ITEMS) ---
-    
-    function hideEmptyMsg() {
-      if(emptyMsg) emptyMsg.style.display = 'none';
-    }
+      // --- LOGICA EDITOR (AGGIUNTA ITEMS) ---
 
-    // 1. Aggiungi Artwork
-    function addArtwork() {
-      hideEmptyMsg();
-      const div = document.createElement('div');
-      div.className = 'editor-item';
-      div.innerHTML = `
+      function hideEmptyMsg() {
+        if (emptyMsg) emptyMsg.style.display = "none";
+      }
+
+      // 1. Aggiungi Artwork
+      function addArtwork() {
+        hideEmptyMsg();
+        const div = document.createElement("div");
+        div.className = "editor-item";
+        div.innerHTML = `
         <span class="item-label">Artwork</span>
         <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
         <input type="text" class="glass-input" placeholder="URL Immagine opera..." />
         <input type="text" class="glass-input" placeholder="Titolo opera..." style="font-weight:bold" />
         <textarea class="glass-textarea" placeholder="Didascalia opera..."></textarea>
       `;
-      itemsContainer.appendChild(div);
-    }
+        itemsContainer.appendChild(div);
+      }
 
-    // 2. Aggiungi Testo Intro
-    function addIntro() {
-      hideEmptyMsg();
-      const div = document.createElement('div');
-      div.className = 'editor-item';
-      div.innerHTML = `
+      // 2. Aggiungi Testo Intro
+      function addIntro() {
+        hideEmptyMsg();
+        const div = document.createElement("div");
+        div.className = "editor-item";
+        div.innerHTML = `
         <span class="item-label">Introduzione</span>
         <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
         <input type="text" class="glass-input" placeholder="Titolo sezione..." style="font-weight:bold" />
         <textarea class="glass-textarea" placeholder="Scrivi qui il testo introduttivo..." style="min-height: 100px;"></textarea>
       `;
-      itemsContainer.appendChild(div);
-    }
+        itemsContainer.appendChild(div);
+      }
 
-    // 3. Aggiungi Artista
-    function addArtist() {
-      hideEmptyMsg();
-      const div = document.createElement('div');
-      div.className = 'editor-item';
-      div.innerHTML = `
+      // 3. Aggiungi Artista
+      function addArtist() {
+        hideEmptyMsg();
+        const div = document.createElement("div");
+        div.className = "editor-item";
+        div.innerHTML = `
         <span class="item-label">Artista</span>
         <button class="delete-btn" onclick="this.parentElement.remove()">✕</button>
         <div style="display:flex; gap:10px;">
@@ -409,8 +668,8 @@
         </div>
         <textarea class="glass-textarea" placeholder="Breve biografia..."></textarea>
       `;
-      itemsContainer.appendChild(div);
-    }
-  </script>
-</body>
+        itemsContainer.appendChild(div);
+      }
+    </script>
+  </body>
 </html>
