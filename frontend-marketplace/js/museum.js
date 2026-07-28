@@ -20,6 +20,8 @@ const state = {
   createItemUid: null,   // universalId currently shown in the Create Item dialog
   createItemContext: null, // 'chooser' | 'add-items' — drives post-publish behavior
   createItemMode: 'create', // 'create' | 'edit'
+  createItemTone: 'easy',   // which tone tab the 3 textareas are currently editing
+  createItemTexts: null,    // { easy: {'3s','15s','45s'}, medium: {...}, complex: {...} }
   editItem: null,        // populated item being edited (when createItemMode === 'edit')
   viewItemId: null,      // _id of the item shown in the View Item dialog
   draft: null,           // local-only unpublished visit (no _id), or null
@@ -118,6 +120,7 @@ function cacheEls() {
   els.viewItemDeleteBtn = document.getElementById('viewItemDeleteBtn');
   els.createItemDialog = document.getElementById('createItemDialog');
   els.createItemForm = document.getElementById('createItemForm');
+  els.createItemToneTabs = document.getElementById('createItemToneTabs');
   els.createItemTitle = document.getElementById('createItemTitle');
   els.createItemThumb = document.getElementById('createItemThumb');
   els.createItemId = document.getElementById('createItemId');
@@ -173,6 +176,18 @@ function bindStaticUI() {
   els.createItemForm.addEventListener('submit', handleCreateItemSubmit);
   els.createItemCloseBtn.addEventListener('click', closeCreateItemDialog);
   els.createItemCancelBtn.addEventListener('click', closeCreateItemDialog);
+
+  els.createItemToneTabs.addEventListener('click', (e) => {
+    const tab = e.target.closest('.ci-tone-tab');
+    if (tab) switchTone(tab.dataset.tone);
+  });
+  // Keep the tab completeness dots live as the user types.
+  for (const { field } of LENGTH_FIELDS) {
+    els.createItemForm.elements.namedItem(field).addEventListener('input', () => {
+      stashTextareasIntoTone();
+      renderToneTabs();
+    });
+  }
 
   els.viewItemCloseBtn.addEventListener('click', closeViewItemDialog);
   els.viewItemEditBtn.addEventListener('click', startEditFromViewItem);
@@ -406,6 +421,17 @@ function renderEditor() {
     });
   });
 
+  // Item selection radios (inside expanded seq-card body)
+  els.editor.querySelectorAll('.seq-item-radio').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      e.stopPropagation();
+      selectSeqItem(Number(radio.dataset.idx), radio.dataset.itemId);
+    });
+    // The row sits inside .seq-card-body, which is not the head — but the label
+    // click would still bubble up through any future wrapper. Keep it contained.
+    radio.addEventListener('click', (e) => e.stopPropagation());
+  });
+
   // View Item buttons (inside expanded seq-card body)
   els.editor.querySelectorAll('.seq-view-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -527,52 +553,65 @@ function renderSeqItems(currentItem, seqIdx) {
     return `<div class="seq-items-loading">Loading your items for this content…</div>`;
   }
 
-  // Always include the currently-stored item even if the user no longer owns it
-  // (e.g. inherited a public visit). Show it in whichever group it belongs to.
-  const myId = state.user?._id;
-  const purchased = new Set(state.user?.purchasedItems || []);
+  // Always include the currently-stored item even if the user doesn't own it
+  // (e.g. inherited a public visit) — it's the selected one, so it has to be listed.
+  // Switching away from such an item is one-way: it isn't in `itemsByContent`, so
+  // it won't be offered again. That's intended — you can't select what you don't own.
   const list = [...cached];
   if (!list.find(x => x._id === currentItem._id)) list.unshift(currentItem);
 
-  const created = list.filter(it => (it.creatorId?._id || it.creatorId) === myId);
-  const bought = list.filter(it => {
-    const cId = it.creatorId?._id || it.creatorId;
-    return cId !== myId && purchased.has(it._id);
-  });
-
-  const createdHtml = created.length === 0
-    ? `<div class="seq-items-empty">No items created by you yet.</div>`
-    : created.map(it => renderSeqItemRow(it)).join('');
-  const boughtHtml = bought.length === 0
-    ? `<div class="seq-items-empty">No items purchased from the marketplace.</div>`
-    : bought.map(it => renderSeqItemRow(it)).join('');
+  const rows = list
+    .map(it => renderSeqItemRow(it, seqIdx, it._id === currentItem._id))
+    .join('');
 
   return `
     <div class="seq-items-section">
-      <h5>Created by you</h5>
-      ${createdHtml}
-    </div>
-    <div class="seq-items-section">
-      <h5>Bought from marketplace</h5>
-      ${boughtHtml}
+      <h5>Item used in this visit</h5>
+      ${rows}
     </div>
     <div class="seq-items-buy">
-      <button type="button" class="seq-buy-btn" data-uid="${escapeAttr(uid)}">Buy from Marketplace</button>
+      <button type="button" class="seq-buy-btn" data-uid="${escapeAttr(uid)}">Create Item or buy from Marketplace</button>
     </div>
   `;
 }
 
-function renderSeqItemRow(it) {
+function renderSeqItemRow(it, seqIdx, isSelected) {
   const aud = it.targetAudience || '—';
-  const tones = (it.descriptions || []).map(d => d.tone).join(', ') || '—';
-  const price = it.price > 0 ? ` · €${Number(it.price).toFixed(2)}` : '';
   return `
-    <div class="seq-item-row" data-item-id="${escapeAttr(it._id)}">
-      <span class="seq-item-aud">${escapeHtml(aud)}</span>
-      <span class="seq-item-tones">${escapeHtml(tones)}${price}</span>
+    <div class="seq-item-row ${isSelected ? 'is-selected' : ''}" data-item-id="${escapeAttr(it._id)}">
+      <label class="seq-item-pick">
+        <input
+          type="radio"
+          class="seq-item-radio"
+          name="seq-item-${seqIdx}"
+          data-idx="${seqIdx}"
+          data-item-id="${escapeAttr(it._id)}"
+          ${isSelected ? 'checked' : ''}
+        >
+        <span class="seq-item-aud">${escapeHtml(aud)}</span>
+      </label>
       <button type="button" class="seq-view-btn" data-item-id="${escapeAttr(it._id)}">View Item</button>
     </div>
   `;
+}
+
+/* Switch which owned item this sequence entry uses. Staged like every other
+ * sequence edit — Publish persists it. */
+function selectSeqItem(seqIdx, itemId) {
+  const entry = state.selected?.sequence?.[seqIdx];
+  if (!entry) return;
+
+  const current = entry.itemId;
+  if ((current?._id || current) === itemId) return;
+
+  const uid = (typeof current === 'string') ? null : current?.contentId;
+  const cached = uid ? (state.itemsByContent.get(uid) || []) : [];
+  const next = cached.find(it => it._id === itemId);
+  if (!next) return;
+
+  entry.itemId = next;
+  markDirty();
+  renderEditor();
 }
 
 async function fetchItemsForContent(uid) {
@@ -776,10 +815,10 @@ async function openMarketplaceBrowser(uid, { append = false } = {}) {
   state.chooserAppend = append;
 
   const content = state.contentByUid.get(uid);
-  els.chooserTitle.textContent = content ? `Marketplace — ${content.name}` : 'Marketplace';
+  els.chooserTitle.textContent = content ? `Add an item — ${content.name}` : 'Add an item';
   els.chooserError.textContent = '';
   els.chooserNoItemsMsg.hidden = true;
-  els.chooserCreateBtn.hidden = true;
+  els.chooserCreateBtn.hidden = false; // marketplace mode offers Create *and* Buy
   els.chooserSelectMarketplaceBtn.hidden = true;
   els.chooserMarketSection.hidden = false;
 
@@ -794,12 +833,12 @@ async function openMarketplaceBrowser(uid, { append = false } = {}) {
 async function renderChooserMarketplace(uid) {
   state.chooserMode = 'marketplace';
   els.chooserNoItemsMsg.hidden = true;
-  els.chooserCreateBtn.hidden = true;
+  els.chooserCreateBtn.hidden = false; // Create stays available alongside the buy list
   els.chooserSelectMarketplaceBtn.hidden = true;
   els.chooserMarketSection.hidden = false;
 
   const content = state.contentByUid.get(uid);
-  if (content) els.chooserTitle.textContent = `Marketplace — ${content.name}`;
+  if (content) els.chooserTitle.textContent = `Add an item — ${content.name}`;
 
   els.chooserMarketList.innerHTML = `<div class="chooser-loading">Loading…</div>`;
   try {
@@ -887,7 +926,7 @@ async function purchaseAndUse(item) {
     // grid's "or select from Marketplace") — just close.
     closeContentChooser();
     // Re-render the editor in case the user is buying a second item for an already-
-    // open seq-card; the new item should appear in "Bought from marketplace".
+    // open seq-card; the new item should appear in the item list (unselected).
     if (state.tab === 'my-visits') renderEditor();
   }
 }
@@ -999,23 +1038,107 @@ function openCreateItemDialog(uid, context, options = {}) {
   els.createItemSaveBtn.disabled = false;
   els.createItemSaveBtn.textContent = editItem ? 'Save changes' : 'Publish';
 
+  // One texts-bucket per tone. The three textareas are a *view* onto whichever
+  // bucket the active tone tab points at; all three buckets are published together.
+  state.createItemTexts = blankToneTexts();
+  state.createItemTone = 'easy';
+
   if (editItem) {
-    // Pre-fill: Item.descriptions[0] is the only description block we render in this
-    // form (one tone × up to 3 length-texts). If an item has multiple description
-    // blocks (uncommon in marketplace items), only the first is shown for editing.
-    const desc = (editItem.descriptions || [])[0] || {};
-    const byLen = Object.fromEntries((desc.texts || []).map(t => [t.lengthCategory, t.text]));
-    f.elements.namedItem('tone').value = desc.tone || '';
+    // Pre-fill every tone block the item already has. Items authored before tones
+    // became mandatory may carry only one block — the missing tones stay blank and
+    // the user has to fill them before the item can be saved.
+    for (const desc of editItem.descriptions || []) {
+      if (!TONES.includes(desc.tone)) continue;
+      for (const t of desc.texts || []) {
+        if (t.lengthCategory in state.createItemTexts[desc.tone]) {
+          state.createItemTexts[desc.tone][t.lengthCategory] = t.text || '';
+        }
+      }
+    }
     f.elements.namedItem('targetAudience').value = editItem.targetAudience || '';
-    f.elements.namedItem('text3s').value = byLen['3s'] || '';
-    f.elements.namedItem('text15s').value = byLen['15s'] || '';
-    f.elements.namedItem('text45s').value = byLen['45s'] || '';
     f.elements.namedItem('isPublic').checked = !!editItem.isPublic;
     f.elements.namedItem('price').value = editItem.price ?? 0;
   }
 
+  loadToneIntoTextareas();
+  renderToneTabs();
+
   els.createItemDialog.showModal();
-  f.elements.namedItem(editItem ? 'targetAudience' : 'tone').focus();
+  f.elements.namedItem('targetAudience').focus();
+}
+
+const TONES = ['easy', 'medium', 'complex'];
+const LENGTH_FIELDS = [
+  { key: '3s',  field: 'text3s'  },
+  { key: '15s', field: 'text15s' },
+  { key: '45s', field: 'text45s' },
+];
+
+function blankToneTexts() {
+  return {
+    easy:    { '3s': '', '15s': '', '45s': '' },
+    medium:  { '3s': '', '15s': '', '45s': '' },
+    complex: { '3s': '', '15s': '', '45s': '' },
+  };
+}
+
+/* Copy the three textareas into the active tone's bucket. Must run before any
+ * tab switch or submit, otherwise the tone being edited is silently discarded. */
+function stashTextareasIntoTone() {
+  if (!state.createItemTexts) return;
+  const f = els.createItemForm;
+  const bucket = state.createItemTexts[state.createItemTone];
+  for (const { key, field } of LENGTH_FIELDS) {
+    bucket[key] = f.elements.namedItem(field).value;
+  }
+}
+
+function loadToneIntoTextareas() {
+  if (!state.createItemTexts) return;
+  const f = els.createItemForm;
+  const bucket = state.createItemTexts[state.createItemTone];
+  for (const { key, field } of LENGTH_FIELDS) {
+    f.elements.namedItem(field).value = bucket[key] || '';
+  }
+}
+
+function toneIsComplete(tone) {
+  const bucket = state.createItemTexts?.[tone];
+  if (!bucket) return false;
+  return LENGTH_FIELDS.every(({ key }) => (bucket[key] || '').trim() !== '');
+}
+
+function renderToneTabs() {
+  els.createItemToneTabs.querySelectorAll('.ci-tone-tab').forEach(tab => {
+    const tone = tab.dataset.tone;
+    const active = tone === state.createItemTone;
+    tab.classList.toggle('is-active', active);
+    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    // Dot marker so the user can see which tones still need text without
+    // clicking through all three.
+    tab.classList.toggle('is-complete', toneIsComplete(tone));
+  });
+}
+
+function switchTone(tone) {
+  if (!TONES.includes(tone) || tone === state.createItemTone) return;
+  stashTextareasIntoTone();
+  state.createItemTone = tone;
+  loadToneIntoTextareas();
+  renderToneTabs();
+}
+
+/* First empty cell of the 3 tones × 3 lengths matrix, in tone-then-length order,
+ * or null when the item is complete. Drives the submit-time error message. */
+function findFirstMissingText() {
+  for (const tone of TONES) {
+    for (const { key, field } of LENGTH_FIELDS) {
+      if ((state.createItemTexts[tone][key] || '').trim() === '') {
+        return { tone, length: key, field };
+      }
+    }
+  }
+  return null;
 }
 
 function closeCreateItemDialog() {
@@ -1023,6 +1146,8 @@ function closeCreateItemDialog() {
   state.createItemUid = null;
   state.createItemContext = null;
   state.createItemMode = 'create';
+  state.createItemTone = 'easy';
+  state.createItemTexts = null;
   state.editItem = null;
 }
 
@@ -1036,24 +1161,38 @@ async function handleCreateItemSubmit(e) {
     return;
   }
 
+  // The visible textareas only hold the active tone — fold them back in before reading.
+  stashTextareasIntoTone();
+  renderToneTabs();
+
   const data = new FormData(f);
-  const tone = data.get('tone');
   const targetAudience = (data.get('targetAudience') || '').trim();
-  const text3s  = (data.get('text3s')  || '').trim();
-  const text15s = (data.get('text15s') || '').trim();
-  const text45s = (data.get('text45s') || '').trim();
   const isPublic = f.elements.namedItem('isPublic').checked;
   const price = Math.max(0, Number(data.get('price')) || 0);
 
-  const texts = [];
-  if (text3s)  texts.push({ text: text3s,  lengthCategory: '3s',  language: 'it' });
-  if (text15s) texts.push({ text: text15s, lengthCategory: '15s', language: 'it' });
-  if (text45s) texts.push({ text: text45s, lengthCategory: '45s', language: 'it' });
-
-  if (texts.length === 0) {
-    els.createItemError.textContent = 'Add at least one description (3s, 15s, or 45s).';
+  // Every tone × every length is mandatory: an item is published with the full
+  // 3×3 matrix so the Navigator's Describe! progression works for any tone.
+  const firstGap = findFirstMissingText();
+  if (firstGap) {
+    if (firstGap.tone !== state.createItemTone) {
+      state.createItemTone = firstGap.tone;
+      loadToneIntoTextareas();
+      renderToneTabs();
+    }
+    els.createItemError.textContent =
+      `Fill the ${firstGap.length} description for the "${firstGap.tone}" tone — all three tones are required.`;
+    f.elements.namedItem(firstGap.field).focus();
     return;
   }
+
+  const descriptions = TONES.map(tone => ({
+    tone,
+    texts: LENGTH_FIELDS.map(({ key }) => ({
+      text: state.createItemTexts[tone][key].trim(),
+      lengthCategory: key,
+      language: 'it',
+    })),
+  }));
 
   const isEdit = state.createItemMode === 'edit' && state.editItem;
   const baseLabel = isEdit ? 'Save changes' : 'Publish';
@@ -1065,7 +1204,7 @@ async function handleCreateItemSubmit(e) {
     if (isEdit) {
       const payload = {
         targetAudience,
-        descriptions: [{ tone, texts }],
+        descriptions,
         price,
         isPublic,
       };
@@ -1077,7 +1216,7 @@ async function handleCreateItemSubmit(e) {
       const payload = {
         contentId: state.createItemUid,
         targetAudience,
-        descriptions: [{ tone, texts }],
+        descriptions,
         price,
         isPublic,
       };
@@ -1121,13 +1260,18 @@ async function handleCreateItemSubmit(e) {
     const context = state.createItemContext;
     closeCreateItemDialog();
 
-    if (!isEdit && context === 'chooser' && state.selected) {
+    if (!isEdit && context === 'chooser' && state.chooserAppend && state.selected) {
       // Right-column "+" → no-items prompt → Create Item: append the freshly-created
       // item to the active visit. appendItemToSequence closes the chooser dialog under us.
       appendItemToSequence(saved);
-    } else if (state.tab === 'my-visits') {
+    } else {
+      // Any other chooser create (notably "Create Item or buy from Marketplace" inside
+      // an expanded seq-card, where the content is *already* in the visit) must not
+      // append — that would duplicate the sequence entry. Just close the chooser; the
+      // new item shows up in the entry's radio list, unselected.
+      if (context === 'chooser') closeContentChooser();
       // Edits / add-items context: re-render so seq-card bodies pick up the change.
-      renderEditor();
+      if (state.tab === 'my-visits') renderEditor();
     }
   } catch (err) {
     if (err.status === 401) { logout(); return; }

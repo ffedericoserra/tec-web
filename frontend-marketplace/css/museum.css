@@ -510,7 +510,7 @@ body {
 
 .seq-item-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
   gap: 12px;
   align-items: center;
   padding: 8px 10px;
@@ -522,13 +522,33 @@ body {
   margin-bottom: 4px;
 }
 
-.seq-item-aud {
-  font-weight: 500;
+.seq-item-row.is-selected {
+  border-color: var(--ink);
 }
 
-.seq-item-tones {
-  color: var(--muted);
-  font-size: 0.85rem;
+/* Label wraps radio + audience so the whole left side is a click target. */
+.seq-item-pick {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.seq-item-radio {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--ink);
+  cursor: pointer;
+  margin: 0;
+}
+
+.seq-item-aud {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .seq-view-btn {
@@ -1239,6 +1259,66 @@ body {
   outline: 2px solid var(--ink);
   outline-offset: -1px;
   border-color: var(--ink);
+}
+
+/* Tone tabs — three equal segments in one row. These switch which tone the
+   textareas below are editing; all three are always published together. */
+.ci-tone-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid #d6d2cb;
+  border-radius: 12px;
+  background: #ece8e1;
+}
+
+.ci-tone-tab {
+  position: relative;
+  font-family: inherit;
+  font-size: 0.9rem;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ci-tone-tab:hover:not(.is-active) {
+  color: var(--ink);
+}
+
+.ci-tone-tab.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+/* Filled-in marker: a tone with all three lengths written gets a solid dot. */
+.ci-tone-tab::after {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 7px;
+  border-radius: 50%;
+  border: 1px solid #b8b2a8;
+  background: transparent;
+  vertical-align: middle;
+}
+
+.ci-tone-tab.is-complete::after {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.ci-tone-hint {
+  margin: -4px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .create-item-options {

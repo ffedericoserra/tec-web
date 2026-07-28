@@ -174,19 +174,23 @@
           </aside>
 
           <div class="create-item-fields">
-            <select name="tone" required>
-              <option value="" disabled selected>Select tone</option>
-              <option value="easy">Easy</option>
-              <option value="medium">Medium</option>
-              <option value="complex">Complex</option>
-            </select>
-
             <input name="targetAudience" type="text" required maxlength="80"
               placeholder="Target audience (e.g. adulti, bambini, studenti)" />
+
+            <!-- Tone tabs. All three tones are published together, so these switch
+                 which tone's texts the textareas below are editing — they are not a
+                 choice of *which* tone to save. -->
+            <div class="ci-tone-tabs" role="tablist" aria-label="Tone" id="createItemToneTabs">
+              <button type="button" class="ci-tone-tab" role="tab" data-tone="easy">Easy</button>
+              <button type="button" class="ci-tone-tab" role="tab" data-tone="medium">Medium</button>
+              <button type="button" class="ci-tone-tab" role="tab" data-tone="complex">Complex</button>
+            </div>
 
             <textarea name="text3s" rows="2" maxlength="200" placeholder="Insert 3s description prompt"></textarea>
             <textarea name="text15s" rows="3" maxlength="500" placeholder="Insert 15s description prompt"></textarea>
             <textarea name="text45s" rows="4" maxlength="1500" placeholder="Insert 45s description prompt"></textarea>
+
+            <p class="ci-tone-hint">All three tones must be filled — the item is published with every tone at once.</p>
 
             <div class="create-item-options">
               <label class="ci-option">
