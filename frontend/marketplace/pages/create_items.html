@@ -63,7 +63,11 @@
             <!-- COLONNA SINISTRA: IMMAGINE E METADATI A RIGHE -->
             <div class="item-image-col">
                 <div class="image-placeholder" id="image-preview">
-                    <span>Nessuna Immagine</span>
+                    <img
+                      src="/uploads/contents/placeholder.jpg"
+                      alt="Immagine placeholder"
+                      class="image-preview-img"
+                    />
                 </div>
                 <div class="item-metadata">
                     <div class="meta-row">
@@ -85,28 +89,73 @@
             <div class="item-content-col">
                 
                 <div class="audience-section">
-                    <div class="audience-header" data-aud="children">
+                    <button
+                      type="button"
+                      class="audience-header"
+                      data-aud="children"
+                      aria-expanded="false"
+                      aria-controls="audience-panel-children"
+                    >
                         <span>PER BAMBINI</span>
                         <span class="arrow-icon" id="arrow-children">▼</span>
+                    </button>
+                    <div class="audience-panel hidden" id="audience-panel-children">
+                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione per bambini">
+                            <button type="button" class="duration-tab" data-duration="3s" role="tab" aria-selected="false" aria-controls="text-children-3s">3 SEC</button>
+                            <button type="button" class="duration-tab is-active" data-duration="15s" role="tab" aria-selected="true" aria-controls="text-children-15s">15 SEC</button>
+                            <button type="button" class="duration-tab" data-duration="45s" role="tab" aria-selected="false" aria-controls="text-children-45s">45 SEC</button>
+                        </div>
+                        <textarea id="text-children-3s" class="audience-textarea hidden" data-duration="3s" role="tabpanel" placeholder="Scrivi una descrizione per bambini da 3 secondi..."></textarea>
+                        <textarea id="text-children-15s" class="audience-textarea" data-duration="15s" role="tabpanel" placeholder="Scrivi una descrizione per bambini da 15 secondi..."></textarea>
+                        <textarea id="text-children-45s" class="audience-textarea hidden" data-duration="45s" role="tabpanel" placeholder="Scrivi una descrizione per bambini da 45 secondi..."></textarea>
                     </div>
-                    <textarea id="text-children" class="audience-textarea hidden" placeholder="Scrivi qui la descrizione semplificata..."></textarea>
                 </div>
 
                 <!-- STANDARD -->
                 <div class="audience-section">
-                    <div class="audience-header" data-aud="standard">
+                    <button
+                      type="button"
+                      class="audience-header"
+                      data-aud="standard"
+                      aria-expanded="true"
+                      aria-controls="audience-panel-standard"
+                    >
                         <span>STANDARD</span>
                         <span class="arrow-icon open" id="arrow-standard">▼</span>
+                    </button>
+                    <div class="audience-panel" id="audience-panel-standard">
+                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione standard">
+                            <button type="button" class="duration-tab" data-duration="3s" role="tab" aria-selected="false" aria-controls="text-standard-3s">3 SEC</button>
+                            <button type="button" class="duration-tab is-active" data-duration="15s" role="tab" aria-selected="true" aria-controls="text-standard-15s">15 SEC</button>
+                            <button type="button" class="duration-tab" data-duration="45s" role="tab" aria-selected="false" aria-controls="text-standard-45s">45 SEC</button>
+                        </div>
+                        <textarea id="text-standard-3s" class="audience-textarea hidden" data-duration="3s" role="tabpanel" placeholder="Scrivi una descrizione standard da 3 secondi..."></textarea>
+                        <textarea id="text-standard-15s" class="audience-textarea" data-duration="15s" role="tabpanel" placeholder="Scrivi una descrizione standard da 15 secondi..."></textarea>
+                        <textarea id="text-standard-45s" class="audience-textarea hidden" data-duration="45s" role="tabpanel" placeholder="Scrivi una descrizione standard da 45 secondi..."></textarea>
                     </div>
-                    <textarea id="text-standard" class="audience-textarea" placeholder="Scrivi qui la descrizione principale dell'opera..."></textarea>
                 </div>
 
                 <div class="audience-section">
-                    <div class="audience-header" data-aud="expert">
+                    <button
+                      type="button"
+                      class="audience-header"
+                      data-aud="expert"
+                      aria-expanded="false"
+                      aria-controls="audience-panel-expert"
+                    >
                         <span>PER ESPERTI</span>
                         <span class="arrow-icon" id="arrow-expert">▼</span>
+                    </button>
+                    <div class="audience-panel hidden" id="audience-panel-expert">
+                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione per esperti">
+                            <button type="button" class="duration-tab" data-duration="3s" role="tab" aria-selected="false" aria-controls="text-expert-3s">3 SEC</button>
+                            <button type="button" class="duration-tab is-active" data-duration="15s" role="tab" aria-selected="true" aria-controls="text-expert-15s">15 SEC</button>
+                            <button type="button" class="duration-tab" data-duration="45s" role="tab" aria-selected="false" aria-controls="text-expert-45s">45 SEC</button>
+                        </div>
+                        <textarea id="text-expert-3s" class="audience-textarea hidden" data-duration="3s" role="tabpanel" placeholder="Scrivi una descrizione per esperti da 3 secondi..."></textarea>
+                        <textarea id="text-expert-15s" class="audience-textarea" data-duration="15s" role="tabpanel" placeholder="Scrivi una descrizione per esperti da 15 secondi..."></textarea>
+                        <textarea id="text-expert-45s" class="audience-textarea hidden" data-duration="45s" role="tabpanel" placeholder="Scrivi una descrizione per esperti da 45 secondi..."></textarea>
                     </div>
-                    <textarea id="text-expert" class="audience-textarea hidden" placeholder="Scrivi qui l'analisi tecnica, storica o artistica..."></textarea>
                 </div>
 
             </div>

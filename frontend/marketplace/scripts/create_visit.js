@@ -2,6 +2,7 @@ const isLocal = window.location.origin.includes('localhost') || window.location.
 const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token");
+const CONTENT_PLACEHOLDER = "/uploads/contents/placeholder.jpg";
 
 if (!token) {
     alert("You must be logged in to access this page.");
@@ -81,6 +82,15 @@ function escapeHTML(value) {
         '"': "&quot;",
         "'": "&#39;"
     })[char]);
+}
+
+function resolveAssetUrl(path) {
+    if (!path) return "";
+    return path.startsWith('http') ? path : `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
+function contentImagePath(content) {
+    return content?.imgPath || content?.imageUrl || CONTENT_PLACEHOLDER;
 }
 
 function renderBuilderMessage(message, isError = false) {
@@ -366,21 +376,17 @@ placeholder.className = 'placeholder';
 
 // AGGIORNATA: Ora riceve imageUrl e author per stampare la carta vera
 function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, author = "Autore Ignoto", contentId = "") {
+    const imagePath = imageUrl || CONTENT_PLACEHOLDER;
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
     li.dataset.itemId = itemId; 
     li.dataset.title = titoloOpera || "";
     li.dataset.author = author || "";
-    li.dataset.imageUrl = imageUrl || "";
+    li.dataset.imageUrl = imagePath;
     li.dataset.contentId = contentId || "";
 
-    // Risolviamo il percorso dell'immagine
-    let imgTag = '<span class="image-fallback">IMG</span>';
-    if (imageUrl) {
-        const finalImgUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-        imgTag = `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(titoloOpera)}" class="draggable-item-image">`;
-    }
+    const finalImgUrl = resolveAssetUrl(imagePath);
 
     li.innerHTML = `
         <div class="card-header">
@@ -392,7 +398,7 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
         </div>
         <div class="card-details">
             <div class="card-image-placeholder">
-                ${imgTag}
+                <img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(titoloOpera)}" class="draggable-item-image">
             </div>
             <div class="card-copy">
                 <p class="card-author"><strong>${escapeHTML(author)}</strong></p>
@@ -419,7 +425,7 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
             museumName: museumName,
             title: titoloOpera,
             author: author || "Autore Ignoto",
-            image: imageUrl || ''
+            image: imagePath
         });
         if (visitId) params.set('visitId', visitId);
         if (contentId) params.set('contentId', contentId);
@@ -569,7 +575,7 @@ function createItemInfo(item, museumContents) {
     return {
         title: getItemTitle(item, relatedContent),
         author: relatedContent?.author || "Autore Ignoto",
-        imageUrl: relatedContent?.imageUrl || null,
+        imageUrl: contentImagePath(relatedContent),
         contentId: item.contentId || "",
         price: Number(item.price) || 0
     };

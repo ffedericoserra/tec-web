@@ -3,6 +3,7 @@ const isLocal = window.location.origin.includes('localhost') || window.location.
 const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token");
+const CONTENT_PLACEHOLDER = "/uploads/contents/placeholder.jpg";
 
 const loggedInUsername = localStorage.getItem("username") || "Tu"; 
 
@@ -25,6 +26,11 @@ const urlContentId = urlParams.get('contentId');
 // VARIABILI GLOBALI
 let originalContentId = urlContentId || null;
 let originalTargetAudience = null;
+
+function resolveAssetUrl(path) {
+    if (!path) return "";
+    return path.startsWith('http') ? path : `${baseUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+}
 
 function getVisitBuilderUrl() {
     const params = new URLSearchParams({
@@ -71,15 +77,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('item-prezzo').value = urlPrice;
 
     const imgContainer = document.getElementById('image-preview');
-    if (urlImage) {
-        const finalImgUrl = urlImage.startsWith('http') ? urlImage : `${baseUrl}${urlImage.startsWith('/') ? '' : '/'}${urlImage}`;
-        const img = document.createElement('img');
-        img.src = finalImgUrl;
-        img.alt = urlTitle;
-        img.classList.add('image-preview-img');
-        imgContainer.innerHTML = '';
-        imgContainer.appendChild(img);
-    }
+    const imagePath = urlImage || CONTENT_PLACEHOLDER;
+    const img = document.createElement('img');
+    img.src = resolveAssetUrl(imagePath);
+    img.alt = urlTitle;
+    img.classList.add('image-preview-img');
+    imgContainer.innerHTML = '';
+    imgContainer.appendChild(img);
 
     // Logica Accordion (Freccette)
     audienceMap.forEach(aud => {
