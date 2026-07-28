@@ -74,7 +74,7 @@ function renderMuseums(museums) {
 
         // Contenuto: Immagine sopra, Testo sotto
         card.innerHTML = `
-            <div style="height: 180px; width: 100%; background: url('${imageUrl}') center/cover;"></div>
+            <img class="museum-card-image" src="${imageUrl}" alt="${museum.name}">
             <div style="padding: 20px;">
                 <span style="background: rgba(197, 160, 89, 0.1); color: var(--museum-gold); font-size: 0.75rem; padding: 5px 10px; border-radius: 20px; font-weight: bold; text-transform: uppercase;">Museo</span>
                 <h3 style="margin: 10px 0 5px 0; font-size: 1.4rem; color: var(--charcoal); font-weight: 700;">${museum.name}</h3>

@@ -66,7 +66,14 @@ html { scroll-behavior: smooth; }
 #artaround-home .hero-meta strong { font-weight: bold; margin-bottom: 5px; display: block; text-transform: uppercase; }
 
 #artaround-home .hero-right-content { position: absolute; right: 0; top: 0; width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 10; }
-#artaround-home .hero-statue { max-width: 90%; max-height: 90%; object-fit: contain; filter: grayscale(100%) contrast(1.2); }
+#artaround-home .hero-statue {
+    display: block;
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    object-position: center;
+    filter: grayscale(100%) contrast(1.2);
+}
 #artaround-home .right-vertical { position: absolute; right: 20px; top: 15%; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 0.65rem; letter-spacing: 3px; color: rgba(22,22,22,0.4); text-transform: uppercase; }
 
 /* --- SEZIONE MUSEI --- */
@@ -91,6 +98,14 @@ html { scroll-behavior: smooth; }
     display: grid; 
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
     gap: 40px; 
+}
+
+#artaround-home .museum-card-image {
+    display: block;
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    object-position: center;
 }
 
 #artaround-home #museum-list .museum-icon,

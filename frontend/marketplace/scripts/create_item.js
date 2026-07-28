@@ -69,6 +69,28 @@ const audienceMap = [
     { id: 'expert', tone: 'complex', label: 'esperti' }
 ];
 
+const durationMap = ['3s', '15s', '45s'];
+
+function getAudienceTextarea(audienceId, duration) {
+    return document.getElementById(`text-${audienceId}-${duration}`);
+}
+
+function setActiveDuration(audienceId, duration) {
+    const panel = document.getElementById(`audience-panel-${audienceId}`);
+    if (!panel || !durationMap.includes(duration)) return;
+
+    panel.querySelectorAll('.duration-tab').forEach(tab => {
+        const isActive = tab.dataset.duration === duration;
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('aria-selected', String(isActive));
+        tab.tabIndex = isActive ? 0 : -1;
+    });
+
+    panel.querySelectorAll('.audience-textarea').forEach(textarea => {
+        textarea.classList.toggle('hidden', textarea.dataset.duration !== duration);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Popoliamo la grafica fissa dell'opera
     document.getElementById('artwork-title-display').textContent = `${urlTitle} - ${urlAuthor}`;
@@ -88,14 +110,48 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Logica Accordion (Freccette)
     audienceMap.forEach(aud => {
         const header = document.querySelector(`.audience-header[data-aud="${aud.id}"]`);
-        const textarea = document.getElementById(`text-${aud.id}`);
+        const panel = document.getElementById(`audience-panel-${aud.id}`);
         const arrow = document.getElementById(`arrow-${aud.id}`);
         
-        if(header && textarea && arrow) {
+        if(header && panel && arrow) {
             header.addEventListener('click', () => {
-                textarea.classList.toggle('hidden');
-                arrow.classList.toggle('open');
+                const isOpen = !panel.classList.toggle('hidden');
+                arrow.classList.toggle('open', isOpen);
+                header.setAttribute('aria-expanded', String(isOpen));
             });
+
+            panel.querySelectorAll('.duration-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    setActiveDuration(aud.id, tab.dataset.duration);
+                    getAudienceTextarea(aud.id, tab.dataset.duration)?.focus();
+                });
+
+                tab.addEventListener('keydown', event => {
+                    const tabs = Array.from(panel.querySelectorAll('.duration-tab'));
+                    const currentIndex = tabs.indexOf(tab);
+                    let nextIndex = currentIndex;
+
+                    if (event.key === 'ArrowRight') {
+                        nextIndex = (currentIndex + 1) % tabs.length;
+                    } else if (event.key === 'ArrowLeft') {
+                        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+                    } else if (event.key === 'Home') {
+                        nextIndex = 0;
+                    } else if (event.key === 'End') {
+                        nextIndex = tabs.length - 1;
+                    } else {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    const nextTab = tabs[nextIndex];
+                    setActiveDuration(aud.id, nextTab.dataset.duration);
+                    nextTab.focus();
+                });
+            });
+
+            const activeTab = panel.querySelector('.duration-tab.is-active');
+            setActiveDuration(aud.id, activeTab?.dataset.duration || '15s');
         }
     });
 
@@ -151,7 +207,11 @@ async function loadCommunityItems() {
             let contentSignature = "";
             if (item.descriptions && Array.isArray(item.descriptions)) {
                 const sortedDesc = [...item.descriptions].sort((a, b) => a.tone.localeCompare(b.tone));
-                contentSignature = sortedDesc.map(d => `${d.tone}:${d.texts[0]?.text || ''}`).join("|");
+                contentSignature = sortedDesc.map(desc => {
+                    const sortedTexts = [...(desc.texts || [])]
+                        .sort((a, b) => durationMap.indexOf(a.lengthCategory) - durationMap.indexOf(b.lengthCategory));
+                    return `${desc.tone}:${sortedTexts.map(text => `${text.lengthCategory}:${text.text || ''}`).join(',')}`;
+                }).join("|");
             }
             
             const uniqueKey = `${creatorName}-${contentSignature}`;
@@ -215,13 +275,19 @@ document.getElementById('btn-create-new').addEventListener('click', () => {
 
 function clearUI() {
     audienceMap.forEach(aud => {
-        const textarea = document.getElementById(`text-${aud.id}`);
+        const header = document.querySelector(`.audience-header[data-aud="${aud.id}"]`);
+        const panel = document.getElementById(`audience-panel-${aud.id}`);
         const arrow = document.getElementById(`arrow-${aud.id}`);
-        if(textarea) {
-            textarea.value = '';
-            textarea.classList.add('hidden'); 
-        }
+
+        durationMap.forEach(duration => {
+            const textarea = getAudienceTextarea(aud.id, duration);
+            if (textarea) textarea.value = '';
+        });
+
+        if(panel) panel.classList.add('hidden');
+        if(header) header.setAttribute('aria-expanded', 'false');
         if(arrow) arrow.classList.remove('open'); 
+        setActiveDuration(aud.id, '15s');
     });
     document.getElementById('item-creatore').value = loggedInUsername;
 }
@@ -255,13 +321,30 @@ async function caricaTestiDaDB(idToLoad) {
             currentItem.descriptions.forEach(descGroup => {
                 const uiMap = audienceMap.find(a => a.tone === descGroup.tone);
                 if(uiMap && descGroup.texts && descGroup.texts.length > 0) {
-                    const textarea = document.getElementById(`text-${uiMap.id}`);
+                    const header = document.querySelector(`.audience-header[data-aud="${uiMap.id}"]`);
+                    const panel = document.getElementById(`audience-panel-${uiMap.id}`);
                     const arrow = document.getElementById(`arrow-${uiMap.id}`);
-                    
-                    if(textarea) {
-                        textarea.value = descGroup.texts[0].text || "";
-                        textarea.classList.remove('hidden'); 
-                        if(arrow) arrow.classList.add('open'); 
+                    const loadedDurations = [];
+
+                    descGroup.texts.forEach((textEntry, index) => {
+                        const duration = durationMap.includes(textEntry.lengthCategory)
+                            ? textEntry.lengthCategory
+                            : (index === 0 ? '15s' : null);
+                        const textarea = duration ? getAudienceTextarea(uiMap.id, duration) : null;
+                        if (!textarea) return;
+
+                        textarea.value = textEntry.text || "";
+                        loadedDurations.push(duration);
+                    });
+
+                    if (loadedDurations.length > 0) {
+                        panel?.classList.remove('hidden');
+                        header?.setAttribute('aria-expanded', 'true');
+                        arrow?.classList.add('open');
+                        setActiveDuration(
+                            uiMap.id,
+                            loadedDurations.includes('15s') ? '15s' : loadedDurations[0]
+                        );
                     }
                 }
             });
@@ -281,11 +364,23 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
 
     const finalDescriptions = [];
     audienceMap.forEach(aud => {
-        const textarea = document.getElementById(`text-${aud.id}`);
-        if (textarea && textarea.value.trim() !== "") {
+        const texts = durationMap.reduce((entries, duration) => {
+            const textarea = getAudienceTextarea(aud.id, duration);
+            const text = textarea?.value.trim();
+            if (text) {
+                entries.push({
+                    text: text,
+                    lengthCategory: duration,
+                    language: "it"
+                });
+            }
+            return entries;
+        }, []);
+
+        if (texts.length > 0) {
             finalDescriptions.push({
                 tone: aud.tone, 
-                texts: [{ text: textarea.value.trim(), lengthCategory: "15s", language: "it" }]
+                texts: texts
             });
         }
     });
