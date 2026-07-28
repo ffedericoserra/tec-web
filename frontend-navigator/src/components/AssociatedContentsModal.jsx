@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { contentImagePath } from '../contentImage.js';
 
 export default function AssociatedContentsModal({ item, loading, error, onClose }) {
   useEffect(() => {
@@ -45,17 +46,11 @@ export default function AssociatedContentsModal({ item, loading, error, onClose 
               {list.map((c) => (
                 <li key={c._id}>
                   <article className="assoc-card">
-                    {c.imageUrl ? (
-                      <img
-                        src={c.imageUrl}
-                        alt={c.name}
-                        className="assoc-card-img"
-                      />
-                    ) : (
-                      <div className="assoc-card-img is-placeholder">
-                        {c.type || 'Content'}
-                      </div>
-                    )}
+                    <img
+                      src={contentImagePath(c)}
+                      alt={c.name}
+                      className="assoc-card-img"
+                    />
                     <div className="assoc-card-body">
                       <p className="assoc-card-type">{c.type}</p>
                       <h3 className="assoc-card-name">{c.name}</h3>

@@ -158,7 +158,18 @@ exports.getContents = async (req, res, next) => {
  */
 exports.createContent = async (req, res, next) => {
   try {
-    const { type, universalId, name, author, year, imageRecognitionUrl, coordinates, qrCode } = req.body;
+    const {
+      type,
+      universalId,
+      name,
+      author,
+      year,
+      imageUrl,
+      imgPath,
+      imageRecognitionUrl,
+      coordinates,
+      qrCode,
+    } = req.body;
 
     // Verify museum exists
     const museum = await Museum.findById(req.params.id);
@@ -173,6 +184,8 @@ exports.createContent = async (req, res, next) => {
       name,
       author,
       year,
+      imageUrl,
+      imgPath,
       imageRecognitionUrl,
       coordinates,
       qrCode,
@@ -229,10 +242,12 @@ exports.uploadContentImage = async (req, res, next) => {
       return res.status(404).json({ error: 'Content not found' });
     }
 
-    content.imageUrl = `/uploads/contents/${req.file.filename}`;
+    const imgPath = `/uploads/contents/${req.file.filename}`;
+    content.imgPath = imgPath;
+    content.imageUrl = imgPath;
     await content.save();
 
-    res.json({ imageUrl: content.imageUrl });
+    res.json({ imgPath, imageUrl: imgPath });
   } catch (error) {
     next(error);
   }

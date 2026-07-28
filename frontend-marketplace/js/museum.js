@@ -657,7 +657,7 @@ function renderContentPicker() {
   els.pickerList.innerHTML = list.map(c => `
     <div class="cp-card" data-uid="${escapeAttr(c.universalId || '')}">
       <div class="cp-thumb">
-        ${c.imageUrl ? `<img src="${escapeAttr(c.imageUrl)}" alt="" loading="lazy" />` : ''}
+        <img src="${escapeAttr(contentImagePath(c))}" alt="" loading="lazy" />
       </div>
       <span class="cp-name">${escapeHtml(c.name)}</span>
       <span class="cp-type">${escapeHtml(c.type)}</span>
@@ -939,7 +939,7 @@ function renderAddItems() {
   els.contentGrid.innerHTML = list.map(c => `
     <div class="ci-card">
       <div class="ci-frame">
-        ${c.imageUrl ? `<img src="${escapeAttr(c.imageUrl)}" alt="" loading="lazy" />` : `<span class="ph">No image</span>`}
+        <img src="${escapeAttr(contentImagePath(c))}" alt="" loading="lazy" />
       </div>
       <div class="ci-name">${escapeHtml(c.name)}</div>
       <div class="ci-type">${escapeHtml(c.type)}${c.author ? ' · ' + escapeHtml(c.author) : ''}</div>
@@ -985,9 +985,8 @@ function openCreateItemDialog(uid, context, options = {}) {
 
   const verb = editItem ? 'Edit' : 'Create';
   els.createItemTitle.textContent = `${verb} Item — ${content.name}`;
-  els.createItemThumb.innerHTML = content.imageUrl
-    ? `<img src="${escapeAttr(content.imageUrl)}" alt="" loading="lazy" />`
-    : `<span class="ph">No image</span>`;
+  els.createItemThumb.innerHTML =
+    `<img src="${escapeAttr(contentImagePath(content))}" alt="" loading="lazy" />`;
   els.createItemId.textContent = content.universalId || '—';
   els.createItemType.textContent = content.type || '—';
   els.createItemContentName.textContent = content.name || '—';
@@ -1519,6 +1518,10 @@ function escapeHtml(s) {
 
 function escapeAttr(s) {
   return escapeHtml(s);
+}
+
+function contentImagePath(content) {
+  return content?.imgPath || content?.imageUrl || '/uploads/contents/placeholder.jpg';
 }
 
 if (!isAuthenticated()) {

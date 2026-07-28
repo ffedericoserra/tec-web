@@ -37,6 +37,9 @@ const contentSchema = new mongoose.Schema(
     imageUrl: {
       type: String,
     },
+    imgPath: {
+      type: String,
+    },
     imageRecognitionUrl: {
       type: String,
     },

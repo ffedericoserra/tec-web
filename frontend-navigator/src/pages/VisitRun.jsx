@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
 import PageHeader from '../components/PageHeader.jsx';
 import AssociatedContentsModal from '../components/AssociatedContentsModal.jsx';
+import { contentImagePath } from '../contentImage.js';
 import '../styles/visitRun.css';
 
 const LENGTHS = ['3s', '15s', '45s'];
@@ -273,7 +274,7 @@ export default function VisitRun() {
 
   const museumName = visit.museumId?.name || '';
   const contentName = content?.name || (item?.contentId || '—');
-  const imageUrl = content?.imageUrl;
+  const imageUrl = contentImagePath(content);
 
   return (
     <div className="page-visit-run">
@@ -291,11 +292,7 @@ export default function VisitRun() {
       />
 
       <div className="visit-image-wrap">
-        {imageUrl ? (
-          <img src={imageUrl} alt={contentName} className="visit-image" />
-        ) : (
-          <div className="visit-image-placeholder">{contentName}</div>
-        )}
+        <img src={imageUrl} alt={contentName} className="visit-image" />
         <button
           type="button"
           className="visit-image-plus"
