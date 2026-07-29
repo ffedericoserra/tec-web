@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
 import PageHeader from '../components/PageHeader.jsx';
 import AssociatedContentsModal from '../components/AssociatedContentsModal.jsx';
+import CommandSheet from '../components/CommandSheet.jsx';
 import '../styles/visitRun.css';
 
 const LENGTHS = ['3s', '15s', '45s'];
@@ -85,6 +86,11 @@ export default function VisitRun() {
 
   const [ttsEnabled, setTtsEnabled] = useState(false);
 
+  // Answer to a question command ('author' / 'year' / 'exit'). When set it takes
+  // over the description body; any navigation command clears it.
+  const [answer, setAnswer] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+
   useEffect(() => {
     if (!isAuthenticated()) {
       navigate('/', { replace: true });
@@ -142,6 +148,10 @@ export default function VisitRun() {
   let bodyText = '';
   if (!visit || sequence.length === 0) {
     bodyText = '';
+  } else if (answer) {
+    // Wins over the description. Because the TTS effect below keys on bodyText,
+    // answers get spoken automatically with no extra speech code.
+    bodyText = answer;
   } else if (mode === 'logistic') {
     const prevEntry = sequence[entryIndex - 1];
     bodyText =
@@ -172,6 +182,7 @@ export default function VisitRun() {
 
   function goNext() {
     if (isLast) return;
+    setAnswer(null);
     setEntryIndex((i) => i + 1);
     setMode('logistic');
     setLengthIdx(0);
@@ -179,12 +190,14 @@ export default function VisitRun() {
 
   function goPrevious() {
     if (isFirst) return;
+    setAnswer(null);
     setEntryIndex((i) => i - 1);
     setMode('describe');
     setLengthIdx(0);
   }
 
   function handleDescribe() {
+    setAnswer(null);
     if (mode === 'logistic') {
       setMode('describe');
       setLengthIdx(0);
@@ -192,6 +205,84 @@ export default function VisitRun() {
       setLengthIdx((i) => i + 1);
     }
   }
+
+  // "Simpler" — step back down the length ladder (45s → 15s → 3s). At 3s it's a
+  // no-op rather than falling back to logistic mode: dropping the user into
+  // walking directions when they asked for a simpler description is confusing.
+  function handleSimpler() {
+    setAnswer(null);
+    if (mode !== 'describe') return;
+    if (lengthIdx > 0) setLengthIdx((i) => i - 1);
+  }
+
+  function answerAuthor() {
+    setAnswer(
+      content?.author
+        ? `L'autore è ${content.author}.`
+        : 'Autore non disponibile per quest’opera.'
+    );
+  }
+
+  function answerYear() {
+    setAnswer(
+      content?.year
+        ? `Anno: ${content.year}.`
+        : 'Anno non disponibile per quest’opera.'
+    );
+  }
+
+  function answerExit() {
+    // POIs ride along on the visit fetch — getVisit populates museumId unselected.
+    const pois = visit?.museumId?.pointsOfInterest || [];
+    const exits = pois.filter((p) => p.type === 'exit' && p.label);
+    if (exits.length === 0) {
+      setAnswer('Nessuna uscita indicata per questo museo.');
+      return;
+    }
+    // No "nearest" claim — the Base tier is explicitly map without positioning.
+    setAnswer(
+      exits.length === 1
+        ? `L'uscita è: ${exits[0].label}.`
+        : `Uscite disponibili: ${exits.map((e) => e.label).join(', ')}.`
+    );
+  }
+
+  /* The one place the mic and the tap list converge. */
+  function runCommand(id) {
+    switch (id) {
+      case 'more':
+        handleDescribe();
+        break;
+      case 'simpler':
+        handleSimpler();
+        break;
+      case 'next':
+        goNext();
+        break;
+      case 'previous':
+        goPrevious();
+        break;
+      case 'author':
+        answerAuthor();
+        break;
+      case 'year':
+        answerYear();
+        break;
+      case 'exit':
+        answerExit();
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Which commands can't do anything right now — greys out the sheet's rows.
+  const commandsDisabled = {
+    more: atMaxLength,
+    simpler: mode !== 'describe' || lengthIdx === 0,
+    next: isLast,
+    previous: isFirst,
+  };
 
   function handleEndVisit() {
     navigate(`/${museumSlug}`);
@@ -321,9 +412,7 @@ export default function VisitRun() {
         <button
           type="button"
           className="visit-ask-btn"
-          onClick={(e) => e.preventDefault()}
-          aria-disabled="true"
-          title="Coming soon"
+          onClick={() => setSheetOpen(true)}
         >
           Ask me anything
         </button>
@@ -331,16 +420,28 @@ export default function VisitRun() {
 
       <div
         className={`visit-description${
-          mode === 'logistic' ? ' is-logistic' : ''
-        }`}
+          mode === 'logistic' && !answer ? ' is-logistic' : ''
+        }${answer ? ' is-answer' : ''}`}
       >
         <div className="visit-desc-head">
-          {mode === 'describe' && description ? (
+          {answer ? (
+            <span className="visit-answer-pill">Risposta</span>
+          ) : mode === 'describe' && description ? (
             <span className="visit-length-pill">{LENGTHS[lengthIdx]}</span>
           ) : (
             <span />
           )}
-          {TTS_SUPPORTED && (
+          {answer && (
+            <button
+              type="button"
+              className="visit-answer-close"
+              onClick={() => setAnswer(null)}
+              aria-label="Chiudi la risposta"
+            >
+              ×
+            </button>
+          )}
+          {TTS_SUPPORTED && !answer && (
             <button
               type="button"
               className={`visit-tts-btn${ttsEnabled ? ' is-on' : ''}`}
@@ -385,6 +486,14 @@ export default function VisitRun() {
           Map
         </button>
       </div>
+
+      {sheetOpen && (
+        <CommandSheet
+          disabled={commandsDisabled}
+          onCommand={runCommand}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
 
       {assocOpen && (
         <AssociatedContentsModal

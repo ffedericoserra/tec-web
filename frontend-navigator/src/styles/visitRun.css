@@ -133,8 +133,11 @@
   color: var(--ink);
   font-size: 15px;
   font-weight: 500;
-  cursor: not-allowed;
-  opacity: 0.85;
+  cursor: pointer;
+}
+
+.visit-ask-btn:active {
+  background: var(--surface-alt);
 }
 
 /* ---------- Description body ---------- */
@@ -181,6 +184,42 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+/* Answer takeover — a question command ('author' / 'year' / 'exit') temporarily
+   replaces the description body. Terracotta accent marks it as not-the-description. */
+.visit-description.is-answer {
+  background: var(--surface-alt);
+  border-left: 3px solid var(--accent);
+}
+
+.visit-answer-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.visit-answer-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.visit-answer-close:active {
+  background: var(--surface);
 }
 
 .visit-tts-btn {
@@ -443,4 +482,154 @@
   color: var(--muted);
   padding: 28px 12px;
   font-size: 14px;
+}
+
+/* ---------- Command sheet (voice control + tappable vocabulary) ---------- */
+
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(26, 26, 26, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: assoc-fade 0.15s ease;
+}
+
+.cmd-sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  animation: assoc-slide 0.18s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.cmd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  flex-shrink: 0;
+}
+
+.cmd-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.cmd-close {
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmd-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.cmd-mic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.cmd-mic {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Reuses the Describe! prompt keyframe so "the app wants input" reads the same
+   way in both places. */
+.cmd-mic.is-listening {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  animation: prompt-pulse 1.6s ease-in-out infinite;
+}
+
+.cmd-mic-label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cmd-mic-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.cmd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmd-item {
+  width: 100%;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cmd-item:active:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.cmd-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cmd-item-label {
+  font-weight: 500;
+}
+
+.cmd-item-hint {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  flex-shrink: 0;
 }
