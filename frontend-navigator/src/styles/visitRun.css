@@ -375,61 +375,67 @@
   gap: 12px;
 }
 
-.assoc-card {
+/* Content detail rows: bold label, value beside it, one per line. `dt`/`dd` are
+   inlined rather than gridded so a long title wraps under its own label instead
+   of forcing a wide, ragged label column. */
+.assoc-details {
+  margin: 0;
+  padding: 0;
+}
+
+.assoc-detail-row {
   display: flex;
-  gap: 14px;
-  padding: 12px;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 5px 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.assoc-detail-row dt {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.assoc-detail-row dd {
+  margin: 0;
+  min-width: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* The `---` in the requested layout: a rule above the Universal ID row. */
+.assoc-detail-row.is-separated {
+  margin-top: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.assoc-detail-row.is-separated dd {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.assoc-related {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.assoc-related-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.assoc-related .assoc-list > li {
+  padding: 10px 12px;
   border: 1px solid var(--line-soft);
   border-radius: var(--radius-sm);
   background: var(--bg);
-}
-
-.assoc-card-img {
-  width: 84px;
-  height: 84px;
-  object-fit: cover;
-  border-radius: 8px;
-  background: var(--surface-alt);
-  flex-shrink: 0;
-}
-
-.assoc-card-img.is-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.assoc-card-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.assoc-card-type {
-  margin: 0 0 4px;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.assoc-card-name {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-}
-
-.assoc-card-meta {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.4;
 }
 
 .assoc-empty {

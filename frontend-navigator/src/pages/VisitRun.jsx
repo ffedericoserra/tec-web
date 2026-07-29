@@ -388,6 +388,7 @@ export default function VisitRun() {
 
       {assocOpen && (
         <AssociatedContentsModal
+          content={content}
           item={assocItemId ? assocCache[assocItemId] : null}
           loading={assocLoading}
           error={assocError}
