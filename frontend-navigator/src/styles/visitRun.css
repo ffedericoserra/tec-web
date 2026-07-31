@@ -633,3 +633,279 @@
   font-style: italic;
   flex-shrink: 0;
 }
+
+/* ---- Museum map (MuseumMap.jsx) ---- */
+
+.map-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.5);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: assoc-fade 0.15s ease;
+}
+
+.map-dialog {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88dvh;
+  max-height: 88vh;
+  background: var(--surface);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
+  animation: assoc-slide 0.18s ease;
+}
+
+.map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.map-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-close {
+  flex-shrink: 0;
+  width: var(--tap);
+  height: var(--tap);
+  margin: -10px -12px -10px 0;
+  border: 0;
+  background: none;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.map-body {
+  padding: 14px 16px 18px;
+  overflow-y: auto;
+}
+
+.map-plate {
+  position: relative;
+  background: var(--surface-alt);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  /* Must match PLATE_ASPECT in MuseumMap.jsx. A fixed box rather than the plan's
+     own ratio: a 2.67:1 floor plan rendered at its natural aspect is a 130px-tall
+     letterbox on mobile, with markers too small to read or tap. */
+  aspect-ratio: 4 / 3;
+  max-height: 46dvh;
+  max-height: 46vh;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Scoped exception to the app-wide no-zoom rule (`touch-action: pan-x pan-y`
+     in base.css). Browser zoom is off because it breaks the fixed runner layout,
+     but a floor plan is unusable without pinch — so the plate takes the gestures
+     itself and drives the SVG viewBox. Must stay `none` or the browser steals
+     the drag for scrolling. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-svg:active {
+  cursor: grabbing;
+}
+
+.map-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-zoom button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.map-zoom button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.map-fit-btn {
+  flex: 1;
+  min-height: 36px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.map-fit-btn:active:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.map-fit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* The order the stops are walked in. Dashed and muted so it reads as a hint
+   rather than a wall. */
+.map-route {
+  stroke: var(--muted);
+  stroke-width: 0.8;
+  stroke-dasharray: 2.5 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.65;
+}
+
+.map-stop,
+.map-poi {
+  cursor: pointer;
+}
+
+.map-stop circle {
+  fill: var(--surface);
+  stroke: var(--ink);
+  stroke-width: 0.9;
+}
+
+.map-stop text {
+  fill: var(--ink);
+  text-anchor: middle;
+  font-weight: 700;
+}
+
+/* The current stop, which is as much position as the Base tier claims. */
+.map-stop.is-current circle {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.map-stop.is-current text {
+  fill: #fff;
+}
+
+.map-poi circle {
+  fill: var(--surface);
+  stroke: var(--line-soft);
+  stroke-width: 0.7;
+}
+
+.map-poi text {
+  text-anchor: middle;
+}
+
+.map-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-alt);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.map-footer-title {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-footer-sub {
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.map-legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-legend-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.map-legend-mark.is-current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.map-legend-mark.is-poi {
+  border-color: var(--line-soft);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.map-note,
+.map-empty {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.map-empty {
+  text-align: center;
+  margin: 24px 0;
+}

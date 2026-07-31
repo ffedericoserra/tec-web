@@ -59,6 +59,19 @@ export const COMMANDS = [
     hint: "dov'è l'uscita",
     phrases: ["dov'è l'uscita", 'dove si esce', 'come si esce', 'uscita'],
   },
+  {
+    id: 'map',
+    label: 'Show the map',
+    hint: 'mostra la mappa',
+    phrases: [
+      'fammi vedere la mappa',
+      'mostra la mappa',
+      'apri la mappa',
+      "dov'è la mappa",
+      'mappa',
+      'pianta',
+    ],
+  },
 ];
 
 /* Flattened {phrase, id} pairs sorted longest-first, computed once at module

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
 import PageHeader from '../components/PageHeader.jsx';
 import AssociatedContentsModal from '../components/AssociatedContentsModal.jsx';
 import CommandSheet from '../components/CommandSheet.jsx';
+import MuseumMap from '../components/MuseumMap.jsx';
 import '../styles/visitRun.css';
 
 const LENGTHS = ['3s', '15s', '45s'];
@@ -90,6 +91,7 @@ export default function VisitRun() {
   // over the description body; any navigation command clears it.
   const [answer, setAnswer] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -140,6 +142,25 @@ export default function VisitRun() {
   const content = item?.contentId ? contents[item.contentId] : null;
   const description = pickDescription(item);
   const maxLen = lastAvailableLengthIdx(description);
+
+  /* One entry per sequence position for the map. Coordinates live on the
+   * Content, not the Item, so they're resolved through the same contents map the
+   * image and the details modal use. Entries keep their index even when they
+   * have no coordinates — the map lists those separately rather than renumbering. */
+  const mapStops = useMemo(
+    () =>
+      sequence.map((seqEntry, i) => {
+        const seqItem = seqEntry?.itemId;
+        const seqContent = seqItem?.contentId ? contents[seqItem.contentId] : null;
+        return {
+          index: i,
+          name: seqContent?.name || seqItem?.contentId || `Tappa ${i + 1}`,
+          lat: seqContent?.coordinates?.lat,
+          lng: seqContent?.coordinates?.lng,
+        };
+      }),
+    [sequence, contents]
+  );
 
   const isFirst = entryIndex === 0;
   const isLast = entryIndex >= sequence.length - 1;
@@ -270,6 +291,9 @@ export default function VisitRun() {
         break;
       case 'exit':
         answerExit();
+        break;
+      case 'map':
+        setMapOpen(true);
         break;
       default:
         break;
@@ -479,9 +503,7 @@ export default function VisitRun() {
         <button
           type="button"
           className="visit-nav-btn"
-          onClick={(e) => e.preventDefault()}
-          aria-disabled="true"
-          title="Coming soon"
+          onClick={() => setMapOpen(true)}
         >
           Map
         </button>
@@ -492,6 +514,15 @@ export default function VisitRun() {
           disabled={commandsDisabled}
           onCommand={runCommand}
           onClose={() => setSheetOpen(false)}
+        />
+      )}
+
+      {mapOpen && (
+        <MuseumMap
+          museum={visit.museumId}
+          stops={mapStops}
+          currentIndex={entryIndex}
+          onClose={() => setMapOpen(false)}
         />
       )}
 

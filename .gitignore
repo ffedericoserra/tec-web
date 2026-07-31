@@ -7,11 +7,11 @@ package-lock.json
 CLAUDE.md
 note
 tmp
-uploads/**
-!uploads/**/
-!uploads/**/.gitkeep
+
 
 frontend-design
 next-prompt.md
 
 frontend-navigator/dist/
+
+TODO
