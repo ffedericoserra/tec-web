@@ -50,7 +50,20 @@ exports.getById = async (req, res, next) => {
     // Increment view count
     await Visit.findByIdAndUpdate(visit._id, { $inc: { viewCount: 1 } });
 
-    res.json({ visit });
+    /* The quiz key never leaves the server for anyone but the visit's author.
+     * The navigator's session runner reads the questions from here, so without
+     * this a student could just open the visit and read off the answers. */
+    const obj = visit.toObject();
+    const isCreator =
+      req.user && visit.creatorId?._id?.toString() === req.user._id.toString();
+    if (!isCreator && obj.quiz?.length) {
+      obj.quiz = obj.quiz.map((q) => ({
+        question: q.question,
+        options: q.options,
+      }));
+    }
+
+    res.json({ visit: obj });
   } catch (error) {
     next(error);
   }

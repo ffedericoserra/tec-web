@@ -29,7 +29,11 @@
   font-size: 14px;
   color: var(--muted);
   text-decoration: underline;
-  cursor: not-allowed;
+  cursor: pointer;
+}
+
+.group-visit-link:hover {
+  color: var(--ink);
 }
 
 .group-visit-link:focus-visible {

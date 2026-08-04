@@ -12,9 +12,28 @@ const activitySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    /**
+     * The navigator logs the id of the controlled-vocabulary command a student
+     * issued (see frontend-navigator/src/voice.js), so the teacher's Activities
+     * panel can label it with the same wording the student saw. 'joined' and
+     * 'left' are written by the server itself; 'tellLess' and 'tooSimple' are
+     * legacy values with no UI, kept so old sessions still validate.
+     */
     action: {
       type: String,
-      enum: ['joined', 'left', 'tellMore', 'tellLess', 'simpler', 'tooSimple'],
+      enum: [
+        'joined',
+        'left',
+        'more',
+        'simpler',
+        'author',
+        'year',
+        'exit',
+        'map',
+        'tellMore',
+        'tellLess',
+        'tooSimple',
+      ],
       required: true,
     },
     timestamp: {
@@ -34,6 +53,34 @@ const quizAnswerSchema = new mongoose.Schema(
     selectedIndex: {
       type: Number,
       required: true,
+    },
+  },
+  { _id: false }
+);
+
+/**
+ * Chat is persisted rather than kept in the socket room so a student who
+ * reloads, or joins late, still sees the backlog. `username` is denormalised
+ * for the same reason it is on participantSchema: the panel renders a name per
+ * line and populating a ref per message is not worth it.
+ */
+const messageSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    username: String,
+    text: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 500,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now,
     },
   },
   { _id: false }
@@ -92,6 +139,17 @@ const sessionSchema = new mongoose.Schema(
       default: true,
     },
     activities: [activitySchema],
+    messages: [messageSchema],
+
+    /**
+     * Flipped by the teacher's "Start Quiz" on the last stop. Persisted rather
+     * than left as a socket-only signal so a student who reloads mid-quiz lands
+     * back on the quiz instead of the last artwork.
+     */
+    quizStarted: {
+      type: Boolean,
+      default: false,
+    },
     startedAt: {
       type: Date,
       default: Date.now,
