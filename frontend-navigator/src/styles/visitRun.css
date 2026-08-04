@@ -872,12 +872,18 @@
   cursor: not-allowed;
 }
 
+/* ⚠️ Stroke *geometry* for the map markers is set as k-scaled presentation
+   attributes in MuseumMap.jsx, so it stays a constant size on screen while the
+   plan zooms. Never set `stroke-width` or `stroke-dasharray` in here: CSS beats
+   presentation attributes, so a value here silently kills the scaling — the
+   stroke stays at a fixed user-unit width while the radius shrinks with the
+   zoom, and the markers turn into solid blobs with unreadable numbers. These
+   rules carry colour only. */
+
 /* The order the stops are walked in. Dashed and muted so it reads as a hint
    rather than a wall. */
 .map-route {
   stroke: var(--muted);
-  stroke-width: 0.8;
-  stroke-dasharray: 2.5 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   opacity: 0.65;
@@ -891,7 +897,6 @@
 .map-stop circle {
   fill: var(--surface);
   stroke: var(--ink);
-  stroke-width: 0.9;
 }
 
 .map-stop text {
@@ -913,7 +918,6 @@
 .map-poi circle {
   fill: var(--surface);
   stroke: var(--line-soft);
-  stroke-width: 0.7;
 }
 
 .map-poi text {
