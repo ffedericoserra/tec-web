@@ -152,6 +152,10 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 4px 18px 16px;
+  /* Vertical scrolling stays with the browser; horizontal is ours, for the
+     swipe that steps through description lengths. Without this the browser
+     never yields the gesture and the swipe is only reachable with a mouse. */
+  touch-action: pan-y;
 }
 
 .visit-description p {
@@ -176,18 +180,100 @@
   min-height: 28px;
 }
 
-.visit-length-pill {
+/* Tone picker — replaces the old read-only length pill. Tone is now the pill;
+   the length it used to show is carried by the dots to its right. */
+.visit-tone {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.visit-tone-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 5px 11px;
   border-radius: 999px;
+  border: 1px solid var(--line-soft);
   background: var(--surface-alt);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--ink);
+}
+
+.visit-tone-pill:hover,
+.visit-tone-pill[aria-expanded='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+.visit-tone-caret {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.visit-tone-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 132px;
+  padding: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-tone-option {
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+}
+
+.visit-tone-option:hover:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.visit-tone-option.is-active {
+  font-weight: 600;
+  background: var(--surface-alt);
+}
+
+.visit-tone-option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Length indicator — which of the 3s / 15s / 45s texts is showing. */
+.visit-length-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto;
+}
+
+.visit-length-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-soft);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.visit-length-dot.is-active {
+  background: var(--ink);
+  transform: scale(1.15);
 }
 
 /* Answer takeover — a question command ('author' / 'year' / 'exit') temporarily

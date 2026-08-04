@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
@@ -10,11 +10,35 @@ import '../styles/visitRun.css';
 
 const LENGTHS = ['3s', '15s', '45s'];
 
+/* Order matters: it's the order shown in the tone menu, easiest first. Values
+ * match `descriptions[].tone` as written by the marketplace. */
+const TONES = ['easy', 'medium', 'complex'];
+const TONE_LABELS = { easy: 'Easy', medium: 'Medium', complex: 'Complex' };
+
 const TTS_SUPPORTED =
   typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-function pickDescription(item) {
-  return item?.descriptions?.[0] || null;
+/* A horizontal drag shorter than this is a tap or a stray finger, not a swipe. */
+const SWIPE_THRESHOLD = 45;
+/* How far a gesture must travel before we commit to calling it horizontal or
+ * vertical. Below this the direction is still ambiguous. */
+const SWIPE_AXIS_LOCK = 10;
+
+/**
+ * The description for the requested tone, falling back to the item's first tone
+ * when it doesn't carry that one. Every item authored through the marketplace now
+ * has all three, but seeded or older items may not, and silently showing nothing
+ * would be worse than showing the wrong tone.
+ */
+function pickDescription(item, tone) {
+  const list = item?.descriptions;
+  if (!list?.length) return null;
+  return list.find((d) => d.tone === tone) || list[0];
+}
+
+function availableTones(item) {
+  const list = item?.descriptions || [];
+  return TONES.filter((t) => list.some((d) => d.tone === t));
 }
 
 function SpeakerIcon({ active }) {
@@ -78,6 +102,12 @@ export default function VisitRun() {
   const [entryIndex, setEntryIndex] = useState(0);
   const [mode, setMode] = useState('describe');
   const [lengthIdx, setLengthIdx] = useState(0);
+
+  /* Tone is a visit-wide preference, not per-stop: a visitor who wants the easy
+   * register wants it for the whole visit. Kept even when a given item can't
+   * honour it, so it re-applies at the next item that can. */
+  const [tone, setTone] = useState('easy');
+  const [toneMenuOpen, setToneMenuOpen] = useState(false);
 
   const [assocOpen, setAssocOpen] = useState(false);
   const [assocLoading, setAssocLoading] = useState(false);
@@ -147,8 +177,13 @@ export default function VisitRun() {
   const entry = sequence[entryIndex] || null;
   const item = entry?.itemId || null;
   const content = item?.contentId ? contents[item.contentId] : null;
-  const description = pickDescription(item);
+  const description = pickDescription(item, tone);
   const maxLen = lastAvailableLengthIdx(description);
+  const itemTones = availableTones(item);
+  /* What the user is actually hearing, which is the preference only when this
+   * item carries it. The pill shows this rather than the preference so it never
+   * claims a tone the text isn't in. */
+  const effectiveTone = description?.tone || tone;
 
   /* One entry per sequence position for the map. Coordinates live on the
    * Content, not the Item, so they're resolved through the same contents map the
@@ -208,6 +243,23 @@ export default function VisitRun() {
     return () => window.speechSynthesis.cancel();
   }, [ttsEnabled, bodyText]);
 
+  /* Same dismissal contract as ProfileMenu: outside-mousedown or Escape. */
+  useEffect(() => {
+    if (!toneMenuOpen) return;
+    function onDown(e) {
+      if (!e.target.closest('.visit-tone')) setToneMenuOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setToneMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [toneMenuOpen]);
+
   function goNext() {
     if (isLast) return;
     setAnswer(null);
@@ -241,6 +293,57 @@ export default function VisitRun() {
     setAnswer(null);
     if (mode !== 'describe') return;
     if (lengthIdx > 0) setLengthIdx((i) => i - 1);
+  }
+
+  function selectTone(next) {
+    setToneMenuOpen(false);
+    setTone(next);
+    // Keep the reading depth across the switch — you change tone to re-hear the
+    // same amount of detail differently — but don't land past the end if the new
+    // tone happens to carry fewer lengths.
+    const nextMax = lastAvailableLengthIdx(pickDescription(item, next));
+    setLengthIdx((i) => Math.min(i, nextMax));
+  }
+
+  /* Swipe across the description to change length: left for longer, right for
+   * shorter. The same ladder Describe! and the voice commands walk, so all three
+   * stay in sync through `lengthIdx`. */
+  function stepLength(delta) {
+    if (mode !== 'describe' || answer) return;
+    setLengthIdx((i) => Math.min(Math.max(i + delta, 0), maxLen));
+  }
+
+  const swipe = useRef(null);
+
+  function onDescPointerDown(e) {
+    if (mode !== 'describe' || answer) return;
+    swipe.current = { x: e.clientX, y: e.clientY, axis: null };
+  }
+
+  function onDescPointerMove(e) {
+    const s = swipe.current;
+    if (!s || s.axis) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (Math.hypot(dx, dy) < SWIPE_AXIS_LOCK) return;
+    /* Lock the axis once the gesture is unambiguous. A vertical gesture is
+     * abandoned outright so it scrolls the description normally — this block is
+     * the only scrollable region on the page. */
+    s.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+  }
+
+  function onDescPointerUp(e) {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s || s.axis !== 'x') return;
+    const dx = e.clientX - s.x;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+    stepLength(dx < 0 ? 1 : -1);
+  }
+
+  function onDescPointerCancel() {
+    // Fired when the browser takes the gesture over for vertical scrolling.
+    swipe.current = null;
   }
 
   function answerAuthor() {
@@ -462,14 +565,72 @@ export default function VisitRun() {
         className={`visit-description${
           mode === 'logistic' && !answer ? ' is-logistic' : ''
         }${answer ? ' is-answer' : ''}`}
+        onPointerDown={onDescPointerDown}
+        onPointerMove={onDescPointerMove}
+        onPointerUp={onDescPointerUp}
+        onPointerCancel={onDescPointerCancel}
       >
         <div className="visit-desc-head">
           {answer ? (
             <span className="visit-answer-pill">Risposta</span>
           ) : mode === 'describe' && description ? (
-            <span className="visit-length-pill">{LENGTHS[lengthIdx]}</span>
+            <div className="visit-tone">
+              <button
+                type="button"
+                className="visit-tone-pill"
+                onClick={() => setToneMenuOpen((v) => !v)}
+                aria-expanded={toneMenuOpen}
+                aria-haspopup="menu"
+                aria-label={`Tono: ${TONE_LABELS[effectiveTone]}. Cambia tono`}
+              >
+                {TONE_LABELS[effectiveTone] || effectiveTone}
+                <span className="visit-tone-caret" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
+              {toneMenuOpen && (
+                <div className="visit-tone-menu" role="menu">
+                  {TONES.map((t) => {
+                    const has = itemTones.includes(t);
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={t === effectiveTone}
+                        className={`visit-tone-option${
+                          t === effectiveTone ? ' is-active' : ''
+                        }`}
+                        onClick={() => selectTone(t)}
+                        disabled={!has}
+                        title={has ? undefined : 'Non disponibile per quest’opera'}
+                      >
+                        {TONE_LABELS[t]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           ) : (
             <span />
+          )}
+
+          {mode === 'describe' && description && !answer && (
+            <div
+              className="visit-length-dots"
+              aria-label={`Lunghezza ${lengthIdx + 1} di ${maxLen + 1}`}
+            >
+              {Array.from({ length: maxLen + 1 }, (_, i) => (
+                <span
+                  key={i}
+                  className={`visit-length-dot${
+                    i === lengthIdx ? ' is-active' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
           )}
           {answer && (
             <button

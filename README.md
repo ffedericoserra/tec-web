@@ -8,9 +8,9 @@
 
 ## Status
 
-**Completed:** Backend (base + synchronized sessions for extension 1). Marketplace frontend. Navigator frontend: museum/visit browsing, visit runner, TTS, voice control (controlled vocabulary), museum map.
+**Completed:** Backend (base + synchronized sessions for extension 1). Marketplace frontend. Navigator frontend: museum/visit browsing, visit runner, TTS, voice control (controlled vocabulary), museum map, tone selection and swipeable description lengths.
 
-**In progress:** Navigator tone selection (the runner is pinned to the first description tone), floor plan for Uffizi, content images (one uploaded so far).
+**In progress:** Floor plan for Uffizi, content images (one uploaded so far).
 
 **Not started:** AI integration, georeferencing, navigator UI for synchronized sessions.
 
