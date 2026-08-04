@@ -34,10 +34,14 @@
   border-bottom: 1px solid var(--line-soft);
 }
 
+/* `contain`, not `cover`: these are artworks, and cropping a painting to fill a
+   square box cuts off exactly what the description is talking about. Portrait and
+   landscape canvases letterbox against the surface colour, which is what a museum
+   app should do. */
 .visit-image {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 

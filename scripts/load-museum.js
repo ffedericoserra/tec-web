@@ -13,6 +13,28 @@ const { connectDB, disconnectDB } = require('../src/config/db');
 const Museum = require('../src/models/Museum');
 const Content = require('../src/models/Content');
 
+const CONTENT_IMAGES_DIR = path.join(__dirname, '..', 'uploads', 'contents');
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+
+/**
+ * Content images are matched by filename convention: drop <universalId>.<ext>
+ * into uploads/contents/ and the next load picks it up.
+ *
+ * Resolved here rather than guessed in the browser because `Content.imageUrl` is
+ * already read by four UI surfaces (the navigator's visit runner, and the
+ * marketplace's content picker, Add Items grid and Create Item thumbnail).
+ * Filling the field feeds all of them at once, keeps the extension flexible, and
+ * avoids a 404 per missing image on the client.
+ */
+function resolveContentImage(universalId) {
+  for (const ext of IMAGE_EXTENSIONS) {
+    if (fs.existsSync(path.join(CONTENT_IMAGES_DIR, universalId + ext))) {
+      return `/uploads/contents/${universalId}${ext}`;
+    }
+  }
+  return null;
+}
+
 // Same logic as Museum.js pre-save hook
 function generateSlug(name) {
   return name
@@ -63,14 +85,24 @@ async function loadMuseumFromFile(filePath) {
   }
 
   // 2. Upsert contents by universalId
+  let withImages = 0;
   for (const contentData of config.contents) {
+    const doc = { ...contentData, museumId: museum._id };
+    // An explicit imageUrl in the config wins (it can point anywhere); otherwise
+    // fall back to the uploads/contents/<universalId>.<ext> convention. Assigned
+    // unconditionally — including null — so that deleting the file clears the
+    // field on the next load instead of leaving a stale URL behind.
+    if (!doc.imageUrl) doc.imageUrl = resolveContentImage(doc.universalId);
+    if (doc.imageUrl) withImages++;
     await Content.findOneAndUpdate(
       { universalId: contentData.universalId },
-      { ...contentData, museumId: museum._id },
+      doc,
       { upsert: true, runValidators: true }
     );
   }
-  console.log(`  Loaded ${config.contents.length} contents`);
+  console.log(
+    `  Loaded ${config.contents.length} contents (${withImages} with images)`
+  );
 
   return { museum, contentsCount: config.contents.length };
 }

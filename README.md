@@ -8,9 +8,11 @@
 
 ## Status
 
-**Completed:** Backend (base + synchronized sessions for extension 1)
+**Completed:** Backend (base + synchronized sessions for extension 1). Marketplace frontend. Navigator frontend: museum/visit browsing, visit runner, TTS, voice control (controlled vocabulary), museum map.
 
-**Not started:** Both frontends, AI integration, georeferencing, voice control, TTS
+**In progress:** Navigator tone selection (the runner is pinned to the first description tone), floor plan for Uffizi, content images (one uploaded so far).
+
+**Not started:** AI integration, georeferencing, navigator UI for synchronized sessions.
 
 ## Running
 
@@ -37,6 +39,29 @@ npm run test        # Development
 
 API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
 
+## Media assets
+
+Static files are served from `uploads/` at the matching URL path (`uploads/foo.jpg` → `/uploads/foo.jpg`). They are committed to the repo so they reach the department machines.
+
+**Content images** are matched by filename convention — no config editing:
+
+```bash
+# 1. Name the file after the content's universalId
+cp venere.jpg uploads/contents/mambo-morandi-natura-morta-1946.jpg
+
+# 2. Reload the configs (or just restart the server, which reseeds)
+docker exec local_node_app node scripts/load-museum.js data/museums/
+#   Loaded 13 contents (1 with images)
+```
+
+`scripts/load-museum.js` looks for `uploads/contents/<universalId>.<ext>` with `.jpg`, `.jpeg`, `.png` or `.webp` (first match wins) and writes the URL to `Content.imageUrl`. That single field feeds every image in both frontends — the navigator's visit runner and the marketplace's content picker, Add Items grid and Create Item thumbnail — so no client-side code needs to know the convention.
+
+Notes:
+- An explicit `imageUrl` in `data/museums/*.json` overrides the convention, and can point at any URL.
+- Deleting a file clears the field on the next load; it does not leave a stale URL.
+- Contents with no image fall back to a placeholder showing the content name.
+
+**Museum floor plans** live at `uploads/maps/<museum>-map.png` and are referenced explicitly by `museum.mapData.imageUrl`. The plan is drawn under the map markers stretched to `mapData.bounds`, so **the bounds must have the same aspect ratio as the image** or the plan will shear away from the markers. MAMbo has one; Uffizi does not yet and falls back to a blank plate.
 
 ## Architecture
 
@@ -69,6 +94,10 @@ data/
 └── museums/            # Museum config files (JSON)
     ├── uffizi.json
     └── mambo.json
+uploads/                # Static media, served at /uploads (committed)
+├── contents/           # <universalId>.jpg — picked up by the loader
+├── maps/               # Museum floor plans
+└── museums/            # Museum cover images
 src/
 ├── index.js            # Express server entry point
 ├── config/

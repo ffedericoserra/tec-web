@@ -87,6 +87,13 @@ export default function VisitRun() {
 
   const [ttsEnabled, setTtsEnabled] = useState(false);
 
+  /* Content images are resolved server-side from uploads/contents/, so a URL
+   * here normally means the file exists. It can still 404 if the file is deleted
+   * between the load and the visit — fall back to the placeholder rather than
+   * showing a broken image. Keyed by URL so one bad image doesn't affect the
+   * other stops. */
+  const [brokenImages, setBrokenImages] = useState(() => new Set());
+
   // Answer to a question command ('author' / 'year' / 'exit'). When set it takes
   // over the description body; any navigation command clears it.
   const [answer, setAnswer] = useState(null);
@@ -389,6 +396,7 @@ export default function VisitRun() {
   const museumName = visit.museumId?.name || '';
   const contentName = content?.name || (item?.contentId || '—');
   const imageUrl = content?.imageUrl;
+  const showImage = imageUrl && !brokenImages.has(imageUrl);
 
   return (
     <div className="page-visit-run">
@@ -406,8 +414,16 @@ export default function VisitRun() {
       />
 
       <div className="visit-image-wrap">
-        {imageUrl ? (
-          <img src={imageUrl} alt={contentName} className="visit-image" />
+        {showImage ? (
+          <img
+            key={imageUrl}
+            src={imageUrl}
+            alt={contentName}
+            className="visit-image"
+            onError={() =>
+              setBrokenImages((prev) => new Set(prev).add(imageUrl))
+            }
+          />
         ) : (
           <div className="visit-image-placeholder">{contentName}</div>
         )}

@@ -34,6 +34,7 @@
 - `name`, `author`, `year` - Metadata
 - `coordinates` - Location in museum
 - `qrCode` - QR code identifier
+- `imageUrl` - Artwork image. Not written by hand: `scripts/load-museum.js` fills it from `uploads/contents/<universalId>.<ext>` if that file exists (see README, "Media assets"). An explicit value in the museum config overrides it.
 
 ### Item
 - `contentId` - Links to Content.universalId
