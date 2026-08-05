@@ -335,13 +335,29 @@ async function apriModaleOpere() {
                 itemDiv.dataset.itemId = itemId;
                 const itemPrice = Number(itemInfo.price) || 0;
                 const priceLabel = itemPrice > 0 ? formatCurrencyAmount(itemPrice) : 'Free';
+
+                const finalImgUrl = resolveAssetUrl(itemInfo.imageUrl);
+                const imgTag = finalImgUrl
+                    ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(itemInfo.title)}" class="modal-artwork-image">`
+                    : '<span class="image-fallback">IMG</span>';
+
                 itemDiv.innerHTML = `
-                    <span class="modal-artwork-copy">
-                        <strong>${escapeHTML(itemInfo.title)}</strong>
-                        <small>${escapeHTML(itemInfo.author)}</small>
-                    </span>
-                    <span class="modal-artwork-price">${escapeHTML(priceLabel)}</span>
+                    <div class="modal-artwork-row">
+                        <div class="modal-artwork-thumb">${imgTag}</div>
+                        <span class="modal-artwork-copy">
+                            <strong>${escapeHTML(itemInfo.title)}</strong>
+                            <small>${escapeHTML(itemInfo.author)}</small>
+                        </span>
+                        <span class="modal-artwork-price">${escapeHTML(priceLabel)}</span>
+                    </div>
+                    <div class="modal-artwork-preview">
+                        <div class="modal-artwork-preview-frame">${imgTag}</div>
+                    </div>
                 `;
+
+                itemDiv.querySelectorAll('.modal-artwork-image').forEach((img) => {
+                    img.addEventListener('error', () => img.classList.add('is-hidden'));
+                });
 
                 itemDiv.disabled = !canAffordItemAddition(itemId);
 
@@ -374,31 +390,48 @@ let draggedItem = null;
 let placeholder = document.createElement('li');
 placeholder.className = 'placeholder';
 
-// AGGIORNATA: Ora riceve imageUrl e author per stampare la carta vera
 function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, author = "Autore Ignoto", contentId = "") {
-    const imagePath = imageUrl || CONTENT_PLACEHOLDER;
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
+    li.setAttribute('tabindex', '0');
     li.dataset.itemId = itemId; 
     li.dataset.title = titoloOpera || "";
     li.dataset.author = author || "";
-    li.dataset.imageUrl = imagePath;
+    li.dataset.imageUrl = imageUrl || "";
     li.dataset.contentId = contentId || "";
 
-    const finalImgUrl = resolveAssetUrl(imagePath);
+    // Risolviamo il percorso dell'immagine
+    const finalImgUrl = resolveAssetUrl(imageUrl);
+    const imgTag = finalImgUrl
+        ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(titoloOpera)}" class="draggable-item-image">`
+        : '<span class="image-fallback">IMG</span>';
+
+    const priceInfo = itemCatalog[itemId];
+    const priceValue = Number(priceInfo?.price) || 0;
+    const priceLabel = priceValue > 0 ? `${priceValue} Aα` : 'Free';
+    const priceClass = priceValue > 0 ? 'is-paid' : 'is-free';
 
     li.innerHTML = `
         <div class="card-header">
-            <div class="card-title-row">
-                <span class="drag-handle" title="Drag">&#9776;</span>
+            <button type="button" class="drag-handle" title="Trascina per riordinare" aria-label="Trascina per riordinare">
+                <span class="drag-handle-dots" aria-hidden="true">
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                </span>
+            </button>
+            <div class="card-thumb">${imgTag}</div>
+            <div class="card-title-block">
                 <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
+                <div class="card-meta-row">
+                    <span class="meta-pill meta-pill-author">${escapeHTML(author)}</span>
+                    <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
+                </div>
             </div>
-            <button class="delete-btn" title="Remove" aria-label="Remove">&times;</button>
+            <button class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
         </div>
         <div class="card-details">
             <div class="card-image-placeholder">
-                <img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(titoloOpera)}" class="draggable-item-image">
+                ${imgTag}
             </div>
             <div class="card-copy">
                 <p class="card-author"><strong>${escapeHTML(author)}</strong></p>
@@ -407,10 +440,10 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
         </div>
     `;
 
-    const itemImage = li.querySelector('.draggable-item-image');
-    if (itemImage) {
-        itemImage.addEventListener('error', () => itemImage.classList.add('is-hidden'));
-    }
+    const itemImages = li.querySelectorAll('.draggable-item-image');
+    itemImages.forEach((img) => {
+        img.addEventListener('error', () => img.classList.add('is-hidden'));
+    });
 
     li.addEventListener('click', function(e) {
         if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
@@ -418,18 +451,24 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
         }
         salvaStatoTemporaneo();
         
-        // Nuova logica: passiamo anche autore e immagine
         const params = new URLSearchParams({
             itemId: itemId,
             museumId: museumId,
             museumName: museumName,
             title: titoloOpera,
             author: author || "Autore Ignoto",
-            image: imagePath
+            image: imageUrl || ''
         });
         if (visitId) params.set('visitId', visitId);
         if (contentId) params.set('contentId', contentId);
         window.location.href = `create_items.html?${params.toString()}`;
+    });
+
+    li.addEventListener('keydown', function(e) {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.delete-btn') && !e.target.closest('.drag-handle')) {
+            e.preventDefault();
+            li.click();
+        }
     });
 
     li.querySelector('.delete-btn').addEventListener('click', () => {

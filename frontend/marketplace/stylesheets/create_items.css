@@ -899,8 +899,8 @@
 
 #artaround-visit-builder .card-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 12px;
     height: 58px;
     padding: 0 14px;
     background: transparent;
@@ -920,9 +920,56 @@
 }
 
 #artaround-visit-builder .drag-handle {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
     color: rgba(22, 22, 22, 0.45);
-    font-size: 0.95rem;
+    background: transparent;
+    border: none;
     cursor: grab;
+}
+
+#artaround-visit-builder .drag-handle-dots {
+    display: grid;
+    grid-template-columns: repeat(2, 3px);
+    grid-auto-rows: 3px;
+    gap: 3px;
+}
+
+#artaround-visit-builder .drag-handle-dots span {
+    width: 3px;
+    height: 3px;
+    background-color: currentColor;
+    border-radius: 50%;
+}
+
+#artaround-visit-builder .card-thumb {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(22, 22, 22, 0.2);
+    background: rgba(22, 22, 22, 0.05);
+}
+
+#artaround-visit-builder .card-thumb .draggable-item-image {
+    object-fit: cover;
+}
+
+#artaround-visit-builder .card-title-block {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
 }
 
 #artaround-visit-builder .card-title {
@@ -932,6 +979,41 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+#artaround-visit-builder .card-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+#artaround-visit-builder .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid rgba(22, 22, 22, 0.3);
+    color: rgba(22, 22, 22, 0.65);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#artaround-visit-builder .meta-pill-price.is-paid {
+    color: #710014;
+    border-color: rgba(113, 0, 20, 0.4);
+}
+
+#artaround-visit-builder .meta-pill-price.is-free {
+    color: rgba(22, 22, 22, 0.5);
+}
+
+#artaround-visit-builder .image-fallback {
+    color: rgba(22, 22, 22, 0.4);
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 1px;
 }
 
 #artaround-visit-builder .card-details {
@@ -1228,11 +1310,11 @@
 
 #artaround-visit-builder .modal-artwork-item {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 18px;
+    flex-direction: column;
     width: 100%;
-    padding: 18px 0;
+    height: 78px;
+    padding: 0;
+    overflow: hidden;
     color: #161616;
     background: transparent;
     border: none;
@@ -1240,14 +1322,91 @@
     font-family: inherit;
     text-align: left;
     cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, padding 0.3s ease;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-#artaround-visit-builder .modal-artwork-item:hover {
-    padding-left: 18px;
-    padding-right: 18px;
+#artaround-visit-builder .modal-artwork-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    height: 78px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 18px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+#artaround-visit-builder .modal-artwork-item:hover .modal-artwork-row,
+#artaround-visit-builder .modal-artwork-item:focus-visible .modal-artwork-row {
     color: #F2F1ED;
     background-color: #710014;
+}
+
+#artaround-visit-builder .modal-artwork-thumb {
+    flex: 0 0 46px;
+    width: 46px;
+    height: 46px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(22, 22, 22, 0.25);
+    background: rgba(22, 22, 22, 0.05);
+}
+
+#artaround-visit-builder .modal-artwork-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
+#artaround-visit-builder .modal-artwork-image.is-hidden {
+    display: none;
+}
+
+#artaround-visit-builder .modal-artwork-preview {
+    height: 0;
+    padding: 0 18px;
+    opacity: 0;
+    transform: translateY(6px);
+    overflow: hidden;
+    box-sizing: border-box;
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease,
+                transform 0.25s ease,
+                padding 0.3s ease;
+}
+
+#artaround-visit-builder .modal-artwork-preview-frame {
+    width: 100%;
+    height: 160px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(22, 22, 22, 0.2);
+    background: rgba(22, 22, 22, 0.05);
+}
+
+#artaround-visit-builder .modal-artwork-preview-frame img {
+    object-fit: contain;
+}
+
+#artaround-visit-builder .modal-artwork-item:hover,
+#artaround-visit-builder .modal-artwork-item:focus-visible {
+    height: 254px;
+}
+
+#artaround-visit-builder .modal-artwork-item:hover .modal-artwork-preview,
+#artaround-visit-builder .modal-artwork-item:focus-visible .modal-artwork-preview {
+    height: 176px;
+    opacity: 1;
+    transform: translateY(0);
+    padding: 14px 18px 0;
 }
 
 #artaround-visit-builder .modal-artwork-item:disabled {
@@ -1255,15 +1414,28 @@
     opacity: 0.45;
 }
 
-#artaround-visit-builder .modal-artwork-item:disabled:hover {
-    padding-left: 0;
-    padding-right: 0;
+#artaround-visit-builder .modal-artwork-item:disabled:hover,
+#artaround-visit-builder .modal-artwork-item:disabled:focus-visible {
+    height: 78px;
+}
+
+#artaround-visit-builder .modal-artwork-item:disabled:hover .modal-artwork-preview,
+#artaround-visit-builder .modal-artwork-item:disabled:focus-visible .modal-artwork-preview {
+    height: 0;
+    opacity: 0;
+    transform: translateY(6px);
+    padding: 0 18px;
+}
+
+#artaround-visit-builder .modal-artwork-item:disabled:hover .modal-artwork-row,
+#artaround-visit-builder .modal-artwork-item:disabled:focus-visible .modal-artwork-row {
     color: #161616;
     background-color: transparent;
 }
 
 #artaround-visit-builder .modal-artwork-copy {
     display: flex;
+    flex: 1;
     min-width: 0;
     flex-direction: column;
     gap: 5px;
