@@ -1,10 +1,19 @@
+import { Link } from 'react-router-dom';
 import '../styles/header.css';
 
-export default function PageHeader({ subtitle, right }) {
+// `brandTo` is opt-in: during a visit the only way out is End Visit, so the
+// runner deliberately leaves the brand inert.
+export default function PageHeader({ subtitle, right, brandTo }) {
   return (
     <header className="page-header">
       <div className="page-header-brand">
-        <span>ArtAround</span>
+        {brandTo ? (
+          <Link className="brand-link" to={brandTo}>
+            ArtAround
+          </Link>
+        ) : (
+          <span>ArtAround</span>
+        )}
         {subtitle && (
           <>
             <span className="brand-sep">|</span>

@@ -257,6 +257,9 @@ exports.getVisits = async (req, res, next) => {
     const visits = await Visit.find(query)
       .select('title slug description imageUrl sequence length type viewCount createdAt')
       .populate('creatorId', 'username')
+      // Only contentId: the navigator's visit list resolves stop names through
+      // the museum's contents, so the full Item docs would be dead weight here.
+      .populate({ path: 'sequence.itemId', select: 'contentId' })
       .sort({ viewCount: -1 });
 
     res.json({ visits });

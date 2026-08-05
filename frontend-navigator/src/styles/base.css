@@ -73,3 +73,28 @@ select {
   font: inherit;
   color: inherit;
 }
+
+/* Shared by the landing page and the museum list — the two places that offer a
+ * way over to the marketplace. Lives here so the two can't drift apart. */
+.marketplace-link {
+  align-self: center;
+  margin-top: 8px;
+  padding: 10px 14px;
+  font-size: 17px;
+  font-weight: 500;
+  text-decoration: none;
+  color: var(--ink);
+}
+
+/* Sits at the bottom of the viewport when the list is short, and after the
+ * list when it's long — the parent is a flex column with flex: 1. */
+.marketplace-link.is-footer {
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.marketplace-link:hover,
+.marketplace-link:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}

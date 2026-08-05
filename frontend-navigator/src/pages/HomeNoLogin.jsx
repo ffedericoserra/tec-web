@@ -39,7 +39,7 @@ export default function HomeNoLogin() {
         >
           Sign in
         </button>
-        <a className="home-marketplace" href="/marketplace">
+        <a className="marketplace-link" href="/marketplace">
           Go to marketplace
         </a>
       </div>

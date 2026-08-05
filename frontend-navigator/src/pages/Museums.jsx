@@ -90,6 +90,11 @@ export default function Museums() {
             )}
           </ul>
         )}
+        {/* Plain <a>, not a Link: the marketplace is served by Express, not
+         * the SPA router, so it needs a real page load. */}
+        <a className="marketplace-link is-footer" href="/marketplace">
+          Go to marketplace
+        </a>
       </main>
     </div>
   );

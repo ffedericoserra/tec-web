@@ -39,6 +39,7 @@ export default function VisitSelect() {
   const [user, setUser] = useState(getCachedUser());
   const [museum, setMuseum] = useState(null);
   const [visits, setVisits] = useState([]);
+  const [contents, setContents] = useState({});
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
@@ -57,13 +58,21 @@ export default function VisitSelect() {
       api('/auth/me'),
       api(`/museums/${museumSlug}`),
       api(`/museums/${museumSlug}/visits`),
+      api(`/museums/${museumSlug}/contents`),
     ])
-      .then(([meRes, musRes, visRes]) => {
+      .then(([meRes, musRes, visRes, contRes]) => {
         if (cancelled) return;
         setUser(meRes.user);
         setCachedUser(meRes.user);
         setMuseum(musRes.museum);
         setVisits(visRes.visits || []);
+        // item.contentId is the Content's universalId string, not an ObjectId,
+        // so the stop names can't come from populate — same map as VisitRun.
+        const byUid = {};
+        (contRes.contents || []).forEach((c) => {
+          if (c.universalId) byUid[c.universalId] = c;
+        });
+        setContents(byUid);
         setLoading(false);
       })
       .catch((err) => {
@@ -103,6 +112,7 @@ export default function VisitSelect() {
     <div className="page-visit-select">
       <PageHeader
         subtitle={museum?.name}
+        brandTo="/museums"
         right={<ProfileMenu user={user} />}
       />
       <main className="page-visit-select-body">
@@ -131,6 +141,10 @@ export default function VisitSelect() {
             {filtered.map((v) => {
               const isOpen = expanded.has(v._id);
               const hasDesc = !!(v.description && v.description.trim());
+              const stops = (v.sequence || []).map(
+                (entry) => contents[entry.itemId?.contentId] || null
+              );
+              const hasStops = stops.length > 0;
               return (
                 <li key={v._id}>
                   <article
@@ -159,14 +173,36 @@ export default function VisitSelect() {
                         <p>{v.description}</p>
                       </div>
                     )}
-                    {hasDesc && (
+                    {isOpen && hasStops && (
+                      <div className="visit-card-stops">
+                        <h3 className="visit-card-stops-title">
+                          {stops.length} stops
+                        </h3>
+                        <ol className="visit-card-stop-list">
+                          {stops.map((c, i) => (
+                            <li key={i} className="visit-card-stop">
+                              <span className="visit-card-stop-num">
+                                {i + 1}
+                              </span>
+                              <span className="visit-card-stop-name">
+                                {c?.name || 'Contenuto non disponibile'}
+                              </span>
+                              <span className="visit-card-stop-type">
+                                {c?.type || '—'}
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                      </div>
+                    )}
+                    {(hasDesc || hasStops) && (
                       <button
                         type="button"
                         className="visit-card-toggle"
                         onClick={() => toggleExpand(v._id)}
                         aria-expanded={isOpen}
                         aria-label={
-                          isOpen ? 'Nascondi descrizione' : 'Mostra descrizione'
+                          isOpen ? 'Nascondi dettagli' : 'Mostra dettagli'
                         }
                       >
                         <Chevron />

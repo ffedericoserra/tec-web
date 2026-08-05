@@ -75,21 +75,6 @@
   outline: none;
 }
 
-.home-marketplace {
-  margin-top: 8px;
-  font-size: 17px;
-  font-weight: 500;
-  text-decoration: none;
-  color: var(--ink);
-  padding: 10px 14px;
-}
-
-.home-marketplace:hover,
-.home-marketplace:focus-visible {
-  text-decoration: underline;
-  outline: none;
-}
-
 /* ---------- Auth dialog ---------- */
 
 .auth-overlay {
