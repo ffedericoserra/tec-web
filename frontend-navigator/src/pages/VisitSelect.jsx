@@ -104,17 +104,21 @@ export default function VisitSelect() {
         right={<ProfileMenu user={user} />}
       />
       <main className="page-visit-select-body">
+        <span className="kicker">{museum?.name || 'Museum'}</span>
         <h1 className="page-visit-select-title">
           What kind of visit are you looking for?
         </h1>
-        <input
-          type="search"
-          className="search-input"
-          placeholder="Search for a visit..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Cerca visita"
-        />
+        <label className="search-field">
+          <span className="search-label">Search</span>
+          <input
+            type="search"
+            className="search-input"
+            placeholder="Search for a visit…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Cerca visita"
+          />
+        </label>
         <button
           type="button"
           className="group-visit-link"

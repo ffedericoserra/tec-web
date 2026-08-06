@@ -1,14 +1,23 @@
+/* ==========================================================================
+   ARTAROUND NAVIGATOR - BASE STYLES
+   Stessa palette/tipografia del marketplace:
+   Colors: #710014 (Burgundy), #F2F1ED (Cream), #161616 (Anthracite)
+   Font: Helvetica
+   ========================================================================== */
+
 :root {
-  --bg: #f6f3ee;
-  --ink: #1a1a1a;
-  --muted: #6b6b6b;
-  --line: #1a1a1a;
-  --line-soft: #d8d4cc;
-  --accent: #b34a3a;
+  --bg: #f2f1ed;
+  --ink: #161616;
+  --muted: rgba(22, 22, 22, 0.62);
+  --line: #161616;
+  --line-soft: rgba(22, 22, 22, 0.2);
+  --accent: #710014;
+  --accent-soft: rgba(113, 0, 20, 0.1);
   --surface: #ffffff;
-  --surface-alt: #efeae1;
-  --radius: 14px;
-  --radius-sm: 10px;
+  --surface-alt: rgba(22, 22, 22, 0.05);
+  --radius: 4px;
+  --radius-sm: 4px;
+  --radius-pill: 999px;
   --tap: 44px;
 }
 
@@ -22,8 +31,7 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, 'Helvetica Neue', sans-serif;
+  font-family: 'Helvetica', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
@@ -61,4 +69,16 @@ textarea,
 select {
   font: inherit;
   color: inherit;
+}
+
+/* ---------- Shared editorial bits ---------- */
+
+.kicker {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
 }

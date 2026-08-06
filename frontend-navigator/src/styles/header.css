@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 18px;
+  padding: 16px 18px;
   background: var(--bg);
   border-bottom: 1px solid var(--line-soft);
 }
@@ -15,22 +15,26 @@
   flex: 1;
   min-width: 0;
   font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .brand-sep {
-  color: var(--muted);
-  margin: 0 6px;
+  color: var(--line-soft);
+  margin: 0 8px;
   font-weight: 400;
+  text-transform: none;
 }
 
 .brand-sub {
-  color: var(--muted);
-  font-weight: 500;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 1px;
 }
 
 .page-header-right {
@@ -49,21 +53,22 @@
   height: 36px;
   border-radius: 50%;
   border: 1.5px solid var(--ink);
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .profile-btn:hover,
 .profile-btn[aria-expanded='true'] {
-  background: var(--ink);
+  background: var(--accent);
   color: var(--bg);
+  border-color: var(--accent);
 }
 
 .profile-btn:focus-visible {
@@ -74,13 +79,14 @@
 .profile-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 8px);
-  min-width: 200px;
-  background: var(--surface);
+  top: calc(100% + 10px);
+  min-width: 210px;
+  background: var(--bg);
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
-  padding: 14px;
+  border-top: 3px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(22, 22, 22, 0.18);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -105,7 +111,9 @@
 }
 
 .profile-username {
-  font-weight: 600;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .profile-wallet {
@@ -113,18 +121,22 @@
 }
 
 .profile-logout {
-  margin-top: 8px;
+  margin-top: 10px;
   background: transparent;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  padding: 9px 12px;
-  font-size: 14px;
-  font-weight: 500;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .profile-logout:hover,
 .profile-logout:focus-visible {
-  background: var(--ink);
+  background: var(--accent);
   color: var(--bg);
+  border-color: var(--accent);
   outline: none;
 }
