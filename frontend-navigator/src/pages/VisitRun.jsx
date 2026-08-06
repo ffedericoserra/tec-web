@@ -1,19 +1,64 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api } from '../api.js';
+import { api, getCachedUser } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
+import { connectSession } from '../session.js';
 import PageHeader from '../components/PageHeader.jsx';
 import AssociatedContentsModal from '../components/AssociatedContentsModal.jsx';
-import { contentImagePath } from '../contentImage.js';
+import CommandSheet from '../components/CommandSheet.jsx';
+import MuseumMap from '../components/MuseumMap.jsx';
+import ParticipantsPanel from '../components/ParticipantsPanel.jsx';
+import ChatPanel from '../components/ChatPanel.jsx';
+import ActivitiesPanel from '../components/ActivitiesPanel.jsx';
+import QuizScreen from '../components/QuizScreen.jsx';
 import '../styles/visitRun.css';
+import '../styles/session.css';
 
 const LENGTHS = ['3s', '15s', '45s'];
+
+/* Order matters: it's the order shown in the tone menu, easiest first. Values
+ * match `descriptions[].tone` as written by the marketplace. */
+const TONES = ['easy', 'medium', 'complex'];
+const TONE_LABELS = { easy: 'Easy', medium: 'Medium', complex: 'Complex' };
 
 const TTS_SUPPORTED =
   typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-function pickDescription(item) {
-  return item?.descriptions?.[0] || null;
+/* Which commands are worth putting in front of the guide during a group visit.
+ * Must stay a subset of the activity enum in src/models/Session.js — the server
+ * rejects anything else. `next`/`previous` are excluded because students can't
+ * issue them, and `map` is included because a group all reaching for the map is
+ * a useful signal that people are lost. */
+const LOGGED_COMMANDS = new Set([
+  'more',
+  'simpler',
+  'author',
+  'year',
+  'exit',
+  'map',
+]);
+
+/* A horizontal drag shorter than this is a tap or a stray finger, not a swipe. */
+const SWIPE_THRESHOLD = 45;
+/* How far a gesture must travel before we commit to calling it horizontal or
+ * vertical. Below this the direction is still ambiguous. */
+const SWIPE_AXIS_LOCK = 10;
+
+/**
+ * The description for the requested tone, falling back to the item's first tone
+ * when it doesn't carry that one. Every item authored through the marketplace now
+ * has all three, but seeded or older items may not, and silently showing nothing
+ * would be worse than showing the wrong tone.
+ */
+function pickDescription(item, tone) {
+  const list = item?.descriptions;
+  if (!list?.length) return null;
+  return list.find((d) => d.tone === tone) || list[0];
+}
+
+function availableTones(item) {
+  const list = item?.descriptions || [];
+  return TONES.filter((t) => list.some((d) => d.tone === t));
 }
 
 function SpeakerIcon({ active }) {
@@ -48,6 +93,27 @@ function SpeakerIcon({ active }) {
   );
 }
 
+function PeopleIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 19c0-3.1 2.7-5 6-5s6 1.9 6 5" />
+      <path d="M16.5 6.6a3.2 3.2 0 0 1 0 6.1" />
+      <path d="M18 14.4c2 .7 3.5 2.2 3.5 4.6" />
+    </svg>
+  );
+}
+
 function findText(description, lengthIdx) {
   if (!description) return '';
   const target = LENGTHS[lengthIdx];
@@ -66,17 +132,49 @@ function lastAvailableLengthIdx(description) {
 }
 
 export default function VisitRun() {
-  const { museumSlug, visitSlug } = useParams();
+  /* One component, two routes. `/:museumSlug/:visitSlug` is a solo visit;
+   * `/session/:sessionCode` is a group visit (Extension 1). Session mode adds a
+   * toolbar, hands navigation to the guide and can end in a quiz — everything
+   * else (TTS, tone, swipe, map, commands) is identical, which is why this is one
+   * runner rather than two that would drift apart. */
+  const { museumSlug: museumSlugParam, visitSlug, sessionCode } = useParams();
   const navigate = useNavigate();
+  const inSession = !!sessionCode;
 
   const [visit, setVisit] = useState(null);
   const [contents, setContents] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  /* Session state. `session` is the REST payload (owner, code, isOwner); the
+   * live lists below are owned by the socket and start from the catch-up
+   * `session:state` event, so a reload or a late join rebuilds them in full. */
+  const [session, setSession] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [quizResults, setQuizResults] = useState([]);
+  const [sessionEnded, setSessionEnded] = useState(false);
+  const [notice, setNotice] = useState(null);
+
+  const [panel, setPanel] = useState(null); // 'participants' | 'chat' | 'activities'
+  /* Counts at the moment each panel was last open, so the badge shows what
+   * arrived since rather than a running total. */
+  const [seen, setSeen] = useState({ chat: 0, activities: 0 });
+
+  const me = getCachedUser();
+  const isOwner = !!session?.isOwner;
+
   const [entryIndex, setEntryIndex] = useState(0);
   const [mode, setMode] = useState('describe');
   const [lengthIdx, setLengthIdx] = useState(0);
+
+  /* Tone is a visit-wide preference, not per-stop: a visitor who wants the easy
+   * register wants it for the whole visit. Kept even when a given item can't
+   * honour it, so it re-applies at the next item that can. */
+  const [tone, setTone] = useState('easy');
+  const [toneMenuOpen, setToneMenuOpen] = useState(false);
 
   const [assocOpen, setAssocOpen] = useState(false);
   const [assocLoading, setAssocLoading] = useState(false);
@@ -86,6 +184,19 @@ export default function VisitRun() {
 
   const [ttsEnabled, setTtsEnabled] = useState(false);
 
+  /* Content images are resolved server-side from uploads/contents/, so a URL
+   * here normally means the file exists. It can still 404 if the file is deleted
+   * between the load and the visit — fall back to the placeholder rather than
+   * showing a broken image. Keyed by URL so one bad image doesn't affect the
+   * other stops. */
+  const [brokenImages, setBrokenImages] = useState(() => new Set());
+
+  // Answer to a question command ('author' / 'year' / 'exit'). When set it takes
+  // over the description body; any navigation command clears it.
+  const [answer, setAnswer] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+
   useEffect(() => {
     if (!isAuthenticated()) {
       navigate('/', { replace: true });
@@ -94,19 +205,53 @@ export default function VisitRun() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    Promise.all([
-      api(`/visits/${visitSlug}`),
-      api(`/museums/${museumSlug}/contents`),
-    ])
-      .then(([visRes, contentsRes]) => {
+
+    /* Session mode needs one extra hop: the code resolves to a session, which
+     * names the visit and its museum. Everything after that is the same pair of
+     * fetches the solo runner does, so the two modes share one render path. */
+    async function load() {
+      let sess = null;
+      let visitRef = visitSlug;
+      let museum = museumSlugParam;
+
+      if (inSession) {
+        const res = await api(`/sessions/${encodeURIComponent(sessionCode)}`);
+        sess = res.session;
+        visitRef = sess.visitId?._id;
+        museum = sess.visitId?.museumId?.slug;
+        if (!visitRef || !museum) {
+          throw new Error('Sessione non valida');
+        }
+      }
+
+      const [visRes, contentsRes] = await Promise.all([
+        api(`/visits/${visitRef}`),
+        api(`/museums/${museum}/contents`),
+      ]);
+      return { sess, visit: visRes.visit, contents: contentsRes.contents || [] };
+    }
+
+    load()
+      .then(({ sess, visit: loaded, contents: list }) => {
         if (cancelled) return;
         const map = {};
-        for (const c of contentsRes.contents || []) {
+        for (const c of list) {
           if (c.universalId) map[c.universalId] = c;
         }
         setContents(map);
-        setVisit(visRes.visit);
-        setEntryIndex(0);
+        setVisit(loaded);
+        if (sess) {
+          setSession(sess);
+          setParticipants(sess.participants || []);
+          setMessages(sess.messages || []);
+          setQuizStarted(!!sess.quizStarted);
+          /* Start where the group already is, not at stop 1 — a student joining
+           * halfway through should land on the artwork everyone is standing at.
+           * The socket's session:state will confirm this a moment later. */
+          setEntryIndex(sess.currentItemIndex || 0);
+        } else {
+          setEntryIndex(0);
+        }
         setMode('describe');
         setLengthIdx(0);
         setLoading(false);
@@ -118,7 +263,10 @@ export default function VisitRun() {
           return;
         }
         if (err.status === 404) {
-          navigate(`/${museumSlug}`, { replace: true });
+          // A dead session code is a dead end; send the user somewhere useful.
+          navigate(inSession ? '/museums' : `/${museumSlugParam}`, {
+            replace: true,
+          });
           return;
         }
         setError(err.message || 'Impossibile caricare la visita');
@@ -127,22 +275,108 @@ export default function VisitRun() {
     return () => {
       cancelled = true;
     };
-  }, [museumSlug, visitSlug, navigate]);
+  }, [museumSlugParam, visitSlug, sessionCode, inSession, navigate]);
+
+  /* Real-time half of a group visit. Deliberately keyed on `sessionCode` alone:
+   * anything else in the dep array would tear down and rebuild the connection on
+   * every state change, so the handlers below all use functional updates rather
+   * than closing over current state. */
+  useEffect(() => {
+    if (!inSession) return;
+    return connectSession(sessionCode, {
+      'session:state': (s) => {
+        setParticipants(s.participants || []);
+        setMessages(s.messages || []);
+        setActivities(s.activities || []);
+        setQuizStarted(!!s.quizStarted);
+        setEntryIndex(s.currentItemIndex || 0);
+      },
+      'session:participants': (s) => setParticipants(s.participants || []),
+      'session:item-changed': ({ currentItemIndex }) => {
+        setAnswer(null);
+        setLengthIdx(0);
+        /* Directions first when the group moves forward, the artwork itself when
+         * it goes back — the same rule the solo runner uses for Next/Previous,
+         * for the same reason: forward means everyone has to walk somewhere. */
+        setEntryIndex((prev) => {
+          setMode(currentItemIndex > prev ? 'logistic' : 'describe');
+          return currentItemIndex;
+        });
+      },
+      'session:chat': (msg) => setMessages((list) => [...list, msg]),
+      'session:activity': (act) => setActivities((list) => [...list, act]),
+      'session:quiz-started': () => setQuizStarted(true),
+      'session:quiz-submitted': (result) =>
+        setQuizResults((list) => [
+          ...list.filter((r) => r.userId !== result.userId),
+          result,
+        ]),
+      'session:ended': () => setSessionEnded(true),
+    });
+  }, [inSession, sessionCode]);
+
+  /* Keep the open panel marked as read as things arrive, rather than only
+   * stamping it on open. Without this the badge counts messages you are looking
+   * at — including your own, which lands back through the socket like anyone
+   * else's and would otherwise leave a permanent "1" after you send. */
+  useEffect(() => {
+    if (panel === 'chat') setSeen((s) => ({ ...s, chat: messages.length }));
+  }, [panel, messages.length]);
+
+  useEffect(() => {
+    if (panel === 'activities')
+      setSeen((s) => ({ ...s, activities: activities.length }));
+  }, [panel, activities.length]);
 
   const sequence = visit?.sequence || [];
+  const museumSlug = visit?.museumId?.slug || museumSlugParam;
   const entry = sequence[entryIndex] || null;
   const item = entry?.itemId || null;
   const content = item?.contentId ? contents[item.contentId] : null;
-  const description = pickDescription(item);
+  const description = pickDescription(item, tone);
   const maxLen = lastAvailableLengthIdx(description);
+  const itemTones = availableTones(item);
+  /* What the user is actually hearing, which is the preference only when this
+   * item carries it. The pill shows this rather than the preference so it never
+   * claims a tone the text isn't in. */
+  const effectiveTone = description?.tone || tone;
+
+  /* One entry per sequence position for the map. Coordinates live on the
+   * Content, not the Item, so they're resolved through the same contents map the
+   * image and the details modal use. Entries keep their index even when they
+   * have no coordinates — the map lists those separately rather than renumbering. */
+  const mapStops = useMemo(
+    () =>
+      sequence.map((seqEntry, i) => {
+        const seqItem = seqEntry?.itemId;
+        const seqContent = seqItem?.contentId ? contents[seqItem.contentId] : null;
+        return {
+          index: i,
+          name: seqContent?.name || seqItem?.contentId || `Tappa ${i + 1}`,
+          lat: seqContent?.coordinates?.lat,
+          lng: seqContent?.coordinates?.lng,
+        };
+      }),
+    [sequence, contents]
+  );
 
   const isFirst = entryIndex === 0;
   const isLast = entryIndex >= sequence.length - 1;
   const atMaxLength = mode === 'describe' && lengthIdx >= maxLen;
 
+  const quiz = visit?.quiz || [];
+  const quizActive = inSession && quizStarted && quiz.length > 0;
+
   let bodyText = '';
-  if (!visit || sequence.length === 0) {
+  if (!visit || sequence.length === 0 || quizActive) {
+    /* Empty during the quiz too, which is what stops TTS from reading the last
+     * artwork's description over the questions — the speech effect keys on
+     * bodyText and cancels when it's empty. */
     bodyText = '';
+  } else if (answer) {
+    // Wins over the description. Because the TTS effect below keys on bodyText,
+    // answers get spoken automatically with no extra speech code.
+    bodyText = answer;
   } else if (mode === 'logistic') {
     const prevEntry = sequence[entryIndex - 1];
     bodyText =
@@ -171,8 +405,35 @@ export default function VisitRun() {
     return () => window.speechSynthesis.cancel();
   }, [ttsEnabled, bodyText]);
 
+  /* Same dismissal contract as ProfileMenu: outside-mousedown or Escape. */
+  useEffect(() => {
+    if (!toneMenuOpen) return;
+    function onDown(e) {
+      if (!e.target.closest('.visit-tone')) setToneMenuOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setToneMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [toneMenuOpen]);
+
+  /* In a group visit the guide doesn't move their own view — they ask the server
+   * to move the group, and everyone including the guide follows the resulting
+   * `session:item-changed`. One broadcast drives every screen, so the group can't
+   * end up split across two artworks. Students never reach these (their buttons
+   * are hidden and the matching commands are disabled). */
   function goNext() {
     if (isLast) return;
+    if (inSession) {
+      if (isOwner) sessionAction('advance');
+      return;
+    }
+    setAnswer(null);
     setEntryIndex((i) => i + 1);
     setMode('logistic');
     setLengthIdx(0);
@@ -180,12 +441,36 @@ export default function VisitRun() {
 
   function goPrevious() {
     if (isFirst) return;
+    if (inSession) {
+      if (isOwner) sessionAction('previous');
+      return;
+    }
+    setAnswer(null);
     setEntryIndex((i) => i - 1);
     setMode('describe');
     setLengthIdx(0);
   }
 
+  async function sessionAction(path, body) {
+    try {
+      await api(`/sessions/${encodeURIComponent(sessionCode)}/${path}`, {
+        method: 'POST',
+        ...(body ? { body } : {}),
+      });
+    } catch (err) {
+      if (err.status === 401) {
+        logout();
+        return;
+      }
+      /* Non-fatal: the visit keeps working, the group just didn't move. Shown
+       * as a dismissible line rather than through setError, which would swap
+       * the whole runner for an error screen over one failed button press. */
+      setNotice(err.message || 'Azione non riuscita');
+    }
+  }
+
   function handleDescribe() {
+    setAnswer(null);
     if (mode === 'logistic') {
       setMode('describe');
       setLengthIdx(0);
@@ -194,8 +479,171 @@ export default function VisitRun() {
     }
   }
 
-  function handleEndVisit() {
-    navigate(`/${museumSlug}`);
+  // "Simpler" — step back down the length ladder (45s → 15s → 3s). At 3s it's a
+  // no-op rather than falling back to logistic mode: dropping the user into
+  // walking directions when they asked for a simpler description is confusing.
+  function handleSimpler() {
+    setAnswer(null);
+    if (mode !== 'describe') return;
+    if (lengthIdx > 0) setLengthIdx((i) => i - 1);
+  }
+
+  function selectTone(next) {
+    setToneMenuOpen(false);
+    setTone(next);
+    // Keep the reading depth across the switch — you change tone to re-hear the
+    // same amount of detail differently — but don't land past the end if the new
+    // tone happens to carry fewer lengths.
+    const nextMax = lastAvailableLengthIdx(pickDescription(item, next));
+    setLengthIdx((i) => Math.min(i, nextMax));
+  }
+
+  /* Swipe across the description to change length: left for longer, right for
+   * shorter. The same ladder Describe! and the voice commands walk, so all three
+   * stay in sync through `lengthIdx`. */
+  function stepLength(delta) {
+    if (mode !== 'describe' || answer) return;
+    setLengthIdx((i) => Math.min(Math.max(i + delta, 0), maxLen));
+  }
+
+  const swipe = useRef(null);
+
+  function onDescPointerDown(e) {
+    if (mode !== 'describe' || answer) return;
+    swipe.current = { x: e.clientX, y: e.clientY, axis: null };
+  }
+
+  function onDescPointerMove(e) {
+    const s = swipe.current;
+    if (!s || s.axis) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (Math.hypot(dx, dy) < SWIPE_AXIS_LOCK) return;
+    /* Lock the axis once the gesture is unambiguous. A vertical gesture is
+     * abandoned outright so it scrolls the description normally — this block is
+     * the only scrollable region on the page. */
+    s.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+  }
+
+  function onDescPointerUp(e) {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s || s.axis !== 'x') return;
+    const dx = e.clientX - s.x;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+    stepLength(dx < 0 ? 1 : -1);
+  }
+
+  function onDescPointerCancel() {
+    // Fired when the browser takes the gesture over for vertical scrolling.
+    swipe.current = null;
+  }
+
+  function answerAuthor() {
+    setAnswer(
+      content?.author
+        ? `L'autore è ${content.author}.`
+        : 'Autore non disponibile per quest’opera.'
+    );
+  }
+
+  function answerYear() {
+    setAnswer(
+      content?.year
+        ? `Anno: ${content.year}.`
+        : 'Anno non disponibile per quest’opera.'
+    );
+  }
+
+  function answerExit() {
+    // POIs ride along on the visit fetch — getVisit populates museumId unselected.
+    const pois = visit?.museumId?.pointsOfInterest || [];
+    const exits = pois.filter((p) => p.type === 'exit' && p.label);
+    if (exits.length === 0) {
+      setAnswer('Nessuna uscita indicata per questo museo.');
+      return;
+    }
+    // No "nearest" claim — the Base tier is explicitly map without positioning.
+    setAnswer(
+      exits.length === 1
+        ? `L'uscita è: ${exits[0].label}.`
+        : `Uscite disponibili: ${exits.map((e) => e.label).join(', ')}.`
+    );
+  }
+
+  /* The one place the mic and the tap list converge. */
+  function runCommand(id) {
+    /* In a group visit, what a student asks for feeds the guide's Activities
+     * panel. Logged here rather than in each handler so the mic and the tap list
+     * are covered by one call, and only for students — the guide watching their
+     * own taps scroll past would be noise. `next`/`previous` are the guide's to
+     * make, so they aren't student activity either. */
+    if (inSession && !isOwner && LOGGED_COMMANDS.has(id)) {
+      sessionAction('activity', { action: id });
+    }
+    switch (id) {
+      case 'more':
+        handleDescribe();
+        break;
+      case 'simpler':
+        handleSimpler();
+        break;
+      case 'next':
+        goNext();
+        break;
+      case 'previous':
+        goPrevious();
+        break;
+      case 'author':
+        answerAuthor();
+        break;
+      case 'year':
+        answerYear();
+        break;
+      case 'exit':
+        answerExit();
+        break;
+      case 'map':
+        setMapOpen(true);
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Which commands can't do anything right now — greys out the sheet's rows.
+  // In a group visit the guide owns the group's position, so students get the
+  // navigation rows greyed out rather than hidden: seeing that Next exists but
+  // isn't theirs explains the runner better than a shorter list would.
+  const studentInSession = inSession && !isOwner;
+  const activeParticipants = participants.filter((p) => p.isActive).length;
+  const unreadChat = Math.max(0, messages.length - seen.chat);
+  const unreadActivities = Math.max(0, activities.length - seen.activities);
+  const commandsDisabled = {
+    more: atMaxLength,
+    simpler: mode !== 'describe' || lengthIdx === 0,
+    next: isLast || studentInSession,
+    previous: isFirst || studentInSession,
+  };
+
+  async function handleEndVisit() {
+    if (!inSession) {
+      navigate(`/${museumSlug}`);
+      return;
+    }
+    /* Role-dependent, matching the server's authorization: the guide ends the
+     * visit for everyone, a student only removes themselves and leaves the group
+     * running. Ending is destructive for other people, so it's confirmed. */
+    if (isOwner) {
+      const ok = window.confirm(
+        'End the visit for the whole group? Everyone will be sent back.'
+      );
+      if (!ok) return;
+      await sessionAction('end');
+    } else {
+      await sessionAction('leave');
+    }
+    navigate(museumSlug ? `/${museumSlug}` : '/museums');
   }
 
   async function openAssociated() {
@@ -222,6 +670,17 @@ export default function VisitRun() {
   function closeAssociated() {
     setAssocOpen(false);
     setAssocItemId(null);
+  }
+
+  /* Opening a panel marks its contents read. The badge therefore counts what has
+   * arrived since the last look, not since the visit began — during a long group
+   * visit the running total would be meaningless. */
+  function openPanel(which) {
+    setPanel(which);
+  }
+
+  function closePanel() {
+    setPanel(null);
   }
 
   if (loading) {
@@ -252,6 +711,26 @@ export default function VisitRun() {
     );
   }
 
+  /* The guide ended the group visit. Shown rather than redirected silently,
+   * which from a student's side would be indistinguishable from a crash. */
+  if (sessionEnded) {
+    return (
+      <div className="page-visit-run">
+        <PageHeader subtitle={visit?.museumId?.name} />
+        <div className="quiz-waiting">
+          <p>The guide has ended this visit.</p>
+          <button
+            type="button"
+            className="quiz-submit"
+            onClick={() => navigate(museumSlug ? `/${museumSlug}` : '/museums')}
+          >
+            Back to visits
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!visit || sequence.length === 0) {
     return (
       <div className="page-visit-run">
@@ -274,7 +753,8 @@ export default function VisitRun() {
 
   const museumName = visit.museumId?.name || '';
   const contentName = content?.name || (item?.contentId || '—');
-  const imageUrl = contentImagePath(content);
+  const imageUrl = content?.imageUrl;
+  const showImage = imageUrl && !brokenImages.has(imageUrl);
 
   return (
     <div className="page-visit-run">
@@ -291,8 +771,74 @@ export default function VisitRun() {
         }
       />
 
+      {inSession && (
+        <div className="session-bar">
+          <button
+            type="button"
+            className="session-bar-btn is-icon"
+            onClick={() => openPanel('participants')}
+            aria-label={`Partecipanti (${activeParticipants})`}
+            title="Participants"
+          >
+            <PeopleIcon />
+          </button>
+          <button
+            type="button"
+            className="session-bar-btn"
+            onClick={() => openPanel('chat')}
+          >
+            Chat
+            {unreadChat > 0 && (
+              <span className="session-badge">{unreadChat}</span>
+            )}
+          </button>
+          {/* Activities is the guide's window onto what the group is asking for,
+              so it isn't shown to students — it's their own actions in it. */}
+          {isOwner && (
+            <button
+              type="button"
+              className="session-bar-btn"
+              onClick={() => openPanel('activities')}
+            >
+              Activities
+              {unreadActivities > 0 && (
+                <span className="session-badge">{unreadActivities}</span>
+              )}
+            </button>
+          )}
+          <span className="session-code">{sessionCode}</span>
+        </div>
+      )}
+
+      {notice && (
+        <p className="visit-status error" onClick={() => setNotice(null)}>
+          {notice}
+        </p>
+      )}
+
+      {quizActive ? (
+        <QuizScreen
+          quiz={quiz}
+          code={sessionCode}
+          isOwner={isOwner}
+          results={quizResults}
+        />
+      ) : (
+        <>
       <div className="visit-image-wrap">
-        <img src={imageUrl} alt={contentName} className="visit-image" />
+        {showImage ? (
+          <img
+            key={imageUrl}
+            src={imageUrl}
+            alt={contentName}
+            className="visit-image"
+            onError={() =>
+              setBrokenImages((prev) => new Set(prev).add(imageUrl))
+            }
+          />
+        ) : (
+          <div className="visit-image-placeholder">{contentName}</div>
+        )}
         <button
           type="button"
           className="visit-image-plus"
@@ -318,9 +864,7 @@ export default function VisitRun() {
         <button
           type="button"
           className="visit-ask-btn"
-          onClick={(e) => e.preventDefault()}
-          aria-disabled="true"
-          title="Coming soon"
+          onClick={() => setSheetOpen(true)}
         >
           Ask me anything
         </button>
@@ -328,16 +872,86 @@ export default function VisitRun() {
 
       <div
         className={`visit-description${
-          mode === 'logistic' ? ' is-logistic' : ''
-        }`}
+          mode === 'logistic' && !answer ? ' is-logistic' : ''
+        }${answer ? ' is-answer' : ''}`}
+        onPointerDown={onDescPointerDown}
+        onPointerMove={onDescPointerMove}
+        onPointerUp={onDescPointerUp}
+        onPointerCancel={onDescPointerCancel}
       >
         <div className="visit-desc-head">
-          {mode === 'describe' && description ? (
-            <span className="visit-length-pill">{LENGTHS[lengthIdx]}</span>
+          {answer ? (
+            <span className="visit-answer-pill">Risposta</span>
+          ) : mode === 'describe' && description ? (
+            <div className="visit-tone">
+              <button
+                type="button"
+                className="visit-tone-pill"
+                onClick={() => setToneMenuOpen((v) => !v)}
+                aria-expanded={toneMenuOpen}
+                aria-haspopup="menu"
+                aria-label={`Tono: ${TONE_LABELS[effectiveTone]}. Cambia tono`}
+              >
+                {TONE_LABELS[effectiveTone] || effectiveTone}
+                <span className="visit-tone-caret" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
+              {toneMenuOpen && (
+                <div className="visit-tone-menu" role="menu">
+                  {TONES.map((t) => {
+                    const has = itemTones.includes(t);
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={t === effectiveTone}
+                        className={`visit-tone-option${
+                          t === effectiveTone ? ' is-active' : ''
+                        }`}
+                        onClick={() => selectTone(t)}
+                        disabled={!has}
+                        title={has ? undefined : 'Non disponibile per quest’opera'}
+                      >
+                        {TONE_LABELS[t]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           ) : (
             <span />
           )}
-          {TTS_SUPPORTED && (
+
+          {mode === 'describe' && description && !answer && (
+            <div
+              className="visit-length-dots"
+              aria-label={`Lunghezza ${lengthIdx + 1} di ${maxLen + 1}`}
+            >
+              {Array.from({ length: maxLen + 1 }, (_, i) => (
+                <span
+                  key={i}
+                  className={`visit-length-dot${
+                    i === lengthIdx ? ' is-active' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
+          )}
+          {answer && (
+            <button
+              type="button"
+              className="visit-answer-close"
+              onClick={() => setAnswer(null)}
+              aria-label="Chiudi la risposta"
+            >
+              ×
+            </button>
+          )}
+          {TTS_SUPPORTED && !answer && (
             <button
               type="button"
               className={`visit-tts-btn${ttsEnabled ? ' is-on' : ''}`}
@@ -355,41 +969,104 @@ export default function VisitRun() {
         <p>{bodyText}</p>
       </div>
 
-      <div className="visit-bottom-bar">
+      {/* Students don't navigate — the guide moves the whole group — so their
+          bar carries Map alone rather than two permanently-dead buttons. */}
+      <div
+        className={`visit-bottom-bar${studentInSession ? ' is-student' : ''}`}
+      >
+        {!studentInSession && (
+          <>
+            <button
+              type="button"
+              className="visit-nav-btn"
+              onClick={goPrevious}
+              disabled={isFirst}
+            >
+              Previous
+            </button>
+            {/* On the last stop the guide's Next becomes Start Quiz, but only
+                when the visit actually carries one — otherwise Next just ends
+                disabled as it does in a solo visit. */}
+            {inSession && isOwner && isLast && quiz.length > 0 ? (
+              <button
+                type="button"
+                className="visit-nav-btn"
+                onClick={() => sessionAction('quiz/start')}
+              >
+                Start Quiz
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="visit-nav-btn"
+                onClick={goNext}
+                disabled={isLast}
+              >
+                Next
+              </button>
+            )}
+          </>
+        )}
         <button
           type="button"
           className="visit-nav-btn"
-          onClick={goPrevious}
-          disabled={isFirst}
-        >
-          Previous
-        </button>
-        <button
-          type="button"
-          className="visit-nav-btn"
-          onClick={goNext}
-          disabled={isLast}
-        >
-          Next
-        </button>
-        <button
-          type="button"
-          className="visit-nav-btn"
-          onClick={(e) => e.preventDefault()}
-          aria-disabled="true"
-          title="Coming soon"
+          onClick={() => setMapOpen(true)}
         >
           Map
         </button>
       </div>
+        </>
+      )}
+
+      {sheetOpen && (
+        <CommandSheet
+          disabled={commandsDisabled}
+          onCommand={runCommand}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
+
+      {mapOpen && (
+        <MuseumMap
+          museum={visit.museumId}
+          stops={mapStops}
+          currentIndex={entryIndex}
+          onClose={() => setMapOpen(false)}
+        />
+      )}
 
       {assocOpen && (
         <AssociatedContentsModal
+          content={content}
           item={assocItemId ? assocCache[assocItemId] : null}
           loading={assocLoading}
           error={assocError}
           onClose={closeAssociated}
         />
+      )}
+
+      {panel === 'participants' && (
+        <ParticipantsPanel
+          code={sessionCode}
+          isOwner={isOwner}
+          ownerName={session?.owner?.username}
+          participants={participants}
+          meId={me?._id}
+          onClose={closePanel}
+        />
+      )}
+
+      {panel === 'chat' && (
+        <ChatPanel
+          code={sessionCode}
+          messages={messages}
+          meId={me?._id}
+          onClose={closePanel}
+        />
+      )}
+
+      {panel === 'activities' && (
+        <ActivitiesPanel activities={activities} onClose={closePanel} />
       )}
     </div>
   );

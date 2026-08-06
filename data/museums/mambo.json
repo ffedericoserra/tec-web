@@ -19,21 +19,65 @@
     "mapData": {
       "imageUrl": "/uploads/maps/mambo-map.png",
       "bounds": {
-        "north": 44.5003,
-        "south": 44.4995,
-        "east": 11.3395,
-        "west": 11.3380
+        "north": 44.5001158,
+        "south": 44.4996842,
+        "east": 11.3395186,
+        "west": 11.3378814
       },
-      "center": { "lat": 44.4999, "lng": 11.3387 }
+      "center": {
+        "lat": 44.4999,
+        "lng": 11.3387
+      }
     },
     "pointsOfInterest": [
-      { "type": "entrance", "coordinates": { "lat": 44.4996, "lng": 11.3387 }, "label": "Ingresso principale" },
-      { "type": "toilet", "coordinates": { "lat": 44.4998, "lng": 11.3390 }, "label": "Bagni Piano Terra" },
-      { "type": "toilet", "coordinates": { "lat": 44.5001, "lng": 11.3385 }, "label": "Bagni Primo Piano" },
-      { "type": "bar", "coordinates": { "lat": 44.4997, "lng": 11.3383 }, "label": "Caffetteria" },
-      { "type": "shop", "coordinates": { "lat": 44.4996, "lng": 11.3389 }, "label": "Bookshop" },
-      { "type": "exit", "coordinates": { "lat": 44.5002, "lng": 11.3388 }, "label": "Uscita secondaria" },
-      { "type": "stairs", "coordinates": { "lat": 44.4999, "lng": 11.3386 }, "label": "Scale principali" }
+      {
+        "type": "entrance",
+        "coordinates": {
+          "lat": 44.5000748,
+          "lng": 11.3384827
+        },
+        "label": "Ingresso principale"
+      },
+      {
+        "type": "toilet",
+        "coordinates": {
+          "lat": 44.4999997,
+          "lng": 11.3383659
+        },
+        "label": "Bagni Piano Terra"
+      },
+      {
+        "type": "bar",
+        "coordinates": {
+          "lat": 44.4999779,
+          "lng": 11.3382529
+        },
+        "label": "Caffetteria"
+      },
+      {
+        "type": "shop",
+        "coordinates": {
+          "lat": 44.4998918,
+          "lng": 11.3382471
+        },
+        "label": "Bookshop"
+      },
+      {
+        "type": "exit",
+        "coordinates": {
+          "lat": 44.5000748,
+          "lng": 11.3380633
+        },
+        "label": "Uscita secondaria"
+      },
+      {
+        "type": "stairs",
+        "coordinates": {
+          "lat": 44.4998262,
+          "lng": 11.3383659
+        },
+        "label": "Scale principali"
+      }
     ]
   },
   "contents": [
@@ -43,9 +87,11 @@
       "name": "Natura morta",
       "author": "Giorgio Morandi",
       "year": "1946",
-      "coordinates": { "lat": 44.4999, "lng": 11.3388 },
-      "qrCode": "QR-mambo-morandi-natura-morta-1946",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3388312
+      },
+      "qrCode": "QR-mambo-morandi-natura-morta-1946"
     },
     {
       "type": "Artwork",
@@ -53,9 +99,11 @@
       "name": "Paesaggio",
       "author": "Giorgio Morandi",
       "year": "1943",
-      "coordinates": { "lat": 44.4999, "lng": 11.3390 },
-      "qrCode": "QR-mambo-morandi-paesaggio",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3389001
+      },
+      "qrCode": "QR-mambo-morandi-paesaggio"
     },
     {
       "type": "Artwork",
@@ -63,9 +111,11 @@
       "name": "Rosso Plastica",
       "author": "Alberto Burri",
       "year": "1962",
-      "coordinates": { "lat": 44.5000, "lng": 11.3385 },
-      "qrCode": "QR-mambo-burri-rosso-plastica",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.338969
+      },
+      "qrCode": "QR-mambo-burri-rosso-plastica"
     },
     {
       "type": "Artwork",
@@ -73,9 +123,11 @@
       "name": "Concetto spaziale, Attese",
       "author": "Lucio Fontana",
       "year": "1960",
-      "coordinates": { "lat": 44.5000, "lng": 11.3387 },
-      "qrCode": "QR-mambo-fontana-concetto-spaziale",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3390361
+      },
+      "qrCode": "QR-mambo-fontana-concetto-spaziale"
     },
     {
       "type": "Artwork",
@@ -83,9 +135,11 @@
       "name": "Ettore e Andromaca",
       "author": "Giorgio de Chirico",
       "year": "1924",
-      "coordinates": { "lat": 44.5001, "lng": 11.3389 },
-      "qrCode": "QR-mambo-de-chirico-ettore-andromaca",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3391069
+      },
+      "qrCode": "QR-mambo-de-chirico-ettore-andromaca"
     },
     {
       "type": "Artwork",
@@ -93,9 +147,11 @@
       "name": "Plurimo",
       "author": "Emilio Vedova",
       "year": "1962",
-      "coordinates": { "lat": 44.5001, "lng": 11.3386 },
-      "qrCode": "QR-mambo-vedova-plurimo",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3391797
+      },
+      "qrCode": "QR-mambo-vedova-plurimo"
     },
     {
       "type": "Artwork",
@@ -103,9 +159,11 @@
       "name": "Senza titolo",
       "author": "Jannis Kounellis",
       "year": "1979",
-      "coordinates": { "lat": 44.5000, "lng": 11.3383 },
-      "qrCode": "QR-mambo-kounellis-senza-titolo",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.499915,
+        "lng": 11.339352
+      },
+      "qrCode": "QR-mambo-kounellis-senza-titolo"
     },
     {
       "type": "Artwork",
@@ -113,9 +171,11 @@
       "name": "Giovane che guarda Lorenzo Lotto",
       "author": "Giulio Paolini",
       "year": "1967",
-      "coordinates": { "lat": 44.4998, "lng": 11.3384 },
-      "qrCode": "QR-mambo-paolini-giovane-guardando-lorenzo-lotto",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.4998112,
+        "lng": 11.3392141
+      },
+      "qrCode": "QR-mambo-paolini-giovane-guardando-lorenzo-lotto"
     },
     {
       "type": "Artwork",
@@ -123,9 +183,11 @@
       "name": "Bachi da setola",
       "author": "Pino Pascali",
       "year": "1968",
-      "coordinates": { "lat": 44.4998, "lng": 11.3392 },
-      "qrCode": "QR-mambo-pascali-bachi-da-setola",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.4998112,
+        "lng": 11.3391203
+      },
+      "qrCode": "QR-mambo-pascali-bachi-da-setola"
     },
     {
       "type": "Artwork",
@@ -133,36 +195,44 @@
       "name": "Venere degli stracci",
       "author": "Michelangelo Pistoletto",
       "year": "1967",
-      "coordinates": { "lat": 44.5002, "lng": 11.3387 },
-      "qrCode": "QR-mambo-pistoletto-venere-stracci",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.4999137,
+        "lng": 11.3386588
+      },
+      "qrCode": "QR-mambo-pistoletto-venere-stracci"
     },
     {
       "type": "Artist",
       "universalId": "mambo-artist-morandi",
       "name": "Giorgio Morandi",
       "year": "1890-1964",
-      "coordinates": { "lat": 44.4999, "lng": 11.3389 },
-      "qrCode": "QR-mambo-artist-morandi",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.4999,
+        "lng": 11.3389
+      },
+      "qrCode": "QR-mambo-artist-morandi"
     },
     {
       "type": "Artist",
       "universalId": "mambo-artist-fontana",
       "name": "Lucio Fontana",
       "year": "1899-1968",
-      "coordinates": { "lat": 44.5000, "lng": 11.3388 },
-      "qrCode": "QR-mambo-artist-fontana",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5,
+        "lng": 11.3388
+      },
+      "qrCode": "QR-mambo-artist-fontana"
     },
     {
       "type": "Movement",
       "universalId": "mambo-movement-arte-povera",
       "name": "Arte Povera",
       "year": "1960-1970",
-      "coordinates": { "lat": 44.5001, "lng": 11.3387 },
-      "qrCode": "QR-mambo-movement-arte-povera",
-      "imgPath": "/uploads/contents/placeholder.jpg"
+      "coordinates": {
+        "lat": 44.5001,
+        "lng": 11.3387
+      },
+      "qrCode": "QR-mambo-movement-arte-povera"
     }
   ]
 }

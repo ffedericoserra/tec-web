@@ -8,6 +8,9 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:8000',
       '/uploads': 'http://localhost:8000',
+      // ws:true is required — without it the socket.io handshake upgrades and
+      // then dies, and the session runner silently never receives an event.
+      '/socket.io': { target: 'http://localhost:8000', ws: true },
     },
   },
   build: {

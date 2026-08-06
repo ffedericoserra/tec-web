@@ -4,6 +4,7 @@ import { api, getCachedUser, setCachedUser } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
 import PageHeader from '../components/PageHeader.jsx';
 import ProfileMenu from '../components/ProfileMenu.jsx';
+import GroupVisitDialog from '../components/GroupVisitDialog.jsx';
 import '../styles/visitSelect.css';
 
 function capitalize(s) {
@@ -42,6 +43,7 @@ export default function VisitSelect() {
   const [expanded, setExpanded] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [groupOpen, setGroupOpen] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -122,9 +124,7 @@ export default function VisitSelect() {
         <button
           type="button"
           className="group-visit-link"
-          onClick={(e) => e.preventDefault()}
-          title="Coming soon"
-          aria-disabled="true"
+          onClick={() => setGroupOpen(true)}
         >
           or join/create a group visit
         </button>
@@ -190,6 +190,14 @@ export default function VisitSelect() {
           </ul>
         )}
       </main>
+
+      {groupOpen && (
+        <GroupVisitDialog
+          museum={museum}
+          onClose={() => setGroupOpen(false)}
+          onJoined={(code) => navigate(`/session/${code}`)}
+        />
+      )}
     </div>
   );
 }

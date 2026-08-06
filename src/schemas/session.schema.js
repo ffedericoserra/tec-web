@@ -9,8 +9,27 @@ const createSessionSchema = z.object({
   code: z.string().min(3, 'Code must be at least 3 characters').max(50).optional(),
 });
 
+/**
+ * Only the actions a participant can trigger. 'joined' / 'left' are written by
+ * the server and are deliberately not accepted here, so a client can't forge
+ * them. Mirrors the command ids in frontend-navigator/src/voice.js.
+ */
 const logActivitySchema = z.object({
-  action: z.enum(['tellMore', 'tellLess', 'simpler', 'tooSimple']),
+  action: z.enum([
+    'more',
+    'simpler',
+    'author',
+    'year',
+    'exit',
+    'map',
+    'tellMore',
+    'tellLess',
+    'tooSimple',
+  ]),
+});
+
+const sendMessageSchema = z.object({
+  text: z.string().trim().min(1, 'Message cannot be empty').max(500),
 });
 
 const submitQuizSchema = z.object({
@@ -27,5 +46,6 @@ const submitQuizSchema = z.object({
 module.exports = {
   createSessionSchema,
   logActivitySchema,
+  sendMessageSchema,
   submitQuizSchema,
 };

@@ -25,6 +25,17 @@
   box-sizing: border-box;
 }
 
+/* No zooming: the navigator is a fixed-layout app, and a pinched-in visit runner
+   pushes the Next/Previous controls off-screen. `pan-x pan-y` allows scrolling but
+   blocks both pinch-zoom and double-tap-to-zoom — the viewport meta alone doesn't,
+   since iOS Safari ignores user-scalable=no. Inputs are already 16px everywhere,
+   which is what stops iOS from zooming on focus. */
+html {
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 html,
 body {
   margin: 0;

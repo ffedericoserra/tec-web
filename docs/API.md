@@ -39,6 +39,8 @@
 | POST | /api/sessions/:code/join | yes | Join session |
 | POST | /api/sessions/:code/leave | yes | Leave session |
 | POST | /api/sessions/:code/activity | yes | Log activity |
+| POST | /api/sessions/:code/message | yes | Post chat message |
+| POST | /api/sessions/:code/quiz/start | yes | Start quiz (teacher) |
 | POST | /api/sessions/:code/quiz | yes | Submit quiz answers |
 | GET | /api/sessions/:code/quiz | yes | Quiz results (teacher) |
 | POST | /api/sessions/:code/advance | yes | Next item (teacher) |
@@ -175,6 +177,8 @@ All session endpoints require authentication.
 | POST | `/sessions/:code/join` | Join as participant |
 | POST | `/sessions/:code/leave` | Leave session |
 | POST | `/sessions/:code/activity` | Log participant action |
+| POST | `/sessions/:code/message` | Post a chat message |
+| POST | `/sessions/:code/quiz/start` | Start the quiz (owner only) |
 | POST | `/sessions/:code/quiz` | Submit quiz answers |
 | GET | `/sessions/:code/quiz` | Get quiz results (owner only) |
 | POST | `/sessions/:code/advance` | Next item (owner only) |
@@ -190,13 +194,53 @@ All session endpoints require authentication.
 
 **Response includes mnemonic code:** `ROSSO_LEONE_42`
 
+**Session responses** carry `isOwner` so the client knows its role without
+comparing ObjectIds. For non-owners the other participants' `quizAnswers` /
+`quizScore` and every `quiz[].correctIndex` are stripped — the answer key only
+ever reaches the visit's author (also true of `GET /visits/:id`).
+
 **Log Activity Request:**
 ```json
 {
-  "action": "tellMore"
+  "action": "author"
 }
 ```
-**Actions:** `tellMore`, `tellLess`, `simpler`, `tooSimple`
+**Actions:** `more`, `simpler`, `author`, `year`, `exit`, `map` — the controlled
+vocabulary command ids from `frontend-navigator/src/voice.js`, which is what the
+teacher's Activities panel renders. Legacy `tellMore`, `tellLess`, `tooSimple`
+are still accepted. `joined` / `left` are written by the server and rejected here.
+
+**Post Message Request:**
+```json
+{
+  "text": "Benvenuti, iniziamo!"
+}
+```
+Broadcast to the whole room as `session:chat`, **including the sender** — clients
+append on the broadcast rather than keeping an optimistic copy.
+
+### Real-time (Socket.io, path `/socket.io`)
+
+Authenticate with `auth: { token }` at connect. Sockets carry room membership and
+**outbound broadcasts only** — every mutation goes through the REST endpoints
+above, which then broadcast. Clients emit just two events:
+
+| Emit | Payload | Purpose |
+|------|---------|---------|
+| `session:join` | `code` | Join the room; server replies with `session:state` |
+| `session:leave` | — | Leave the room |
+
+| Receive | Payload |
+|---------|---------|
+| `session:state` | `{ currentItemIndex, participants, participantCount, messages, activities, quizStarted }` — full catch-up, so a reload or late join needs no re-fetch |
+| `session:item-changed` | `{ currentItemIndex, isLast? , isFirst? }` |
+| `session:participants` | `{ participants }` |
+| `session:participant-joined` / `-left` | `{ userId, username }` |
+| `session:chat` | `{ userId, username, text, timestamp }` |
+| `session:activity` | `{ participantId, username, action, timestamp }` |
+| `session:quiz-started` | `{}` |
+| `session:quiz-submitted` | `{ userId, username, quizScore, total }` |
+| `session:ended` | `{}` |
 
 **Submit Quiz Request:**
 ```json

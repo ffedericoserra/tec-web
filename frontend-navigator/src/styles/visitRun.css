@@ -37,6 +37,10 @@
   border-bottom: 1px solid var(--line-soft);
 }
 
+/* `contain`, not `cover`: these are artworks, and cropping a painting to fill a
+   square box cuts off exactly what the description is talking about. Portrait and
+   landscape canvases letterbox against the surface colour, which is what a museum
+   app should do. */
 .visit-image {
   width: 100%;
   height: 100%;
@@ -152,8 +156,15 @@
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
-  cursor: not-allowed;
-  opacity: 0.85;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-ask-btn:hover,
+.visit-ask-btn:active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
 }
 
 /* ---------- Description body ---------- */
@@ -164,6 +175,10 @@
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   padding: 4px 18px 16px;
+  /* Vertical scrolling stays with the browser; horizontal is ours, for the
+     swipe that steps through description lengths. Without this the browser
+     never yields the gesture and the swipe is only reachable with a mouse. */
+  touch-action: pan-y;
 }
 
 .visit-description p {
@@ -188,18 +203,142 @@
   min-height: 28px;
 }
 
-.visit-length-pill {
+/* Tone picker — replaces the old read-only length pill. Tone is now the pill;
+   the length it used to show is carried by the dots to its right. */
+.visit-tone {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.visit-tone-pill {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
   border-radius: var(--radius-pill);
+  border: none;
   background: var(--accent-soft);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--accent);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.visit-tone-pill:hover,
+.visit-tone-pill[aria-expanded='true'] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.visit-tone-caret {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.visit-tone-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 132px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(22, 22, 22, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-tone-option {
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+}
+
+.visit-tone-option:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.visit-tone-option.is-active {
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.visit-tone-option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Length indicator — which of the 3s / 15s / 45s texts is showing. */
+.visit-length-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto;
+}
+
+.visit-length-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-soft);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.visit-length-dot.is-active {
+  background: var(--accent);
+  transform: scale(1.15);
+}
+
+/* Answer takeover — a question command ('author' / 'year' / 'exit') temporarily
+   replaces the description body. Burgundy accent marks it as not-the-description. */
+.visit-description.is-answer {
+  background: var(--surface-alt);
+  border-left: 3px solid var(--accent);
+}
+
+.visit-answer-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.visit-answer-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-answer-close:hover,
+.visit-answer-close:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  outline: none;
 }
 
 .visit-tts-btn {
@@ -404,63 +543,73 @@
   gap: 14px;
 }
 
-.assoc-card {
+/* Content detail rows: bold label, value beside it, one per line. `dt`/`dd` are
+   inlined rather than gridded so a long title wraps under its own label instead
+   of forcing a wide, ragged label column. */
+.assoc-details {
+  margin: 0;
+  padding: 0;
+}
+
+.assoc-detail-row {
   display: flex;
-  gap: 14px;
-  padding: 14px;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 7px 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.assoc-detail-row dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.assoc-detail-row dd {
+  margin: 0;
+  min-width: 0;
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* The `---` in the requested layout: a rule above the Universal ID row. */
+.assoc-detail-row.is-separated {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.assoc-detail-row.is-separated dd {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.assoc-related {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.assoc-related-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.assoc-related .assoc-list > li {
+  padding: 10px 12px;
   border: 1px solid var(--line-soft);
   border-radius: 0;
   background: transparent;
   transition: background 0.2s ease;
-}
-
-.assoc-card-img {
-  width: 84px;
-  height: 84px;
-  object-fit: contain;
-  object-position: center;
-  border-radius: 0;
-  background: var(--surface-alt);
-  flex-shrink: 0;
-}
-
-.assoc-card-img.is-placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.assoc-card-body {
-  flex: 1;
-  min-width: 0;
-}
-
-.assoc-card-type {
-  margin: 0 0 6px;
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--accent);
-  font-weight: 800;
-}
-
-.assoc-card-name {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -0.2px;
-  line-height: 1.3;
-}
-
-.assoc-card-meta {
-  margin: 0;
-  font-size: 13px;
-  color: var(--muted);
-  line-height: 1.4;
 }
 
 .assoc-empty {
@@ -468,4 +617,434 @@
   color: var(--muted);
   padding: 28px 12px;
   font-size: 14px;
+}
+
+/* ---------- Command sheet (voice control + tappable vocabulary) ---------- */
+
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(22, 22, 22, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: assoc-fade 0.15s ease;
+}
+
+.cmd-sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  animation: assoc-slide 0.18s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.cmd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  flex-shrink: 0;
+}
+
+.cmd-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.cmd-close {
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmd-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.cmd-mic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.cmd-mic {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Reuses the Describe! prompt keyframe so "the app wants input" reads the same
+   way in both places. */
+.cmd-mic.is-listening {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  animation: prompt-pulse 1.6s ease-in-out infinite;
+}
+
+.cmd-mic-label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cmd-mic-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.cmd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmd-item {
+  width: 100%;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cmd-item:active:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.cmd-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cmd-item-label {
+  font-weight: 500;
+}
+
+.cmd-item-hint {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+/* ---- Museum map (MuseumMap.jsx) ---- */
+
+.map-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 22, 22, 0.5);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: assoc-fade 0.15s ease;
+}
+
+.map-dialog {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88dvh;
+  max-height: 88vh;
+  background: var(--surface);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
+  animation: assoc-slide 0.18s ease;
+}
+
+.map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.map-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-close {
+  flex-shrink: 0;
+  width: var(--tap);
+  height: var(--tap);
+  margin: -10px -12px -10px 0;
+  border: 0;
+  background: none;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.map-body {
+  padding: 14px 16px 18px;
+  overflow-y: auto;
+}
+
+.map-plate {
+  position: relative;
+  background: var(--surface-alt);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  /* Must match PLATE_ASPECT in MuseumMap.jsx. A fixed box rather than the plan's
+     own ratio: a 2.67:1 floor plan rendered at its natural aspect is a 130px-tall
+     letterbox on mobile, with markers too small to read or tap. */
+  aspect-ratio: 4 / 3;
+  max-height: 46dvh;
+  max-height: 46vh;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Scoped exception to the app-wide no-zoom rule (`touch-action: pan-x pan-y`
+     in base.css). Browser zoom is off because it breaks the fixed runner layout,
+     but a floor plan is unusable without pinch — so the plate takes the gestures
+     itself and drives the SVG viewBox. Must stay `none` or the browser steals
+     the drag for scrolling. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-svg:active {
+  cursor: grabbing;
+}
+
+.map-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-zoom button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.map-zoom button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.map-fit-btn {
+  flex: 1;
+  min-height: 36px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.map-fit-btn:active:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.map-fit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ⚠️ Stroke *geometry* for the map markers is set as k-scaled presentation
+   attributes in MuseumMap.jsx, so it stays a constant size on screen while the
+   plan zooms. Never set `stroke-width` or `stroke-dasharray` in here: CSS beats
+   presentation attributes, so a value here silently kills the scaling — the
+   stroke stays at a fixed user-unit width while the radius shrinks with the
+   zoom, and the markers turn into solid blobs with unreadable numbers. These
+   rules carry colour only. */
+
+/* The order the stops are walked in. Dashed and muted so it reads as a hint
+   rather than a wall. */
+.map-route {
+  stroke: var(--muted);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.65;
+}
+
+.map-stop,
+.map-poi {
+  cursor: pointer;
+}
+
+.map-stop circle {
+  fill: var(--surface);
+  stroke: var(--ink);
+}
+
+.map-stop text {
+  fill: var(--ink);
+  text-anchor: middle;
+  font-weight: 700;
+}
+
+/* The current stop, which is as much position as the Base tier claims. */
+.map-stop.is-current circle {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.map-stop.is-current text {
+  fill: #fff;
+}
+
+.map-poi circle {
+  fill: var(--surface);
+  stroke: var(--line-soft);
+}
+
+.map-poi text {
+  text-anchor: middle;
+}
+
+.map-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-alt);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.map-footer-title {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-footer-sub {
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.map-legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-legend-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.map-legend-mark.is-current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.map-legend-mark.is-poi {
+  border-color: var(--line-soft);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.map-note,
+.map-empty {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.map-empty {
+  text-align: center;
+  margin: 24px 0;
 }

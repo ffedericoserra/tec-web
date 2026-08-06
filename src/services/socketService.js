@@ -1,6 +1,12 @@
 /**
  * Socket.io Service
  * Handles real-time communication for synchronized sessions (Extension 1)
+ *
+ * Sockets carry room membership and *outbound* broadcasts only. Every mutation
+ * (advance, previous, activity, chat, quiz start, end) goes through the REST
+ * controllers in session.controller.js, which then call emitToSession(). That
+ * keeps one authoritative copy of each rule — ownership checks, validation,
+ * bounds — instead of the same logic written twice and drifting.
  */
 
 const { Server } = require('socket.io');
@@ -9,6 +15,24 @@ const env = require('../config/env');
 const Session = require('../models/Session');
 
 let io = null;
+
+/**
+ * Activities store only a participantId, but the teacher's panel renders a name
+ * per row. Live activities carry the username in the event (see
+ * session.controller.logActivity); the backlog replayed on join has to resolve
+ * it from the participant list instead.
+ */
+function withUsernames(session) {
+  const names = new Map(
+    session.participants.map((p) => [p.userId.toString(), p.username])
+  );
+  return session.activities.map((a) => ({
+    participantId: a.participantId,
+    action: a.action,
+    timestamp: a.timestamp,
+    username: names.get(a.participantId.toString()) || 'Sconosciuto',
+  }));
+}
 
 /**
  * Initialize Socket.io server
@@ -60,10 +84,17 @@ function initSocket(httpServer) {
           username: socket.username,
         });
 
-        // Send current state
+        /* The full catch-up state. A client that reloads or joins late rebuilds
+         * its whole session view from this one event — current stop, who's here,
+         * the chat backlog, the activity log and whether the quiz is already
+         * running — so it never has to re-fetch after connecting. */
         socket.emit('session:state', {
           currentItemIndex: session.currentItemIndex,
+          participants: session.participants,
           participantCount: session.participants.filter((p) => p.isActive).length,
+          messages: session.messages,
+          activities: withUsernames(session),
+          quizStarted: session.quizStarted,
         });
       } catch (err) {
         socket.emit('session:error', err.message);
@@ -79,95 +110,6 @@ function initSocket(httpServer) {
         });
         socket.leave(`session:${socket.sessionCode}`);
         socket.sessionCode = null;
-      }
-    });
-
-    // Teacher advances item
-    socket.on('session:advance', async (code) => {
-      try {
-        const session = await Session.findActiveByCode(code).populate('visitId', 'sequence');
-        if (!session) return;
-
-        // Only owner can advance
-        if (session.owner.toString() !== socket.userId) return;
-
-        const maxIndex = session.visitId.sequence.length - 1;
-        if (session.currentItemIndex < maxIndex) {
-          session.currentItemIndex += 1;
-          await session.save();
-        }
-
-        // Broadcast to all in session
-        io.to(`session:${code}`).emit('session:item-changed', {
-          currentItemIndex: session.currentItemIndex,
-          isLast: session.currentItemIndex >= maxIndex,
-        });
-      } catch (err) {
-        socket.emit('session:error', err.message);
-      }
-    });
-
-    // Teacher goes to previous
-    socket.on('session:previous', async (code) => {
-      try {
-        const session = await Session.findActiveByCode(code);
-        if (!session) return;
-
-        if (session.owner.toString() !== socket.userId) return;
-
-        if (session.currentItemIndex > 0) {
-          session.currentItemIndex -= 1;
-          await session.save();
-        }
-
-        io.to(`session:${code}`).emit('session:item-changed', {
-          currentItemIndex: session.currentItemIndex,
-          isFirst: session.currentItemIndex === 0,
-        });
-      } catch (err) {
-        socket.emit('session:error', err.message);
-      }
-    });
-
-    // Participant activity (logged and sent to teacher)
-    socket.on('session:activity', async ({ code, action }) => {
-      try {
-        const session = await Session.findActiveByCode(code);
-        if (!session) return;
-
-        session.activities.push({
-          participantId: socket.userId,
-          action,
-        });
-        await session.save();
-
-        // Notify teacher
-        io.to(`session:${code}`).emit('session:activity', {
-          userId: socket.userId,
-          username: socket.username,
-          action,
-          timestamp: new Date(),
-        });
-      } catch (err) {
-        socket.emit('session:error', err.message);
-      }
-    });
-
-    // End session
-    socket.on('session:end', async (code) => {
-      try {
-        const session = await Session.findActiveByCode(code);
-        if (!session) return;
-
-        if (session.owner.toString() !== socket.userId) return;
-
-        session.isActive = false;
-        session.endedAt = new Date();
-        await session.save();
-
-        io.to(`session:${code}`).emit('session:ended');
-      } catch (err) {
-        socket.emit('session:error', err.message);
       }
     });
 
