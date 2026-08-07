@@ -21,7 +21,8 @@ export default function ProfileMenu({ user }) {
     };
   }, [open]);
 
-  const initial = user?.username?.[0]?.toUpperCase() || '?';
+  const defaultAvatarUrl = '/uploads/profiles/default-avatar.jpeg';
+  const avatarUrl = user?.avatarUrl || defaultAvatarUrl;
 
   return (
     <div className="profile" ref={ref}>
@@ -33,7 +34,15 @@ export default function ProfileMenu({ user }) {
         aria-expanded={open}
         aria-label="Apri menu profilo"
       >
-        {initial}
+        <img
+          className="profile-avatar"
+          src={avatarUrl}
+          alt={`Profilo di ${user?.username || 'utente'}`}
+          onError={(event) => {
+            if (event.currentTarget.src.endsWith(defaultAvatarUrl)) return;
+            event.currentTarget.src = defaultAvatarUrl;
+          }}
+        />
       </button>
       {open && (
         <div className="profile-menu" role="menu">

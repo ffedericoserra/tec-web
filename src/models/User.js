@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Password is required'], // Rimesso l'obbligo della password
     },
+    avatarUrl: {
+      type: String,
+      default: '/uploads/profiles/default-avatar.jpeg',
+    },
     savedMuseums: [
       {
         type: mongoose.Schema.Types.ObjectId,

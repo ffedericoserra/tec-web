@@ -99,6 +99,7 @@
         "lat": 43.7683,
         "lng": 11.2553
       },
+      "imageUrl": "/uploads/contents/venere-botticelli.png",
       "qrCode": "QR-uffizi-botticelli-venere"
     },
     {
@@ -111,6 +112,7 @@
         "lat": 43.7683,
         "lng": 11.2555
       },
+      "imageUrl": "/uploads/contents/Botticelli-primavera.jpg",
       "qrCode": "QR-uffizi-botticelli-primavera"
     },
     {
@@ -123,6 +125,7 @@
         "lat": 43.7684,
         "lng": 11.2551
       },
+      "imageUrl": "/uploads/contents/leonardo-annunciazione.jpg",
       "qrCode": "QR-uffizi-leonardo-annunciazione"
     },
     {
@@ -135,6 +138,7 @@
         "lat": 43.7685,
         "lng": 11.2554
       },
+      "imageUrl": "/uploads/contents/Tondo_Doni_2021.jpg",
       "qrCode": "QR-uffizi-michelangelo-tondodoni"
     },
     {
@@ -147,6 +151,7 @@
         "lat": 43.7682,
         "lng": 11.2552
       },
+      "imageUrl": "/uploads/contents/madonna-cardellino.jpeg",
       "qrCode": "QR-uffizi-raffaello-cardellino"
     },
     {
@@ -159,6 +164,7 @@
         "lat": 43.7681,
         "lng": 11.2556
       },
+      "imageUrl": "/uploads/contents/Tizian_-_Venus_von_Urbino.jpg",
       "qrCode": "QR-uffizi-tiziano-venere"
     },
     {
@@ -171,6 +177,7 @@
         "lat": 43.768,
         "lng": 11.2553
       },
+      "imageUrl": "/uploads/contents/Baco,_por_Caravaggio.jpg",
       "qrCode": "QR-uffizi-caravaggio-bacco"
     },
     {
@@ -183,6 +190,7 @@
         "lat": 43.768,
         "lng": 11.2555
       },
+      "imageUrl": "/uploads/contents/Medusa_by_Caravaggio.jpg",
       "qrCode": "QR-uffizi-caravaggio-medusa"
     },
     {
@@ -195,6 +203,7 @@
         "lat": 43.7684,
         "lng": 11.2557
       },
+      "imageUrl": "/uploads/contents/Gentile_da_Fabriano_-_Adorazione_dei_Magi_-_Google_Art_Project.jpg",
       "qrCode": "QR-uffizi-gentile-magi"
     },
     {
@@ -207,6 +216,7 @@
         "lat": 43.7686,
         "lng": 11.2551
       },
+      "imageUrl": "/uploads/contents/GiottoMaesta.jpg",
       "qrCode": "QR-uffizi-giotto-maesta"
     },
     {
@@ -218,6 +228,7 @@
         "lat": 43.7683,
         "lng": 11.2554
       },
+      "imageUrl": "/uploads/artists/botticelli.jpeg",
       "qrCode": "QR-uffizi-artist-botticelli"
     },
     {
@@ -229,6 +240,7 @@
         "lat": 43.7684,
         "lng": 11.2552
       },
+      "imageUrl": "/uploads/artists/daVinci.jpeg",
       "qrCode": "QR-uffizi-artist-leonardo"
     },
     {
@@ -240,6 +252,7 @@
         "lat": 43.7682,
         "lng": 11.2554
       },
+      "imageUrl": "/uploads/movements/rinascimento.jpeg",
       "qrCode": "QR-uffizi-movement-rinascimento"
     }
   ]

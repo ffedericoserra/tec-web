@@ -2,7 +2,7 @@ const isLocal = window.location.origin.includes('localhost') || window.location.
 const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token");
-const CONTENT_PLACEHOLDER = "/uploads/contents/placeholder.jpg";
+const CONTENT_PLACEHOLDER = "/uploads/placeholders/template-no-image.jpg";
 
 if (!token) {
     alert("You must be logged in to access this page.");
@@ -282,28 +282,6 @@ addBlockBtnWrapper.addEventListener('click', () => {
     createNewBlock("New Section");
 });
 
-// --- LOGICA ESPANSIONE CARTE ARCHIDEKT ---
-function aggiornaStatoCarte() {
-    document.querySelectorAll('.block-list').forEach(list => {
-        const items = Array.from(list.children);
-        
-        items.forEach(item => {
-            if (item.classList) item.classList.remove('is-last-item');
-        });
-        
-        const validItems = items.filter(item => 
-            item.classList.contains('draggable-item') && !item.classList.contains('dragging')
-        );
-        
-        if (validItems.length > 0) {
-            const lastChild = items[items.length - 1];
-            if (!lastChild.classList.contains('placeholder')) {
-                validItems[validItems.length - 1].classList.add('is-last-item');
-            }
-        }
-    });
-}
-
 function aggiornaContatoriBlocchi() {
     const blocks = document.querySelectorAll('.visit-block');
     blocks.forEach((block, index) => {
@@ -311,7 +289,6 @@ function aggiornaContatoriBlocchi() {
         const itemCount = block.querySelectorAll('.draggable-item').length;
         block.querySelector('.block-count').textContent = `${itemCount} artworks`;
     });
-    aggiornaStatoCarte(); 
     updateWalletPreview();
     refreshModalItemAvailability();
 }
@@ -414,11 +391,6 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
 
     li.innerHTML = `
         <div class="card-header">
-            <button type="button" class="drag-handle" title="Trascina per riordinare" aria-label="Trascina per riordinare">
-                <span class="drag-handle-dots" aria-hidden="true">
-                    <span></span><span></span><span></span><span></span><span></span><span></span>
-                </span>
-            </button>
             <div class="card-thumb">${imgTag}</div>
             <div class="card-title-block">
                 <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
@@ -427,7 +399,6 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
                     <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
                 </div>
             </div>
-            <button class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
         </div>
         <div class="card-details">
             <div class="card-image-placeholder">
@@ -436,6 +407,14 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
             <div class="card-copy">
                 <p class="card-author"><strong>${escapeHTML(author)}</strong></p>
                 <p class="card-note">Click to edit this artwork's texts.</p>
+            </div>
+            <div class="card-actions">
+                <button type="button" class="drag-handle" title="Trascina per riordinare" aria-label="Trascina per riordinare">
+                    <span class="drag-handle-dots" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span><span></span><span></span>
+                    </span>
+                </button>
+                <button type="button" class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
             </div>
         </div>
     `;
@@ -478,7 +457,7 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
 
     li.addEventListener('dragstart', function(e) {
         draggedItem = this;
-        placeholder.style.height = `${this.offsetHeight}px`;
+        placeholder.style.height = '72px';
         setTimeout(() => {
             this.classList.add('dragging');
             this.parentNode.insertBefore(placeholder, this.nextSibling);
@@ -790,7 +769,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     
                     li.addEventListener('dragstart', function(e) {
                         draggedItem = this;
-                        placeholder.style.height = `${this.offsetHeight}px`;
+                        placeholder.style.height = '72px';
                         setTimeout(() => {
                             this.classList.add('dragging');
                             this.parentNode.insertBefore(placeholder, this.nextSibling);

@@ -146,7 +146,7 @@ Always go through this wrapper rather than `fetch` directly so 401 handling stay
 ## 7. Shared components
 
 - **`PageHeader`** — sticky top bar with the `ArtAround` brand. Props: `subtitle` (renders `ArtAround | <subtitle>` muted) and `right` (slot for profile / End Visit / etc.). The brand cell is left-aligned and ellipsizes long museum names so the right slot stays visible.
-- **`ProfileMenu`** — single-letter avatar (uppercase initial of `username`). Click toggles a dropdown showing username, wallet balance (when present), and a Logout button. Closes on outside-mousedown or `Escape`. Uses `aria-expanded` for hover/active styling.
+- **`ProfileMenu`** — circular profile image from `user.avatarUrl`, with the default avatar as fallback. Click toggles a dropdown showing username, wallet balance (when present), and a Logout button. Closes on outside-mousedown or `Escape`. Uses `aria-expanded` for hover/active styling.
 - **`AuthDialog`** — overlay-style login/register modal. Closes on Escape and backdrop click. Errors render under the form.
 - **`AssociatedContentsModal`** — bottom-sheet/modal opened by VisitRun's `+` icon. Renders associated contents (image / type / name / author / year). See §8.4 for the lazy-fetch detail.
 

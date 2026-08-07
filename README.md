@@ -55,7 +55,7 @@ API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
 
 ## Media assets
 
-Static files are served from `uploads/` at the matching URL path (`uploads/foo.jpg` → `/uploads/foo.jpg`). They are committed to the repo so they reach the department machines.
+Static files are served from `uploads/` at the matching URL path (`uploads/museums/foo.jpg` -> `/uploads/museums/foo.jpg`). Images are grouped by purpose and committed so they reach the department machines.
 
 **Content images** are matched by filename convention — no config editing:
 
@@ -109,9 +109,14 @@ data/
     ├── uffizi.json
     └── mambo.json
 uploads/                       # Static media, served at /uploads (committed)
-├── contents/                  # <universalId>.jpg — picked up by the loader
+├── artists/                   # Artist portraits
+├── contents/                  # Artwork images; <universalId>.* is loader-compatible
 ├── maps/                      # Museum floor plans
-└── museums/                   # Museum cover images
+├── movements/                # Art movement images
+├── museums/                   # Museum cover images
+├── placeholders/             # Shared image fallbacks
+├── profiles/                 # User avatars
+└── visits/                    # Visit cover images
 src/                           # Backend (Node + Express + Mongoose)
 ├── index.js                   # Express entry point — wires API, marketplace, navigator
 ├── config/                    # db.js, env.js

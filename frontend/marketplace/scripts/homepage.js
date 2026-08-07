@@ -68,9 +68,7 @@ function renderMuseums(museums) {
             card.style.boxShadow = '0 4px 15px rgba(0,0,0,0.04)'; 
         };
 
-        // Immagine di copertina casuale (placeholder) basata sull'ID per tenerla fissa
-        const randomImgId = museum._id ? museum._id.charCodeAt(0) % 10 : 1;
-        const imageUrl = museum.imageUrl || `https://images.unsplash.com/photo-1518998053401-a4149019a282?auto=format&fit=crop&w=600&q=80&sig=${randomImgId}`;
+        const imageUrl = museum.imageUrl || '/uploads/placeholders/template-no-image.jpg';
 
         // Contenuto: Immagine sopra, Testo sotto
         card.innerHTML = `

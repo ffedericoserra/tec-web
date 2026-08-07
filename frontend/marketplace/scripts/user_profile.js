@@ -147,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentUserProfile = user;
 
                 document.getElementById('profile-user-name').innerText = user.username || "Utente";
+                document.querySelector('.profile-avatar').src = user.avatarUrl || '/uploads/profiles/default-avatar.jpeg';
                 updateWalletUI(user.walletBalance || 0);
 
                 const savedTabContainer = document.querySelector('#tab-saved .profile-list');

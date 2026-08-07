@@ -9,6 +9,10 @@ note
 tmp
 uploads/**
 !uploads/**/
+!uploads/**/*.jpg
+!uploads/**/*.jpeg
+!uploads/**/*.png
+!uploads/**/*.webp
 !uploads/**/.gitkeep
 
 frontend-design
