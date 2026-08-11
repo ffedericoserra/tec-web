@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import HomeNoLogin from './pages/HomeNoLogin.jsx';
 import Museums from './pages/Museums.jsx';
+import Account from './pages/Account.jsx';
 import VisitSelect from './pages/VisitSelect.jsx';
 import VisitRun from './pages/VisitRun.jsx';
 import './styles/base.css';
@@ -13,6 +14,7 @@ createRoot(document.getElementById('root')).render(
       <Routes>
         <Route path="/" element={<HomeNoLogin />} />
         <Route path="/museums" element={<Museums />} />
+        <Route path="/account" element={<Account />} />
         {/* Group visits are addressed by session code, not by museum/visit slug:
             a student joins with a code and shouldn't have to know either. It's
             the same runner component in session mode. Declared before the

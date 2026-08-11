@@ -30,6 +30,7 @@ frontend-navigator/
 │   ├── auth.js               # isAuthenticated(), logout()
 │   ├── styles/
 │   │   ├── base.css          # tokens + global resets
+│   │   ├── account.css       # Account dashboard + wallet dialog
 │   │   ├── header.css        # PageHeader + ProfileMenu
 │   │   ├── home.css          # HomeNoLogin
 │   │   ├── museums.css       # Museums
@@ -41,6 +42,7 @@ frontend-navigator/
 │   │   ├── ProfileMenu.jsx             # avatar circle + dropdown with logout
 │   │   └── AssociatedContentsModal.jsx # opened by the `+` icon during a visit
 │   └── pages/
+│       ├── Account.jsx
 │       ├── HomeNoLogin.jsx
 │       ├── Museums.jsx
 │       ├── VisitSelect.jsx
@@ -100,6 +102,7 @@ Defined in `src/main.jsx`. All four pages, plus a `*` fallback that bounces to `
 |------|-----------|------|-------|
 | `/` | `HomeNoLogin` | public | Auto-redirects to `/museums` if already authed; otherwise opens the AuthDialog on user action |
 | `/museums` | `Museums` | required | List of museums with search and a profile menu |
+| `/account` | `Account` | required | Profile data, wallet recharge, created visits and saved visits |
 | `/:museumSlug` | `VisitSelect` | required | Museum landing — pick a public visit |
 | `/:museumSlug/:visitSlug` | `VisitRun` | required | The fullscreen visit runner |
 | `*` | redirect | — | Anything else → `/` |
@@ -145,8 +148,8 @@ Always go through this wrapper rather than `fetch` directly so 401 handling stay
 
 ## 7. Shared components
 
-- **`PageHeader`** — sticky top bar used on every page, with Back and Marketplace controls plus the `ArtAround` brand. Props: `subtitle` (renders `ArtAround | <subtitle>` muted) and `right` (slot for profile / End Visit / etc.). The brand cell ellipsizes long museum names so all controls stay visible.
-- **`ProfileMenu`** — circular profile image from `user.avatarUrl`, with the default avatar as fallback. Click toggles a dropdown showing username, wallet balance (when present), and a Logout button. Closes on outside-mousedown or `Escape`. Uses `aria-expanded` for hover/active styling.
+- **`PageHeader`** — sticky top bar used on authenticated pages, with a minimal Back control, the `ArtAround` brand, and a `go to marketplace` link immediately before the profile or contextual action. Props: `subtitle` (renders `ArtAround | <subtitle>` muted) and `right` (slot for profile / End Visit / etc.). The brand cell ellipsizes long museum names so all controls stay visible.
+- **`ProfileMenu`** — circular profile image from `user.avatarUrl`, with the default avatar as fallback. Click toggles a dropdown showing username, wallet balance, a link to `/account`, and Logout. Closes on outside-mousedown or `Escape`. Uses `aria-expanded` for hover/active styling.
 - **`AuthDialog`** — overlay-style login/register modal. Registration sends `username`, `email`, and `password`, matching the marketplace and backend schema; login sends `username` (or email) and `password`. Closes on Escape and backdrop click. Errors render under the form.
 - **`AssociatedContentsModal`** — bottom-sheet/modal opened by VisitRun's `+` icon. Renders associated contents (image / type / name / author / year). See §8.4 for the lazy-fetch detail.
 
@@ -169,6 +172,13 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Search filters client-side (case-insensitive `includes` on `name`). The dataset is small (~2 museums seeded), so server-side query isn't worth it.
 - Sorted alphabetically by name. Click a row → `navigate('/${m.slug}')`.
 - Right slot of the header is the `ProfileMenu` (the only place to log out from authed pages).
+
+### Account (`/account`)
+
+- Protected route declared before `/:museumSlug`, so `account` is never interpreted as a museum slug.
+- Loads `/auth/me` and `/visits/my` in parallel and refreshes the cached user.
+- Shows created and saved visits in separate tabs; both can launch the visit runner using museum and visit slugs.
+- Wallet recharge uses `PATCH /auth/wallet` and updates both page state and the cached profile.
 
 ### 8.3. `VisitSelect` (`/:museumSlug`)
 

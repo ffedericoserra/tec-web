@@ -83,6 +83,23 @@
   outline: none;
 }
 
+.home-marketplace {
+  margin-top: 8px;
+  padding: 10px 14px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.home-marketplace:hover,
+.home-marketplace:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
 /* ---------- Auth dialog ---------- */
 
 .auth-overlay {

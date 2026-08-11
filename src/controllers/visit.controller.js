@@ -127,7 +127,7 @@ exports.getMyVisits = async (req, res, next) => {
     }
 
     const visits = await Visit.find(query)
-      .populate('museumId', 'name')
+      .populate('museumId', 'name slug')
       .sort({ updatedAt: -1 });
 
     res.json({ visits });

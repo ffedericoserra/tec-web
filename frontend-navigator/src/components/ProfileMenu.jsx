@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { logout } from "../auth.js"
 
 export default function ProfileMenu({ user }) {
+    const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
 
@@ -57,7 +59,19 @@ export default function ProfileMenu({ user }) {
                     )}
                     <button
                         type="button"
-                        className="profile-logout"
+                        className="profile-menu-action"
+                        role="menuitem"
+                        onClick={() => {
+                            setOpen(false)
+                            navigate("/account")
+                        }}
+                    >
+                        Visualizza account
+                    </button>
+                    <button
+                        type="button"
+                        className="profile-menu-action profile-logout"
+                        role="menuitem"
                         onClick={logout}
                     >
                         Logout

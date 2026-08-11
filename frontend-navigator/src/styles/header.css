@@ -12,13 +12,6 @@
   border-bottom: 1px solid var(--line-soft);
 }
 
-.page-header-navigation {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
 .page-header-back {
   width: 38px;
   height: 38px;
@@ -26,8 +19,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--ink);
-  border-radius: var(--radius);
+  border: 0;
   background: transparent;
   color: var(--ink);
   font-size: 22px;
@@ -35,19 +27,18 @@
 }
 
 .page-header-marketplace {
-  min-height: 38px;
-  padding: 0 10px;
+  min-height: var(--tap);
+  padding: 0 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--ink);
-  border-radius: var(--radius);
   color: var(--ink);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
-  text-decoration: none;
-  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-transform: none;
   white-space: nowrap;
 }
 
@@ -55,9 +46,7 @@
 .page-header-back:focus-visible,
 .page-header-marketplace:hover,
 .page-header-marketplace:focus-visible {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--bg);
+  color: var(--accent);
   outline: none;
 }
 
@@ -86,6 +75,7 @@
   letter-spacing: 0;
 }
 
+.page-header-actions,
 .page-header-right {
   display: flex;
   align-items: center;
@@ -99,12 +89,7 @@
     padding-inline: 12px;
   }
 
-  .page-header-navigation {
-    gap: 6px;
-  }
-
   .page-header-marketplace {
-    padding-inline: 8px;
     font-size: 10px;
   }
 
@@ -198,23 +183,26 @@
   color: var(--muted);
 }
 
-.profile-logout {
+.profile-menu-action {
+  width: 100%;
   margin-top: 10px;
   background: transparent;
-  border: 1px solid var(--ink);
-  border-radius: var(--radius);
-  padding: 10px 12px;
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  padding: 12px 0 4px;
+  color: var(--ink);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0;
+  text-align: left;
   text-transform: uppercase;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
+.profile-menu-action:hover,
+.profile-menu-action:focus-visible,
 .profile-logout:hover,
 .profile-logout:focus-visible {
-  background: var(--accent);
-  color: var(--bg);
-  border-color: var(--accent);
+  color: var(--accent);
   outline: none;
 }

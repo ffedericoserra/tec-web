@@ -105,7 +105,11 @@ exports.getMe = async (req, res, next) => {
     const user = await User.findById(req.user._id)
       .populate('savedMuseums', 'name imageUrl')
       .populate('myVisits', 'title museumId')
-      .populate('savedVisits', 'title type length isPublic _id'); // <-- AGGIUNGI QUESTA RIGA
+      .populate({
+        path: 'savedVisits',
+        select: 'title slug type length isPublic museumId',
+        populate: { path: 'museumId', select: 'name slug' },
+      });
 
     res.json({ user });
   } catch (error) {
