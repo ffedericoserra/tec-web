@@ -2,21 +2,70 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
+  gap: 10px;
+  min-height: 68px;
+  padding: 12px 18px;
   background: var(--bg);
   border-bottom: 1px solid var(--line-soft);
 }
 
+.page-header-navigation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.page-header-back {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.page-header-marketplace {
+  min-height: 38px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.page-header-back:hover,
+.page-header-back:focus-visible,
+.page-header-marketplace:hover,
+.page-header-marketplace:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+  outline: none;
+}
+
 .page-header-brand {
-  flex: 1;
   min-width: 0;
   font-size: 17px;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -34,7 +83,7 @@
   color: var(--accent);
   font-weight: 800;
   font-size: 12px;
-  letter-spacing: 1px;
+  letter-spacing: 0;
 }
 
 .page-header-right {
@@ -42,6 +91,27 @@
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+}
+
+@media (max-width: 390px) {
+  .page-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .page-header-navigation {
+    gap: 6px;
+  }
+
+  .page-header-marketplace {
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .brand-sep,
+  .brand-sub {
+    display: none;
+  }
 }
 
 .profile {
@@ -121,7 +191,7 @@
 .profile-username {
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 .profile-wallet {
@@ -136,7 +206,7 @@
   padding: 10px 12px;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0;
   text-transform: uppercase;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }

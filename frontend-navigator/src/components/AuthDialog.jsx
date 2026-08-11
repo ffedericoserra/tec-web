@@ -4,6 +4,7 @@ import { api, setToken, setCachedUser } from '../api.js';
 export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }) {
   const [mode, setMode] = useState(initialMode);
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -27,9 +28,18 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
     setError(null);
     setSubmitting(true);
     try {
+      const body = {
+        username: username.trim(),
+        password,
+      };
+
+      if (mode === 'register') {
+        body.email = email.trim();
+      }
+
       const data = await api(`/auth/${mode}`, {
         method: 'POST',
-        body: { username: username.trim(), password },
+        body,
       });
       setToken(data.token);
       setCachedUser(data.user);
@@ -65,6 +75,18 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
               required
             />
           </label>
+          {mode === 'register' && (
+            <label>
+              Email
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </label>
+          )}
           <label>
             Password
             <input
@@ -76,7 +98,11 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
               required
             />
           </label>
-          {error && <p className="auth-error">{error}</p>}
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
           <div className="auth-actions">
             <button type="button" className="auth-cancel" onClick={onClose}>
               Annulla
