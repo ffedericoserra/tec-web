@@ -321,16 +321,45 @@
 }
 
 .visit-answer-close {
-  width: 32px;
-  height: 32px;
+  position: relative;
+  flex: 0 0 36px;
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  box-sizing: border-box;
   border-radius: 50%;
   border: 1.5px solid var(--ink);
   background: transparent;
   color: var(--ink);
-  font-size: 20px;
-  line-height: 1;
+  font-size: 0;
   cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-answer-close::before,
+.visit-answer-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  pointer-events: none;
+}
+
+.visit-answer-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.visit-answer-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .visit-answer-close:hover,
