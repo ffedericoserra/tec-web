@@ -40,6 +40,8 @@ frontend-navigator/
 │   │   ├── AuthDialog.jsx              # login/register modal (overlay div)
 │   │   ├── PageHeader.jsx              # sticky brand bar with subtitle + right slot
 │   │   ├── ProfileMenu.jsx             # avatar circle + dropdown with logout
+│   │   ├── GroupVisitDialog.jsx        # creates or joins a synchronized session
+│   │   ├── QuestionSectionScreen.jsx   # participant form + live owner results
 │   │   └── AssociatedContentsModal.jsx # opened by the `+` icon during a visit
 │   └── pages/
 │       ├── Account.jsx
@@ -188,7 +190,8 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Backend already sorts by `viewCount` desc; client doesn't re-sort.
 - Each card has a top row (title, author, length, `Start Visit` button) and a centered chevron that toggles a description block (`max-height: 200px`, internally scrollable). Cards without a non-empty `description` hide the chevron.
 - `Start Visit` → `navigate('/${museumSlug}/${v.slug}')`.
-- The "or join/create a group visit" link is intentionally inert (`onClick={e => e.preventDefault()}` + `aria-disabled`) until synchronized sessions land.
+- The "join/create a group visit" action opens `GroupVisitDialog`. The host can
+  create a session for the selected visit; participants join using its code.
 
 ### 8.4. `VisitRun` (`/:museumSlug/:visitSlug`)
 
@@ -212,6 +215,13 @@ The most complex page. Read this carefully before changing anything.
 | `lengthIdx` | `0..2` | Index into `LENGTHS = ['3s', '15s', '45s']`, only meaningful in `describe` |
 
 Initial: `entryIndex=0`, `mode='describe'`, `lengthIdx=0` (first item starts at the shortest description per the spec — no logistic prelude on the first entry).
+
+In synchronized sessions, `currentStepIndex` follows a unified list of artwork
+and question-section steps. Artwork steps keep using the state machine above.
+Question steps render `QuestionSectionScreen`: participants submit open text or
+a multiple-choice option, while the host sees responses arrive live and controls
+Previous/Next. Participant responses are sent through the REST API; Socket.io is
+used for owner-only response updates and step broadcasts.
 
 Transitions:
 
@@ -306,7 +316,6 @@ These are deliberately deferred — *not* bugs. Don't fix without aligning with 
 - **Voice control.** Spec'd at the base tier (Next / Previous / Tell me more / Simpler / Where is the exit). Not wired. Web Speech API's `SpeechRecognition` is the obvious fit, but iOS Safari support is partial — design + browser fallbacks before implementing.
 - **Map dead-link.** The `Map` button is inert until 2D/3D map visualization lands.
 - **Ask me anything.** Inert until the Extension 2 LLM integration arrives.
-- **Synchronized visits.** The "or join/create a group visit" link on `VisitSelect` is inert. Backend has the sessions API ready (see `docs/API.md`); needs UX + a sessions page in the navigator.
 - **Stale logistic text after sequence reorder.** Documented in §8.4; the marketplace editor has the same caveat. Editorial responsibility, not a code fix.
 - **No service worker / offline support.** The visit runner needs network for the initial fetch. Future enhancement.
 
@@ -321,5 +330,9 @@ Endpoints the navigator depends on (full reference in [API.md](API.md)):
 - `GET /api/museums/:slug/contents`, `GET /api/museums/:slug/visits`
 - `GET /api/visits/:slug`
 - `GET /api/items/:id` (only for `AssociatedContentsModal`)
+- `POST /api/sessions`, `POST /api/sessions/:code/join`
+- `GET /api/sessions/:code`, `POST /api/sessions/:code/advance`, `POST /api/sessions/:code/previous`
+- `POST /api/sessions/:code/sections/:sectionId/answers`
+- `GET /api/sessions/:code/sections/:sectionId/responses` (owner only)
 
 The backend wiring of the navigator block lives in `src/index.js`. The static-mount + catch-all assume `frontend-navigator/dist/` exists; if you redeploy and forget the build step you'll get a 500 from `res.sendFile` on the catch-all.

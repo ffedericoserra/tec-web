@@ -58,6 +58,41 @@ const quizAnswerSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const sectionResponseSchema = new mongoose.Schema(
+  {
+    sectionId: {
+      type: String,
+      required: true,
+    },
+    questionId: {
+      type: String,
+      required: true,
+    },
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    username: String,
+    answerType: {
+      type: String,
+      enum: ['open', 'multiple-choice'],
+      required: true,
+    },
+    text: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
+    selectedIndex: Number,
+    submittedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
+
 /**
  * Chat is persisted rather than kept in the socket room so a student who
  * reloads, or joins late, still sees the backlog. `username` is denormalised
@@ -134,12 +169,17 @@ const sessionSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    currentStepIndex: {
+      type: Number,
+      default: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,
     },
     activities: [activitySchema],
     messages: [messageSchema],
+    sectionResponses: [sectionResponseSchema],
 
     /**
      * Flipped by the teacher's "Start Quiz" on the last stop. Persisted rather

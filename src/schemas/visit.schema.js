@@ -11,10 +11,38 @@ const sequenceItemSchema = z.object({
   overrideImage: z.string().url().optional(),
 });
 
-const visitBlockSchema = z.object({
-  blockName: z.string().trim().default('Mainboard'),
-  items: z.array(z.string().min(1, 'Item ID is required')).default([]),
-});
+const sectionQuestionSchema = z
+  .object({
+    prompt: z.string().trim().min(1, 'Question text is required').max(1000),
+    answerType: z.enum(['open', 'multiple-choice']),
+    options: z.array(z.string().trim().min(1).max(300)).default([]),
+  })
+  .superRefine((question, context) => {
+    if (question.answerType === 'multiple-choice' && question.options.length < 2) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['options'],
+        message: 'Multiple-choice questions require at least 2 options',
+      });
+    }
+  });
+
+const visitBlockSchema = z
+  .object({
+    type: z.enum(['artwork', 'questions']).default('artwork'),
+    blockName: z.string().trim().default('Mainboard'),
+    items: z.array(z.string().min(1, 'Item ID is required')).default([]),
+    questions: z.array(sectionQuestionSchema).default([]),
+  })
+  .superRefine((block, context) => {
+    if (block.type === 'questions' && block.questions.length === 0) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['questions'],
+        message: 'Question sections require at least one question',
+      });
+    }
+  });
 
 const quizQuestionSchema = z.object({
   question: z.string().min(1, 'Question is required'),

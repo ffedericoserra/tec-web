@@ -137,6 +137,41 @@
       </section>
     </main>
 
+    <div id="section-type-modal" class="modal-overlay hidden">
+      <div class="modal-content visit-builder-modal section-type-modal">
+        <h3 class="modal-top-title">Choose section type</h3>
+        <p class="section-type-intro">
+          Artwork sections contain visit stops. Question sections are shown
+          during shared sessions.
+        </p>
+        <div class="section-type-options">
+          <button
+            type="button"
+            class="section-type-option"
+            data-section-type="artwork"
+          >
+            <strong>Artwork section</strong>
+            <span>Add and arrange museum artworks.</span>
+          </button>
+          <button
+            type="button"
+            class="section-type-option"
+            data-section-type="questions"
+          >
+            <strong>Question section</strong>
+            <span>Add open or multiple-choice questions.</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="main-btn close-modal-btn"
+          id="close-section-type-modal"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
     <div id="select-item-modal" class="modal-overlay hidden">
       <div class="modal-content visit-builder-modal">
         <h3 class="modal-top-title">Choose an artwork</h3>

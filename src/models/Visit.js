@@ -31,8 +31,34 @@ const sequenceItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const sectionQuestionSchema = new mongoose.Schema(
+  {
+    prompt: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    answerType: {
+      type: String,
+      enum: ['open', 'multiple-choice'],
+      default: 'open',
+    },
+    options: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+  }
+);
+
 const visitBlockSchema = new mongoose.Schema(
   {
+    type: {
+      type: String,
+      enum: ['artwork', 'questions'],
+      default: 'artwork',
+    },
     blockName: {
       type: String,
       default: 'Mainboard',
@@ -44,8 +70,8 @@ const visitBlockSchema = new mongoose.Schema(
         ref: 'Item',
       },
     ],
-  },
-  { _id: false }
+    questions: [sectionQuestionSchema],
+  }
 );
 
 const quizQuestionSchema = new mongoose.Schema(

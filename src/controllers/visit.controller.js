@@ -16,8 +16,10 @@ function processSequence(sequence = []) {
 
 function processBlocks(blocks = []) {
   return blocks.map((block) => ({
+    type: block.type || 'artwork',
     blockName: block.blockName || 'Mainboard',
-    items: block.items || [],
+    items: block.type === 'questions' ? [] : block.items || [],
+    questions: block.type === 'questions' ? block.questions || [] : [],
   }));
 }
 

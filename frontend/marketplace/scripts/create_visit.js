@@ -42,6 +42,7 @@ document.getElementById('close-cancel-modal').addEventListener('click', () => {
 });
 
 const itemModal = document.getElementById('select-item-modal');
+const sectionTypeModal = document.getElementById('section-type-modal');
 const itemsContainer = document.getElementById('items-container');
 const walletCurrentEl = document.getElementById('visit-wallet-current');
 const walletPendingEl = document.getElementById('visit-wallet-pending');
@@ -242,52 +243,178 @@ const blocksContainer = document.getElementById('blocks-container');
 const addBlockBtnWrapper = document.getElementById('add-block-btn');
 let blockCounter = 0;
 
-function createNewBlock(defaultTitle = "New Section") {
-    blockCounter++;
-    const block = document.createElement('div');
-    block.className = 'visit-block';
-    block.innerHTML = `
-        <div class="block-header">
-            <span class="block-number">${toRoman(blockCounter)}</span>
-            <input type="text" class="block-title-input" value="${escapeHTML(defaultTitle)}">
-            <span class="block-count">0 artworks</span>
-            <button class="delete-block-btn" title="Remove section" aria-label="Remove section">&times;</button>
+function addQuestionOption(editor, value = "") {
+    const optionsContainer = editor.querySelector('.question-options-list');
+    const row = document.createElement('div');
+    row.classList.add('question-option-row');
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.classList.add('question-option-input');
+    input.placeholder = 'Answer option';
+    input.value = value;
+
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.classList.add('delete-option-btn');
+    deleteButton.setAttribute('aria-label', 'Remove option');
+    deleteButton.textContent = '×';
+    deleteButton.addEventListener('click', () => row.remove());
+    deleteButton.dataset.bound = 'true';
+
+    row.append(input, deleteButton);
+    optionsContainer.appendChild(row);
+}
+
+function bindQuestionEditor(editor) {
+    const typeSelect = editor.querySelector('.question-answer-type');
+    const optionsEditor = editor.querySelector('.question-options-editor');
+
+    const syncAnswerType = () => {
+        const isMultipleChoice = typeSelect.value === 'multiple-choice';
+        optionsEditor.classList.toggle('hidden', !isMultipleChoice);
+        if (isMultipleChoice && editor.querySelectorAll('.question-option-row').length === 0) {
+            addQuestionOption(editor);
+            addQuestionOption(editor);
+        }
+    };
+
+    typeSelect.addEventListener('change', syncAnswerType);
+    editor.querySelector('.delete-question-btn').addEventListener('click', () => {
+        editor.remove();
+        aggiornaContatoriBlocchi();
+    });
+    editor.querySelector('.add-question-option').addEventListener('click', () => {
+        addQuestionOption(editor);
+    });
+    editor.querySelectorAll('.delete-option-btn').forEach((button) => {
+        if (button.dataset.bound === 'true') return;
+        button.addEventListener('click', () => button.closest('.question-option-row').remove());
+        button.dataset.bound = 'true';
+    });
+    syncAnswerType();
+}
+
+function createQuestionEditor(question = {}) {
+    const editor = document.createElement('article');
+    editor.classList.add('question-editor');
+    editor.innerHTML = `
+        <div class="question-editor-header">
+            <select class="question-answer-type" aria-label="Answer type">
+                <option value="open">Open answer</option>
+                <option value="multiple-choice">Multiple choice</option>
+            </select>
+            <button type="button" class="delete-question-btn" aria-label="Remove question">&times;</button>
         </div>
-        <ul class="block-list"></ul>
-        <div class="block-footer">
-            <button class="add-btn add-item-to-block" type="button" title="Add an artwork to this section">+</button>
+        <textarea class="question-prompt" placeholder="Write the question" aria-label="Question text"></textarea>
+        <div class="question-options-editor">
+            <div class="question-options-list"></div>
+            <button type="button" class="add-question-option">Add option</button>
         </div>
     `;
 
-    const ulList = block.querySelector('.block-list');
-    
-    block.querySelector('.add-item-to-block').addEventListener('click', () => {
-        activeBlockList = ulList; 
-        apriModaleOpere();
-    });
+    editor.querySelector('.question-answer-type').value = question.answerType || 'open';
+    editor.querySelector('.question-prompt').value = question.prompt || '';
+    const options = question.answerType === 'multiple-choice'
+        ? (question.options?.length ? question.options : ['', ''])
+        : (question.options || []);
+    options.forEach((option) => addQuestionOption(editor, option));
+    bindQuestionEditor(editor);
+    return editor;
+}
 
+function bindBlockDelete(block) {
     block.querySelector('.delete-block-btn').addEventListener('click', () => {
-        if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) {
+        const message = block.dataset.sectionType === 'questions'
+            ? 'Delete this question section and all its questions?'
+            : 'Delete this artwork section and all its artworks?';
+        if (confirm(message)) {
             block.remove();
             aggiornaContatoriBlocchi();
         }
     });
+}
 
-    setupDragAndDropForList(ulList);
+function createNewBlock(defaultTitle = "New Section", sectionType = "artwork", questions = []) {
+    blockCounter++;
+    const block = document.createElement('div');
+    block.classList.add('visit-block');
+    block.dataset.sectionType = sectionType;
+
+    const sectionBody = sectionType === 'questions'
+        ? `<div class="question-list"></div>
+           <div class="block-footer">
+             <button class="add-question-to-block" type="button">Add question</button>
+           </div>`
+        : `<ul class="block-list"></ul>
+           <div class="block-footer">
+             <button class="add-btn add-item-to-block" type="button" title="Add an artwork to this section">+</button>
+           </div>`;
+
+    block.innerHTML = `
+      <div class="block-header">
+        <span class="block-number">${toRoman(blockCounter)}</span>
+        <input type="text" class="block-title-input" value="${escapeHTML(defaultTitle)}">
+        <span class="block-count">0 ${sectionType === 'questions' ? 'questions' : 'artworks'}</span>
+        <button class="delete-block-btn" type="button" title="Remove section" aria-label="Remove section">&times;</button>
+      </div>
+      ${sectionBody}
+    `;
+
+    bindBlockDelete(block);
+
+    if (sectionType === 'questions') {
+        block.classList.add('question-block');
+        const questionList = block.querySelector('.question-list');
+        const initialQuestions = questions.length ? questions : [{}];
+        initialQuestions.forEach((question) => {
+            questionList.appendChild(createQuestionEditor(question));
+        });
+        block.querySelector('.add-question-to-block').addEventListener('click', () => {
+            questionList.appendChild(createQuestionEditor());
+            aggiornaContatoriBlocchi();
+        });
+    } else {
+        const ulList = block.querySelector('.block-list');
+        block.querySelector('.add-item-to-block').addEventListener('click', () => {
+            activeBlockList = ulList;
+            apriModaleOpere();
+        });
+        setupDragAndDropForList(ulList);
+    }
+
     blocksContainer.insertBefore(block, addBlockBtnWrapper);
     aggiornaContatoriBlocchi();
 }
 
 addBlockBtnWrapper.addEventListener('click', () => {
-    createNewBlock("New Section");
+    sectionTypeModal.classList.remove('hidden');
+});
+
+document.querySelectorAll('[data-section-type]').forEach((button) => {
+    button.addEventListener('click', () => {
+        const sectionType = button.dataset.sectionType;
+        createNewBlock(
+            sectionType === 'questions' ? 'Questions' : 'New Section',
+            sectionType
+        );
+        sectionTypeModal.classList.add('hidden');
+    });
+});
+
+document.getElementById('close-section-type-modal').addEventListener('click', () => {
+    sectionTypeModal.classList.add('hidden');
 });
 
 function aggiornaContatoriBlocchi() {
     const blocks = document.querySelectorAll('.visit-block');
     blocks.forEach((block, index) => {
         block.querySelector('.block-number').textContent = toRoman(index + 1);
-        const itemCount = block.querySelectorAll('.draggable-item').length;
-        block.querySelector('.block-count').textContent = `${itemCount} artworks`;
+        const isQuestions = block.dataset.sectionType === 'questions';
+        const count = isQuestions
+            ? block.querySelectorAll('.question-editor').length
+            : block.querySelectorAll('.draggable-item').length;
+        block.querySelector('.block-count').textContent = `${count} ${isQuestions ? 'questions' : 'artworks'}`;
     });
     updateWalletPreview();
     refreshModalItemAvailability();
@@ -514,6 +641,19 @@ function salvaStatoTemporaneo() {
     const desc = document.getElementById('v-desc') ? document.getElementById('v-desc').value : '';
     
     const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
+    blocksHtmlNodes.forEach((block) => {
+        block.querySelectorAll('input, textarea, select').forEach((field) => {
+            if (field.tagName === 'TEXTAREA') {
+                field.textContent = field.value;
+            } else if (field.tagName === 'SELECT') {
+                Array.from(field.options).forEach((option) => {
+                    option.toggleAttribute('selected', option.value === field.value);
+                });
+            } else {
+                field.setAttribute('value', field.value);
+            }
+        });
+    });
     const blocksHtml = blocksHtmlNodes.map(el => el.outerHTML).join('');
     
     const visitState = {
@@ -567,8 +707,14 @@ function normalizeVisitBlocks(visit) {
 
     if (Array.isArray(savedBlocks) && savedBlocks.length > 0) {
         return savedBlocks.map((block, index) => ({
+            type: block.type || 'artwork',
             blockName: block.blockName || block.title || `Section ${index + 1}`,
-            items: (block.items || []).map(getItemIdFromValue).filter(Boolean)
+            items: (block.items || []).map(getItemIdFromValue).filter(Boolean),
+            questions: (block.questions || []).map((question) => ({
+                prompt: question.prompt || '',
+                answerType: question.answerType || 'open',
+                options: question.options || []
+            }))
         }));
     }
 
@@ -579,7 +725,7 @@ function normalizeVisitBlocks(visit) {
         .filter(Boolean);
 
     return sequenceItems.length > 0
-        ? [{ blockName: "Mainboard", items: sequenceItems }]
+        ? [{ type: 'artwork', blockName: "Mainboard", items: sequenceItems, questions: [] }]
         : [];
 }
 
@@ -678,11 +824,17 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
 
         // 5. Ricreiamo i blocchi
         structurData.forEach(blockData => {
-            createNewBlock(blockData.blockName); 
+            createNewBlock(
+                blockData.blockName,
+                blockData.type || 'artwork',
+                blockData.questions || []
+            );
             
             const blocksNodes = document.querySelectorAll('.visit-block');
             const targetBlock = blocksNodes[blocksNodes.length - 1];
             const targetList = targetBlock.querySelector('.block-list');
+
+            if (blockData.type === 'questions') return;
 
             (blockData.items || []).forEach(itemId => {
                 const info = itemMap[itemId];
@@ -745,19 +897,25 @@ window.addEventListener('DOMContentLoaded', async () => {
             
             Array.from(tempDiv.children).forEach(block => {
                 blocksContainer.insertBefore(block, addBtn);
-                
+                block.dataset.sectionType = block.dataset.sectionType || 'artwork';
+                bindBlockDelete(block);
+
+                if (block.dataset.sectionType === 'questions') {
+                    const questionList = block.querySelector('.question-list');
+                    block.querySelectorAll('.question-editor').forEach(bindQuestionEditor);
+                    block.querySelector('.add-question-to-block').addEventListener('click', () => {
+                        questionList.appendChild(createQuestionEditor());
+                        aggiornaContatoriBlocchi();
+                    });
+                    return;
+                }
+
                 const ulList = block.querySelector('.block-list');
                 setupDragAndDropForList(ulList);
                 
                 block.querySelector('.add-item-to-block').addEventListener('click', () => {
                     activeBlockList = ulList; apriModaleOpere();
                 });
-                block.querySelector('.delete-block-btn').addEventListener('click', () => {
-                    if(confirm("Do you really want to delete this column? All the artworks will be removed too..")) { 
-                        block.remove(); aggiornaContatoriBlocchi(); 
-                    }
-                });
-                
                 block.querySelectorAll('.draggable-item').forEach(li => {
                     const itemId = li.dataset.itemId;
                     const titoloOpera = li.dataset.title || li.querySelector('strong').innerText;
@@ -836,14 +994,57 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     const structurData = [];
     let sequenceObjects = []; 
     let globalOrder = 1;
+    let validationError = "";
 
     // Raccogliamo i dati e costruiamo gli oggetti
     document.querySelectorAll('.visit-block').forEach(block => {
-        const blockTitle = block.querySelector('.block-title-input').value;
+        if (validationError) return;
+
+        const blockTitle = block.querySelector('.block-title-input').value.trim() || 'Section';
+        const sectionType = block.dataset.sectionType || 'artwork';
+
+        if (sectionType === 'questions') {
+            const questions = Array.from(block.querySelectorAll('.question-editor')).map((editor) => {
+                const answerType = editor.querySelector('.question-answer-type').value;
+                const prompt = editor.querySelector('.question-prompt').value.trim();
+                const options = Array.from(editor.querySelectorAll('.question-option-input'))
+                    .map((input) => input.value.trim())
+                    .filter(Boolean);
+
+                if (!prompt) {
+                    validationError = `Write every question in section "${blockTitle}".`;
+                } else if (answerType === 'multiple-choice' && options.length < 2) {
+                    validationError = `Add at least two options to every multiple-choice question in "${blockTitle}".`;
+                }
+
+                return {
+                    prompt,
+                    answerType,
+                    options: answerType === 'multiple-choice' ? options : []
+                };
+            });
+
+            if (questions.length === 0) {
+                validationError = `Add at least one question to section "${blockTitle}".`;
+            }
+            structurData.push({
+                type: 'questions',
+                blockName: blockTitle,
+                items: [],
+                questions
+            });
+            return;
+        }
+
         const itemsNodes = block.querySelectorAll('.draggable-item');
         const itemsIds = Array.from(itemsNodes).map(node => node.dataset.itemId);
         
-        structurData.push({ blockName: blockTitle, items: itemsIds });
+        structurData.push({
+            type: 'artwork',
+            blockName: blockTitle,
+            items: itemsIds,
+            questions: []
+        });
         
         itemsIds.forEach(id => {
             sequenceObjects.push({
@@ -855,8 +1056,17 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         });
     });
 
-    if (sequenceObjects.length === 0) { 
-        alert("Aggiungi almeno un'opera alla visita."); 
+    if (validationError) {
+        alert(validationError);
+        return;
+    }
+
+    const questionCount = structurData.reduce(
+        (total, block) => total + (block.questions?.length || 0),
+        0
+    );
+    if (sequenceObjects.length === 0 && questionCount === 0) {
+        alert("Aggiungi almeno un'opera o una domanda alla visita.");
         return; 
     }
 
@@ -868,7 +1078,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         sequence: sequenceObjects,
         blocks: structurData,
         isPublic: getVisitVisibility(),
-        type: "standard", 
+        type: questionCount > 0 ? "synchronized" : "standard",
         length: "normal"  
     };
     

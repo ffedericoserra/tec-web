@@ -6,7 +6,44 @@
 const Session = require('../models/Session');
 const Visit = require('../models/Visit');
 const User = require('../models/User');
-const { emitToSession } = require('../services/socketService');
+const {
+  emitToSession,
+  emitToSessionOwner,
+} = require('../services/socketService');
+
+function buildSessionSteps(visit) {
+  const sequence = visit?.sequence || [];
+  const blocks = visit?.blocks || [];
+
+  if (blocks.length === 0) {
+    return sequence.map((_, itemIndex) => ({ type: 'artwork', itemIndex }));
+  }
+
+  const steps = [];
+  let itemIndex = 0;
+
+  blocks.forEach((block) => {
+    if (block.type === 'questions' && block.questions?.length) {
+      steps.push({
+        type: 'questions',
+        sectionId: block._id.toString(),
+      });
+      return;
+    }
+
+    (block.items || []).forEach(() => {
+      steps.push({ type: 'artwork', itemIndex });
+      itemIndex += 1;
+    });
+  });
+
+  while (itemIndex < sequence.length) {
+    steps.push({ type: 'artwork', itemIndex });
+    itemIndex += 1;
+  }
+
+  return steps;
+}
 
 /**
  * Shape a session for the client: tell the caller which role it has, so the
@@ -35,6 +72,9 @@ function presentSession(session, userId) {
         options: q.options,
       }));
     }
+    obj.sectionResponses = obj.sectionResponses.filter(
+      (response) => response.userId.toString() === me
+    );
   }
   return obj;
 }
@@ -76,6 +116,7 @@ exports.create = async (req, res, next) => {
       visitId,
       participants: [],
       currentItemIndex: 0,
+      currentStepIndex: 0,
     });
     await session.save();
 
@@ -86,7 +127,7 @@ exports.create = async (req, res, next) => {
     await session.populate('owner', 'username');
     await session.populate({
       path: 'visitId',
-      select: 'title description sequence quiz museumId',
+      select: 'title description sequence blocks quiz museumId',
       populate: { path: 'museumId', select: 'name slug' },
     });
 
@@ -106,7 +147,7 @@ exports.getByCode = async (req, res, next) => {
       .populate('owner', 'username')
       .populate({
         path: 'visitId',
-        select: 'title description slug sequence quiz museumId',
+        select: 'title description slug sequence blocks quiz museumId',
         // The runner routes by museum slug (it fetches that museum's contents),
         // so the slug has to come along or the client needs a second lookup.
         populate: { path: 'museumId', select: 'name slug' },
@@ -164,7 +205,7 @@ exports.join = async (req, res, next) => {
     await session.populate('owner', 'username');
     await session.populate({
       path: 'visitId',
-      select: 'title description slug sequence quiz museumId',
+      select: 'title description slug sequence blocks quiz museumId',
       populate: { path: 'museumId', select: 'name slug' },
     });
 
@@ -225,7 +266,7 @@ exports.advance = async (req, res, next) => {
   try {
     const session = await Session.findActiveByCode(req.params.code).populate(
       'visitId',
-      'sequence'
+      'sequence blocks'
     );
 
     if (!session) {
@@ -237,22 +278,38 @@ exports.advance = async (req, res, next) => {
       return res.status(403).json({ error: 'Only session owner can advance' });
     }
 
-    const maxIndex = session.visitId.sequence.length - 1;
-    if (session.currentItemIndex < maxIndex) {
-      session.currentItemIndex += 1;
+    const steps = buildSessionSteps(session.visitId);
+    const maxIndex = steps.length - 1;
+    if (session.currentStepIndex < maxIndex) {
+      session.currentStepIndex += 1;
+      const step = steps[session.currentStepIndex];
+      if (step?.type === 'artwork') {
+        session.currentItemIndex = step.itemIndex;
+      }
       await session.save();
     }
 
-    // The students' runners follow this broadcast; the teacher's own view moves
-    // on it too, so both roles stay on exactly the same stop.
-    emitToSession(session.code, 'session:item-changed', {
+    const currentStep = steps[session.currentStepIndex] || null;
+
+    emitToSession(session.code, 'session:step-changed', {
+      currentStepIndex: session.currentStepIndex,
       currentItemIndex: session.currentItemIndex,
-      isLast: session.currentItemIndex >= maxIndex,
+      step: currentStep,
+      isLast: session.currentStepIndex >= maxIndex,
     });
+
+    if (currentStep?.type === 'artwork') {
+      emitToSession(session.code, 'session:item-changed', {
+        currentItemIndex: session.currentItemIndex,
+        isLast: session.currentStepIndex >= maxIndex,
+      });
+    }
 
     res.json({
       currentItemIndex: session.currentItemIndex,
-      isLast: session.currentItemIndex >= maxIndex,
+      currentStepIndex: session.currentStepIndex,
+      step: currentStep,
+      isLast: session.currentStepIndex >= maxIndex,
     });
   } catch (error) {
     next(error);
@@ -265,7 +322,10 @@ exports.advance = async (req, res, next) => {
  */
 exports.previous = async (req, res, next) => {
   try {
-    const session = await Session.findActiveByCode(req.params.code);
+    const session = await Session.findActiveByCode(req.params.code).populate(
+      'visitId',
+      'sequence blocks'
+    );
 
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
@@ -275,19 +335,37 @@ exports.previous = async (req, res, next) => {
       return res.status(403).json({ error: 'Only session owner can navigate' });
     }
 
-    if (session.currentItemIndex > 0) {
-      session.currentItemIndex -= 1;
+    const steps = buildSessionSteps(session.visitId);
+    if (session.currentStepIndex > 0) {
+      session.currentStepIndex -= 1;
+      const step = steps[session.currentStepIndex];
+      if (step?.type === 'artwork') {
+        session.currentItemIndex = step.itemIndex;
+      }
       await session.save();
     }
 
-    emitToSession(session.code, 'session:item-changed', {
+    const currentStep = steps[session.currentStepIndex] || null;
+
+    emitToSession(session.code, 'session:step-changed', {
+      currentStepIndex: session.currentStepIndex,
       currentItemIndex: session.currentItemIndex,
-      isFirst: session.currentItemIndex === 0,
+      step: currentStep,
+      isFirst: session.currentStepIndex === 0,
     });
+
+    if (currentStep?.type === 'artwork') {
+      emitToSession(session.code, 'session:item-changed', {
+        currentItemIndex: session.currentItemIndex,
+        isFirst: session.currentStepIndex === 0,
+      });
+    }
 
     res.json({
       currentItemIndex: session.currentItemIndex,
-      isFirst: session.currentItemIndex === 0,
+      currentStepIndex: session.currentStepIndex,
+      step: currentStep,
+      isFirst: session.currentStepIndex === 0,
     });
   } catch (error) {
     next(error);
@@ -363,6 +441,126 @@ exports.sendMessage = async (req, res, next) => {
     emitToSession(session.code, 'session:chat', message);
 
     res.status(201).json({ message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Submit or update one answer in the active question section.
+ * POST /api/sessions/:code/sections/:sectionId/answers
+ */
+exports.submitSectionAnswer = async (req, res, next) => {
+  try {
+    const session = await Session.findActiveByCode(req.params.code).populate(
+      'visitId',
+      'sequence blocks'
+    );
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found or inactive' });
+    }
+
+    const participant = session.participants.find(
+      (entry) =>
+        entry.userId.toString() === req.user._id.toString() && entry.isActive
+    );
+    if (!participant) {
+      return res.status(403).json({ error: 'Only active participants can answer' });
+    }
+
+    const steps = buildSessionSteps(session.visitId);
+    const currentStep = steps[session.currentStepIndex];
+    if (
+      currentStep?.type !== 'questions' ||
+      currentStep.sectionId !== req.params.sectionId
+    ) {
+      return res.status(409).json({ error: 'This question section is not active' });
+    }
+
+    const section = session.visitId.blocks.find(
+      (block) => block._id.toString() === req.params.sectionId
+    );
+    const question = section?.questions?.find(
+      (entry) => entry._id.toString() === req.body.questionId
+    );
+
+    if (!question) {
+      return res.status(404).json({ error: 'Question not found' });
+    }
+
+    const response = {
+      sectionId: req.params.sectionId,
+      questionId: req.body.questionId,
+      userId: req.user._id,
+      username: req.user.username,
+      answerType: question.answerType,
+      text: undefined,
+      selectedIndex: undefined,
+      submittedAt: new Date(),
+    };
+
+    if (question.answerType === 'multiple-choice') {
+      const selectedIndex = req.body.selectedIndex;
+      if (
+        !Number.isInteger(selectedIndex) ||
+        selectedIndex < 0 ||
+        selectedIndex >= question.options.length
+      ) {
+        return res.status(400).json({ error: 'Select a valid option' });
+      }
+      response.selectedIndex = selectedIndex;
+    } else {
+      const text = req.body.text?.trim();
+      if (!text) {
+        return res.status(400).json({ error: 'Write an answer' });
+      }
+      response.text = text;
+    }
+
+    const existingIndex = session.sectionResponses.findIndex(
+      (entry) =>
+        entry.sectionId === response.sectionId &&
+        entry.questionId === response.questionId &&
+        entry.userId.toString() === req.user._id.toString()
+    );
+
+    if (existingIndex >= 0) {
+      Object.assign(session.sectionResponses[existingIndex], response);
+    } else {
+      session.sectionResponses.push(response);
+    }
+
+    await session.save();
+    emitToSessionOwner(session.code, 'session:section-response', response);
+
+    res.status(existingIndex >= 0 ? 200 : 201).json({ response });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Read all answers for one section (session owner only).
+ * GET /api/sessions/:code/sections/:sectionId/responses
+ */
+exports.getSectionResponses = async (req, res, next) => {
+  try {
+    const session = await Session.findOne({
+      code: req.params.code.toUpperCase(),
+    });
+
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    if (session.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ error: 'Only the session owner can view responses' });
+    }
+
+    const responses = session.sectionResponses.filter(
+      (response) => response.sectionId === req.params.sectionId
+    );
+    res.json({ responses });
   } catch (error) {
     next(error);
   }
