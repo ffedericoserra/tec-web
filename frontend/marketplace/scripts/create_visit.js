@@ -384,6 +384,21 @@ function bindBlockDelete(block) {
     });
 }
 
+function normalizeBlockAddButton(block) {
+    const isQuestionBlock = block.dataset.sectionType === 'questions';
+    const button = block.querySelector(
+        isQuestionBlock ? '.add-question-to-block' : '.add-item-to-block'
+    );
+    if (!button) return;
+
+    const label = isQuestionBlock ? 'Add question' : 'Add artwork';
+    button.classList.add('add-btn', 'block-add-btn');
+    button.textContent = '';
+    button.dataset.tooltip = label;
+    button.setAttribute('aria-label', label);
+    button.removeAttribute('title');
+}
+
 function createNewBlock(defaultTitle = "New Section", sectionType = "artwork", questions = []) {
     blockCounter++;
     const block = document.createElement('div');
@@ -393,11 +408,11 @@ function createNewBlock(defaultTitle = "New Section", sectionType = "artwork", q
     const sectionBody = sectionType === 'questions'
         ? `<div class="question-list"></div>
            <div class="block-footer">
-             <button class="add-question-to-block" type="button">Add question</button>
+             <button class="add-btn block-add-btn add-question-to-block" type="button" aria-label="Add question" data-tooltip="Add question"></button>
            </div>`
         : `<ul class="block-list"></ul>
            <div class="block-footer">
-             <button class="add-btn add-item-to-block" type="button" title="Add an artwork to this section">+</button>
+             <button class="add-btn block-add-btn add-item-to-block" type="button" aria-label="Add artwork" data-tooltip="Add artwork"></button>
            </div>`;
 
     block.innerHTML = `
@@ -410,6 +425,7 @@ function createNewBlock(defaultTitle = "New Section", sectionType = "artwork", q
       ${sectionBody}
     `;
 
+    normalizeBlockAddButton(block);
     bindBlockDelete(block);
 
     if (sectionType === 'questions') {
@@ -599,8 +615,200 @@ document.getElementById('close-item-modal').addEventListener('click', () => item
 
 // --- DRAG & DROP INCROCIATO & CREAZIONE CARTA ---
 let draggedItem = null;
+let dragSourceList = null;
+const dragPreparedLists = new Set();
+const boundArtworkItems = new WeakSet();
 let placeholder = document.createElement('li');
 placeholder.className = 'placeholder';
+let routeNodeCounter = 0;
+
+function ensureRouteNodeId(item) {
+    if (!item.dataset.routeNodeId) {
+        routeNodeCounter += 1;
+        item.dataset.routeNodeId = `route-${Date.now()}-${routeNodeCounter}`;
+    }
+    return item.dataset.routeNodeId;
+}
+
+function getArtworkItems(listElement) {
+    return Array.from(listElement?.children || []).filter((node) =>
+        node.classList.contains('draggable-item')
+    );
+}
+
+function importLegacyDirectionFields(listElement) {
+    getArtworkItems(listElement).forEach((item) => {
+        const previousField = item.querySelector('.item-prev-directions');
+        const nextField = item.querySelector('.item-next-directions');
+        if (previousField) item.dataset.prevDirections = previousField.value;
+        if (nextField) item.dataset.nextDirections = nextField.value;
+        item.querySelector('.route-fields')?.remove();
+    });
+}
+
+function syncRouteConnectorValues(listElement) {
+    if (!listElement) return;
+
+    listElement.querySelectorAll('.route-connector').forEach((connector) => {
+        const previousItem = connector.previousElementSibling;
+        const nextItem = connector.nextElementSibling;
+        const field = connector.querySelector('.direction-field');
+        if (
+            previousItem?.classList.contains('draggable-item') &&
+            nextItem?.classList.contains('draggable-item') &&
+            field
+        ) {
+            previousItem.dataset.nextDirections = field.value;
+            nextItem.dataset.prevDirections = field.value;
+        }
+    });
+}
+
+function createRouteConnector(previousItem, nextItem) {
+    const connector = document.createElement('li');
+    connector.classList.add('route-connector');
+
+    const inner = document.createElement('div');
+    inner.classList.add('route-connector-inner');
+
+    const label = document.createElement('label');
+    label.classList.add('route-connector-label');
+
+    const heading = document.createElement('span');
+    heading.classList.add('route-connector-heading');
+    heading.textContent = 'Indicazioni di percorso';
+
+    const path = document.createElement('span');
+    path.classList.add('route-connector-path');
+    path.textContent = `${previousItem.dataset.title || 'Opera'} → ${nextItem.dataset.title || 'Opera'}`;
+
+    const previousNodeId = ensureRouteNodeId(previousItem);
+    const nextNodeId = ensureRouteNodeId(nextItem);
+    const hasPreviousPair = Boolean(
+        previousItem.dataset.nextRouteNodeId || nextItem.dataset.prevRouteNodeId
+    );
+    const isSamePair =
+        previousItem.dataset.nextRouteNodeId === nextNodeId &&
+        nextItem.dataset.prevRouteNodeId === previousNodeId;
+    const routeValue = hasPreviousPair && !isSamePair
+        ? ''
+        : previousItem.dataset.nextDirections || nextItem.dataset.prevDirections || '';
+
+    const field = document.createElement('textarea');
+    field.classList.add('direction-field');
+    field.rows = 2;
+    field.placeholder = `Come raggiungere ${nextItem.dataset.title || 'la prossima opera'}`;
+    field.setAttribute(
+        'aria-label',
+        `Indicazioni da ${previousItem.dataset.title || 'opera precedente'} a ${nextItem.dataset.title || 'opera successiva'}`
+    );
+    field.value = routeValue;
+
+    previousItem.dataset.nextDirections = field.value;
+    nextItem.dataset.prevDirections = field.value;
+    previousItem.dataset.nextRouteNodeId = nextNodeId;
+    nextItem.dataset.prevRouteNodeId = previousNodeId;
+    field.addEventListener('input', () => {
+        previousItem.dataset.nextDirections = field.value;
+        nextItem.dataset.prevDirections = field.value;
+    });
+
+    label.append(heading, path, field);
+    inner.appendChild(label);
+    connector.appendChild(inner);
+    return connector;
+}
+
+function refreshRouteConnectors(listElement) {
+    if (!listElement) return;
+
+    importLegacyDirectionFields(listElement);
+    syncRouteConnectorValues(listElement);
+    listElement.querySelectorAll('.route-connector').forEach((connector) => connector.remove());
+
+    const items = getArtworkItems(listElement);
+    items.slice(0, -1).forEach((item, index) => {
+        item.after(createRouteConnector(item, items[index + 1]));
+    });
+}
+
+function prepareListForDrag(listElement) {
+    if (!listElement || dragPreparedLists.has(listElement)) return;
+    importLegacyDirectionFields(listElement);
+    syncRouteConnectorValues(listElement);
+    listElement.querySelectorAll('.route-connector').forEach((connector) => connector.remove());
+    dragPreparedLists.add(listElement);
+}
+
+function bindArtworkItem(item) {
+    if (boundArtworkItems.has(item)) return;
+    boundArtworkItems.add(item);
+    ensureRouteNodeId(item);
+
+    item.querySelectorAll('.draggable-item-image').forEach((image) => {
+        image.addEventListener('error', () => image.classList.add('is-hidden'));
+    });
+
+    item.addEventListener('click', (event) => {
+        if (event.target.closest('button, input, textarea, select, a')) return;
+        salvaStatoTemporaneo();
+
+        const params = new URLSearchParams({
+            itemId: item.dataset.itemId,
+            museumId,
+            museumName,
+            title: item.dataset.title || 'Opera',
+            author: item.dataset.author || 'Autore Ignoto',
+            image: item.dataset.imageUrl || ''
+        });
+        if (visitId) params.set('visitId', visitId);
+        if (item.dataset.contentId) params.set('contentId', item.dataset.contentId);
+        window.location.href = `create_items.html?${params.toString()}`;
+    });
+
+    item.addEventListener('keydown', (event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target === item) {
+            event.preventDefault();
+            item.click();
+        }
+    });
+
+    item.querySelector('.delete-btn').addEventListener('click', () => {
+        const listElement = item.parentElement;
+        syncRouteConnectorValues(listElement);
+        item.remove();
+        refreshRouteConnectors(listElement);
+        aggiornaContatoriBlocchi();
+    });
+
+    item.addEventListener('dragstart', () => {
+        draggedItem = item;
+        dragSourceList = item.parentElement;
+        prepareListForDrag(dragSourceList);
+        placeholder.style.height = '72px';
+        setTimeout(() => {
+            item.classList.add('dragging');
+            item.parentNode.insertBefore(placeholder, item.nextSibling);
+        }, 0);
+    });
+
+    item.addEventListener('dragend', () => {
+        item.classList.remove('dragging');
+        const destinationList = placeholder.parentNode || item.parentElement;
+        if (placeholder.parentNode) {
+            placeholder.parentNode.insertBefore(item, placeholder);
+            placeholder.remove();
+        }
+
+        if (dragSourceList) dragPreparedLists.add(dragSourceList);
+        if (destinationList) dragPreparedLists.add(destinationList);
+        dragPreparedLists.forEach((listElement) => refreshRouteConnectors(listElement));
+        dragPreparedLists.clear();
+        dragSourceList = null;
+        draggedItem = null;
+        aggiornaContatoriBlocchi();
+    });
+}
 
 function creaEdAggiungiItem(
     titoloOpera,
@@ -621,6 +829,8 @@ function creaEdAggiungiItem(
     li.dataset.author = author || "";
     li.dataset.imageUrl = imageUrl || "";
     li.dataset.contentId = contentId || "";
+    li.dataset.nextDirections = nextDirections || "";
+    li.dataset.prevDirections = prevDirections || "";
 
     // Risolviamo il percorso dell'immagine
     const finalImgUrl = resolveAssetUrl(imageUrl);
@@ -665,75 +875,11 @@ function creaEdAggiungiItem(
                 <button type="button" class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
             </div>
         </div>
-        <div class="route-fields">
-            <label class="route-field">
-                <span>Indicazioni dall'opera precedente</span>
-                <textarea class="direction-field item-prev-directions" placeholder="Come raggiungere questa tappa">${escapeHTML(prevDirections)}</textarea>
-            </label>
-            <label class="route-field">
-                <span>Indicazioni verso l'opera successiva</span>
-                <textarea class="direction-field item-next-directions" placeholder="Come raggiungere la prossima tappa">${escapeHTML(nextDirections)}</textarea>
-            </label>
-        </div>
     `;
 
-    const itemImages = li.querySelectorAll('.draggable-item-image');
-    itemImages.forEach((img) => {
-        img.addEventListener('error', () => img.classList.add('is-hidden'));
-    });
-
-    li.addEventListener('click', function(e) {
-        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle') || e.target.closest('.direction-field')) {
-            return;
-        }
-        salvaStatoTemporaneo();
-        
-        const params = new URLSearchParams({
-            itemId: itemId,
-            museumId: museumId,
-            museumName: museumName,
-            title: titoloOpera,
-            author: author || "Autore Ignoto",
-            image: imageUrl || ''
-        });
-        if (visitId) params.set('visitId', visitId);
-        if (contentId) params.set('contentId', contentId);
-        window.location.href = `create_items.html?${params.toString()}`;
-    });
-
-    li.addEventListener('keydown', function(e) {
-        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.delete-btn') && !e.target.closest('.drag-handle') && !e.target.closest('.direction-field')) {
-            e.preventDefault();
-            li.click();
-        }
-    });
-
-    li.querySelector('.delete-btn').addEventListener('click', () => {
-        li.remove();
-        aggiornaContatoriBlocchi();
-    });
-
-    li.addEventListener('dragstart', function(e) {
-        draggedItem = this;
-        placeholder.style.height = '72px';
-        setTimeout(() => {
-            this.classList.add('dragging');
-            this.parentNode.insertBefore(placeholder, this.nextSibling);
-            aggiornaContatoriBlocchi(); 
-        }, 0);
-    });
-
-    li.addEventListener('dragend', function() {
-        this.classList.remove('dragging');
-        if (placeholder.parentNode) {
-            placeholder.parentNode.insertBefore(this, placeholder);
-            placeholder.parentNode.removeChild(placeholder);
-        }
-        draggedItem = null;
-        aggiornaContatoriBlocchi(); 
-    });
-
+    bindArtworkItem(li);
     targetList.appendChild(li);
+    refreshRouteConnectors(targetList);
     aggiornaContatoriBlocchi();
 }
 
@@ -741,6 +887,7 @@ function setupDragAndDropForList(listElement) {
     listElement.addEventListener('dragover', function(e) {
         e.preventDefault(); 
         if (!draggedItem) return;
+        prepareListForDrag(listElement);
 
         const afterElement = getDragAfterElement(listElement, e.clientY);
         if (afterElement == null) {
@@ -748,8 +895,6 @@ function setupDragAndDropForList(listElement) {
         } else {
             listElement.insertBefore(placeholder, afterElement);
         }
-        
-        aggiornaStatoCarte(); 
     });
 }
 
@@ -774,6 +919,7 @@ function salvaStatoTemporaneo() {
     
     const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
     blocksHtmlNodes.forEach((block) => {
+        syncRouteConnectorValues(block.querySelector('.block-list'));
         block.querySelectorAll('input, textarea, select').forEach((field) => {
             if (field.tagName === 'TEXTAREA') {
                 field.textContent = field.value;
@@ -1059,6 +1205,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             Array.from(tempDiv.children).forEach(block => {
                 blocksContainer.insertBefore(block, addBtn);
                 block.dataset.sectionType = block.dataset.sectionType || 'artwork';
+                normalizeBlockAddButton(block);
                 bindBlockDelete(block);
 
                 if (block.dataset.sectionType === 'questions') {
@@ -1077,51 +1224,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                 block.querySelector('.add-item-to-block').addEventListener('click', () => {
                     activeBlockList = ulList; apriModaleOpere();
                 });
-                block.querySelectorAll('.draggable-item').forEach(li => {
-                    const itemId = li.dataset.itemId;
-                    const titoloOpera = li.dataset.title || li.querySelector('strong').innerText;
-                    const author = li.dataset.author || "Autore Ignoto";
-                    const imageUrl = li.dataset.imageUrl || "";
-                    const contentId = li.dataset.contentId || "";
-
-                    li.querySelector('.delete-btn').addEventListener('click', () => { li.remove(); aggiornaContatoriBlocchi(); });
-                    
-                    li.addEventListener('dragstart', function(e) {
-                        draggedItem = this;
-                        placeholder.style.height = '72px';
-                        setTimeout(() => {
-                            this.classList.add('dragging');
-                            this.parentNode.insertBefore(placeholder, this.nextSibling);
-                            aggiornaContatoriBlocchi(); 
-                        }, 0);
-                    });
-                    
-                    li.addEventListener('dragend', function() {
-                        this.classList.remove('dragging');
-                        if (placeholder.parentNode) {
-                            placeholder.parentNode.insertBefore(this, placeholder);
-                            placeholder.parentNode.removeChild(placeholder);
-                        }
-                        draggedItem = null;
-                        aggiornaContatoriBlocchi(); 
-                    });
-
-                    li.addEventListener('click', function(e) {
-                        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle') || e.target.closest('.direction-field')) return;
-                        salvaStatoTemporaneo();
-                        const params = new URLSearchParams({
-                            itemId: itemId,
-                            museumId: museumId,
-                            museumName: museumName,
-                            title: titoloOpera,
-                            author: author,
-                            image: imageUrl
-                        });
-                        if (visitId) params.set('visitId', visitId);
-                        if (contentId) params.set('contentId', contentId);
-                        window.location.href = `create_items.html?${params.toString()}`;
-                    });
-                });
+                block.querySelectorAll('.draggable-item').forEach(bindArtworkItem);
+                refreshRouteConnectors(ulList);
             });
             
             blockCounter = state.blockCounter;
@@ -1206,6 +1310,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         }
 
         const itemsNodes = block.querySelectorAll('.draggable-item');
+        syncRouteConnectorValues(block.querySelector('.block-list'));
         const itemsIds = Array.from(itemsNodes).map(node => node.dataset.itemId);
         
         structurData.push({
@@ -1219,8 +1324,8 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             sequenceObjects.push({
                 itemId: node.dataset.itemId,
                 order: globalOrder++,
-                nextDirections: node.querySelector('.item-next-directions')?.value.trim() || "",
-                prevDirections: node.querySelector('.item-prev-directions')?.value.trim() || ""
+                nextDirections: (node.dataset.nextDirections || "").trim(),
+                prevDirections: (node.dataset.prevDirections || "").trim()
             });
         });
     });

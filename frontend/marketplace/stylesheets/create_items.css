@@ -1182,8 +1182,7 @@
     background: transparent;
 }
 
-#artaround-visit-builder .add-question-option,
-#artaround-visit-builder .add-question-to-block {
+#artaround-visit-builder .add-question-option {
     min-height: 38px;
     border: 0;
     background: transparent;
@@ -1422,24 +1421,51 @@
                 transform 0.25s ease;
 }
 
-#artaround-visit-builder .route-fields {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    padding: 12px 14px 14px;
-    border-top: 1px solid rgba(22, 22, 22, 0.12);
+#artaround-visit-builder .route-connector {
+    position: relative;
+    z-index: 0;
+    list-style: none;
+    margin: 0;
+    padding: 14px 0 18px;
 }
 
-#artaround-visit-builder .route-field {
+#artaround-visit-builder .route-connector::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 18px;
+    z-index: -1;
+    border-left: 1px dashed rgba(113, 0, 20, 0.45);
+}
+
+#artaround-visit-builder .route-connector-inner {
+    padding: 10px 0 0 14px;
+    background: #F2F1ED;
+    border-left: 2px solid #710014;
+}
+
+#artaround-visit-builder .route-connector-label {
     display: flex;
     min-width: 0;
     flex-direction: column;
-    gap: 6px;
+    gap: 5px;
+}
+
+#artaround-visit-builder .route-connector-heading {
     color: rgba(22, 22, 22, 0.66);
     font-size: 0.68rem;
     font-weight: 800;
     letter-spacing: 0.6px;
     text-transform: uppercase;
+}
+
+#artaround-visit-builder .route-connector-path {
+    color: #710014;
+    font-size: 0.76rem;
+    font-weight: 800;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
 }
 
 #artaround-visit-builder .direction-field {
@@ -1570,6 +1596,40 @@
     background-color: #710014;
     border-color: #710014;
     transform: translateY(-1px) scale(1.04);
+}
+
+#artaround-visit-builder .block-add-btn::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    z-index: 20;
+    width: max-content;
+    max-width: 180px;
+    padding: 7px 9px;
+    color: #F2F1ED;
+    background: #161616;
+    border-radius: 2px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 5px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+#artaround-visit-builder .block-add-btn:hover::after,
+#artaround-visit-builder .block-add-btn:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+#artaround-visit-builder .block-add-btn:focus-visible {
+    outline: 2px solid #710014;
+    outline-offset: 4px;
 }
 
 #artaround-visit-builder .add-section-wrapper {
@@ -1984,8 +2044,9 @@
         text-align: left;
     }
 
-    #artaround-visit-builder .route-fields {
-        grid-template-columns: 1fr;
+    #artaround-visit-builder .route-connector {
+        padding-top: 12px;
+        padding-bottom: 16px;
     }
 
     #artaround-visit-builder .visit-block {
