@@ -166,7 +166,8 @@
         {
           "prompt": "Quale opera preferisci?",
           "answerType": "multiple-choice",
-          "options": ["La prima", "La seconda"]
+          "options": ["La prima", "La seconda"],
+          "correctIndex": 1
         }
       ]
     }
@@ -192,7 +193,8 @@
 
 Each block has `type: "artwork"` or `type: "questions"`. Question blocks are
 shown as individual synchronized-session steps; open questions use `text`, while
-multiple-choice questions use the zero-based `selectedIndex` of an option.
+multiple-choice questions require the zero-based `correctIndex` of their correct
+option and responses use `selectedIndex`.
 
 ## Sessions (Synchronized Visits)
 
@@ -227,8 +229,9 @@ All session endpoints require authentication.
 
 **Session responses** carry `isOwner` so the client knows its role without
 comparing ObjectIds. For non-owners, other participants' section responses,
-`quizAnswers` / `quizScore`, and every `quiz[].correctIndex` are stripped. The
-owner receives all section responses; each participant receives only their own.
+`quizAnswers` / `quizScore`, every `quiz[].correctIndex`, and every question
+section `correctIndex` are stripped. The owner receives all section responses;
+each participant receives only their own.
 
 **Log Activity Request:**
 ```json

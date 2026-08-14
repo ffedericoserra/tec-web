@@ -42,6 +42,7 @@ frontend-navigator/
 │   │   ├── ProfileMenu.jsx             # avatar circle + dropdown with logout
 │   │   ├── GroupVisitDialog.jsx        # creates or joins a synchronized session
 │   │   ├── QuestionSectionScreen.jsx   # participant form + live owner results
+│   │   ├── ActivitiesPanel.jsx         # live activity/answer summary + text export
 │   │   └── AssociatedContentsModal.jsx # opened by the `+` icon during a visit
 │   └── pages/
 │       ├── Account.jsx
@@ -222,6 +223,11 @@ Question steps render `QuestionSectionScreen`: participants submit open text or
 a multiple-choice option, while the host sees responses arrive live and controls
 Previous/Next. Participant responses are sent through the REST API; Socket.io is
 used for owner-only response updates and step broadcasts.
+
+The host-only Activities panel has separate activity and answer views. The
+answer view groups every question and response by participant, marks closed
+answers as correct or incorrect, updates from `session:section-response`, and
+can export the complete snapshot as a UTF-8 text file.
 
 Transitions:
 

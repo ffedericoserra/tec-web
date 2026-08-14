@@ -884,6 +884,24 @@
     gap: 10px;
 }
 
+#artaround-visit-builder .question-correct-label {
+    flex: 0 0 72px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: rgba(22, 22, 22, 0.68);
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+#artaround-visit-builder .question-correct-option {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: #710014;
+}
+
 #artaround-visit-builder .question-answer-type {
     flex: 1;
     min-width: 0;

@@ -19,7 +19,27 @@ function processBlocks(blocks = []) {
     type: block.type || 'artwork',
     blockName: block.blockName || 'Mainboard',
     items: block.type === 'questions' ? [] : block.items || [],
-    questions: block.type === 'questions' ? block.questions || [] : [],
+    questions:
+      block.type === 'questions'
+        ? (block.questions || []).map((question) => ({
+            prompt: question.prompt,
+            answerType: question.answerType,
+            options: question.options || [],
+            ...(Number.isInteger(question.correctIndex) && {
+              correctIndex: question.correctIndex,
+            }),
+          }))
+        : [],
+  }));
+}
+
+function stripSectionAnswerKeys(blocks = []) {
+  return blocks.map((block) => ({
+    ...block,
+    questions: (block.questions || []).map((question) => ({
+      ...question,
+      correctIndex: undefined,
+    })),
   }));
 }
 
@@ -170,6 +190,9 @@ exports.getById = async (req, res, next) => {
         question: q.question,
         options: q.options,
       }));
+    }
+    if (!isCreator && obj.blocks?.length) {
+      obj.blocks = stripSectionAnswerKeys(obj.blocks);
     }
 
     res.json({ visit: obj });

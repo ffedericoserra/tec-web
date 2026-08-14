@@ -49,6 +49,10 @@ const sectionQuestionSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    correctIndex: {
+      type: Number,
+      min: 0,
+    },
   }
 );
 

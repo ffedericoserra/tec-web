@@ -1148,7 +1148,14 @@ export default function VisitRun() {
       )}
 
       {panel === 'activities' && (
-        <ActivitiesPanel activities={activities} onClose={closePanel} />
+        <ActivitiesPanel
+          activities={activities}
+          visit={session?.visitId?.blocks ? session.visitId : visit}
+          responses={sectionResponses}
+          participants={participants}
+          sessionCode={sessionCode}
+          onClose={closePanel}
+        />
       )}
     </div>
   );

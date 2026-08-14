@@ -72,6 +72,15 @@ function presentSession(session, userId) {
         options: q.options,
       }));
     }
+    if (obj.visitId?.blocks) {
+      obj.visitId.blocks = obj.visitId.blocks.map((block) => ({
+        ...block,
+        questions: (block.questions || []).map((question) => ({
+          ...question,
+          correctIndex: undefined,
+        })),
+      }));
+    }
     obj.sectionResponses = obj.sectionResponses.filter(
       (response) => response.userId.toString() === me
     );

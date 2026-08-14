@@ -242,11 +242,39 @@ async function loadMuseumItemCatalog(forceReload = false) {
 const blocksContainer = document.getElementById('blocks-container');
 const addBlockBtnWrapper = document.getElementById('add-block-btn');
 let blockCounter = 0;
+let questionEditorCounter = 0;
 
-function addQuestionOption(editor, value = "") {
+function getQuestionEditorId(editor) {
+    if (!editor.dataset.questionEditorId) {
+        questionEditorCounter += 1;
+        editor.dataset.questionEditorId = `question-${Date.now()}-${questionEditorCounter}`;
+    }
+    return editor.dataset.questionEditorId;
+}
+
+function createCorrectOptionControl(editor, isCorrect = false) {
+    const correctLabel = document.createElement('label');
+    correctLabel.classList.add('question-correct-label');
+
+    const correctInput = document.createElement('input');
+    correctInput.type = 'radio';
+    correctInput.name = `correct-option-${getQuestionEditorId(editor)}`;
+    correctInput.classList.add('question-correct-option');
+    correctInput.checked = isCorrect;
+    correctInput.setAttribute('aria-label', 'Set as correct answer');
+
+    const correctText = document.createElement('span');
+    correctText.textContent = 'Correct';
+    correctLabel.append(correctInput, correctText);
+    return correctLabel;
+}
+
+function addQuestionOption(editor, value = "", isCorrect = false) {
     const optionsContainer = editor.querySelector('.question-options-list');
     const row = document.createElement('div');
     row.classList.add('question-option-row');
+
+    const correctLabel = createCorrectOptionControl(editor, isCorrect);
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -262,13 +290,23 @@ function addQuestionOption(editor, value = "") {
     deleteButton.addEventListener('click', () => row.remove());
     deleteButton.dataset.bound = 'true';
 
-    row.append(input, deleteButton);
+    row.append(correctLabel, input, deleteButton);
     optionsContainer.appendChild(row);
 }
 
 function bindQuestionEditor(editor) {
     const typeSelect = editor.querySelector('.question-answer-type');
     const optionsEditor = editor.querySelector('.question-options-editor');
+
+    getQuestionEditorId(editor);
+    editor.querySelectorAll('.question-option-row').forEach((row) => {
+        const existingControl = row.querySelector('.question-correct-option');
+        if (existingControl) {
+            existingControl.name = `correct-option-${getQuestionEditorId(editor)}`;
+        } else {
+            row.prepend(createCorrectOptionControl(editor));
+        }
+    });
 
     const syncAnswerType = () => {
         const isMultipleChoice = typeSelect.value === 'multiple-choice';
@@ -298,6 +336,7 @@ function bindQuestionEditor(editor) {
 function createQuestionEditor(question = {}) {
     const editor = document.createElement('article');
     editor.classList.add('question-editor');
+    getQuestionEditorId(editor);
     editor.innerHTML = `
         <div class="question-editor-header">
             <select class="question-answer-type" aria-label="Answer type">
@@ -318,7 +357,9 @@ function createQuestionEditor(question = {}) {
     const options = question.answerType === 'multiple-choice'
         ? (question.options?.length ? question.options : ['', ''])
         : (question.options || []);
-    options.forEach((option) => addQuestionOption(editor, option));
+    options.forEach((option, optionIndex) => {
+        addQuestionOption(editor, option, optionIndex === question.correctIndex);
+    });
     bindQuestionEditor(editor);
     return editor;
 }
@@ -649,6 +690,8 @@ function salvaStatoTemporaneo() {
                 Array.from(field.options).forEach((option) => {
                     option.toggleAttribute('selected', option.value === field.value);
                 });
+            } else if (field.type === 'radio' || field.type === 'checkbox') {
+                field.toggleAttribute('checked', field.checked);
             } else {
                 field.setAttribute('value', field.value);
             }
@@ -713,7 +756,10 @@ function normalizeVisitBlocks(visit) {
             questions: (block.questions || []).map((question) => ({
                 prompt: question.prompt || '',
                 answerType: question.answerType || 'open',
-                options: question.options || []
+                options: question.options || [],
+                correctIndex: Number.isInteger(question.correctIndex)
+                    ? question.correctIndex
+                    : undefined
             }))
         }));
     }
@@ -1007,20 +1053,28 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             const questions = Array.from(block.querySelectorAll('.question-editor')).map((editor) => {
                 const answerType = editor.querySelector('.question-answer-type').value;
                 const prompt = editor.querySelector('.question-prompt').value.trim();
-                const options = Array.from(editor.querySelectorAll('.question-option-input'))
-                    .map((input) => input.value.trim())
-                    .filter(Boolean);
+                const optionRows = Array.from(editor.querySelectorAll('.question-option-row'))
+                    .map((row) => ({
+                        value: row.querySelector('.question-option-input').value.trim(),
+                        isCorrect: row.querySelector('.question-correct-option')?.checked === true
+                    }))
+                    .filter((option) => Boolean(option.value));
+                const options = optionRows.map((option) => option.value);
+                const correctIndex = optionRows.findIndex((option) => option.isCorrect);
 
                 if (!prompt) {
                     validationError = `Write every question in section "${blockTitle}".`;
                 } else if (answerType === 'multiple-choice' && options.length < 2) {
                     validationError = `Add at least two options to every multiple-choice question in "${blockTitle}".`;
+                } else if (answerType === 'multiple-choice' && correctIndex < 0) {
+                    validationError = `Select the correct option for every multiple-choice question in "${blockTitle}".`;
                 }
 
                 return {
                     prompt,
                     answerType,
-                    options: answerType === 'multiple-choice' ? options : []
+                    options: answerType === 'multiple-choice' ? options : [],
+                    ...(answerType === 'multiple-choice' && { correctIndex })
                 };
             });
 

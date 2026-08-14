@@ -16,6 +16,7 @@ const sectionQuestionSchema = z
     prompt: z.string().trim().min(1, 'Question text is required').max(1000),
     answerType: z.enum(['open', 'multiple-choice']),
     options: z.array(z.string().trim().min(1).max(300)).default([]),
+    correctIndex: z.number().int().min(0).optional(),
   })
   .superRefine((question, context) => {
     if (question.answerType === 'multiple-choice' && question.options.length < 2) {
@@ -23,6 +24,17 @@ const sectionQuestionSchema = z
         code: z.ZodIssueCode.custom,
         path: ['options'],
         message: 'Multiple-choice questions require at least 2 options',
+      });
+    }
+    if (
+      question.answerType === 'multiple-choice' &&
+      (question.correctIndex === undefined ||
+        question.correctIndex >= question.options.length)
+    ) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['correctIndex'],
+        message: 'Select a valid correct option',
       });
     }
   });
