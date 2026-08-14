@@ -115,7 +115,7 @@
   _id: ObjectId,
   type: String,                  // 'Artwork'|'Artist'|'Movement'|'Place'
   museumId: ObjectId,            // refs Museum
-  universalId: String,           // unique, sparse (e.g., Wikidata ID)
+  universalId: String,           // required, unique and immutable
   name: String,
   author: String,
   year: String,
@@ -147,6 +147,8 @@
   price: Number,                 // default: 0
   license: String,               // 'CC-BY'|'CC-BY-SA'|'CC-BY-NC'|'Copyright'|'Public Domain'
   isPublic: Boolean,             // default: false
+  salesCount: Number,            // completed acquisitions, default: 0
+  revenue: Number,               // total creator revenue, default: 0
   associatedContents: [ObjectId], // refs Content
   createdAt: Date,
   updatedAt: Date

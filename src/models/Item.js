@@ -19,6 +19,7 @@ const textSchema = new mongoose.Schema(
     },
     language: {
         type: String,
+        enum: ['it', 'en', 'fr', 'de', 'es'],
         default: 'it',
     },
     // For AI fallback: pre-generated content
@@ -48,6 +49,8 @@ const itemSchema = new mongoose.Schema(
     contentId: {
       type: String,
       required: [true, 'Content reference is required'],
+      trim: true,
+      immutable: true,
     },
     creatorId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -56,6 +59,7 @@ const itemSchema = new mongoose.Schema(
     },
     targetAudience: {
         type: String,
+        enum: ['general', 'children', 'student', 'expert', 'tourist'],
         trim: true,
         required: [true, 'Target audience description is required'],
     },
@@ -75,6 +79,16 @@ const itemSchema = new mongoose.Schema(
     isPublic: {
       type: Boolean,
       default: false,
+    },
+    salesCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    revenue: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
 
     // Related content (artist, movement, etc.)

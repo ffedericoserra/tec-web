@@ -53,7 +53,7 @@ const updateMuseumSchema = createMuseumSchema.partial();
 
 const createContentSchema = z.object({
   type: z.enum(['Artwork', 'Artist', 'Movement', 'Place']),
-  universalId: z.string().optional(),
+  universalId: z.string().trim().min(1, 'Universal ID is required'),
   name: z.string().min(1, 'Content name is required').trim(),
   author: z.string().trim().optional(),
   year: z.string().trim().optional(),

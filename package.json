@@ -9,6 +9,7 @@
     "seed": "node scripts/seed.js",
     "remove-museum-theme": "node scripts/remove-museum-theme.js",
     "load-museum": "node scripts/load-museum.js",
+    "migrate:universal-ids": "node scripts/migrate-universal-ids.js",
     "test": "node tests/api.test.js",
     "test:prod": "node tests/api.test.js --prod"
   },

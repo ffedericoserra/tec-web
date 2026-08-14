@@ -12,6 +12,7 @@ if (!token) window.location.href = "login.html";
 // 1. LEGGIAMO I DATI DALL'URL (Arrivano dal Content fisso)
 const urlParams = new URLSearchParams(window.location.search);
 let activeItemId = urlParams.get('itemId'); 
+let viewedItemId = activeItemId;
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName') || 'Sconosciuto';
 const visitId = urlParams.get('visitId');
@@ -20,12 +21,11 @@ const urlAuthor = urlParams.get('author') || 'Autore Ignoto';
 const urlImage = urlParams.get('image');
 
 const urlYear = urlParams.get('year') || 'N/D';
-const urlPrice = urlParams.get('price') || 'N/D';
 const urlContentId = urlParams.get('contentId'); 
 
 // VARIABILI GLOBALI
 let originalContentId = urlContentId || null;
-let originalTargetAudience = null;
+let museumContentsCache = [];
 
 function resolveAssetUrl(path) {
     if (!path) return "";
@@ -96,7 +96,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('artwork-title-display').textContent = `${urlTitle} - ${urlAuthor}`;
     document.getElementById('museum-name-display').textContent = museumName;
     document.getElementById('item-anno').value = urlYear;
-    document.getElementById('item-prezzo').value = urlPrice;
+    document.getElementById('item-universal-id').value = originalContentId || '';
+    resetCommercialFields();
+    await loadAssociatedContentOptions();
 
     const imgContainer = document.getElementById('image-preview');
     const imagePath = urlImage || CONTENT_PLACEHOLDER;
@@ -200,28 +202,9 @@ async function loadCommunityItems() {
             return;
         }
 
-        const uniqueItemsMap = new Map();
-        communityItems.forEach(item => {
-            const creatorName = item.creatorId?.username || (typeof item.creatorId === 'string' ? item.creatorId : 'Anonimo');
-            
-            let contentSignature = "";
-            if (item.descriptions && Array.isArray(item.descriptions)) {
-                const sortedDesc = [...item.descriptions].sort((a, b) => a.tone.localeCompare(b.tone));
-                contentSignature = sortedDesc.map(desc => {
-                    const sortedTexts = [...(desc.texts || [])]
-                        .sort((a, b) => durationMap.indexOf(a.lengthCategory) - durationMap.indexOf(b.lengthCategory));
-                    return `${desc.tone}:${sortedTexts.map(text => `${text.lengthCategory}:${text.text || ''}`).join(',')}`;
-                }).join("|");
-            }
-            
-            const uniqueKey = `${creatorName}-${contentSignature}`;
-            if (!uniqueItemsMap.has(uniqueKey)) uniqueItemsMap.set(uniqueKey, item);
-        });
-        
-        const uniqueItems = Array.from(uniqueItemsMap.values());
         const authorCounts = {};
 
-        uniqueItems.forEach(item => {
+        communityItems.forEach(item => {
             const li = document.createElement('li');
             
             let creatorName = 'Utente Anonimo';
@@ -240,22 +223,26 @@ async function loadCommunityItems() {
                 });
             }
             const tagsText = tags.length > 0 ? tags.join(', ') : 'nessun testo';
+            const priceText = item.isOwned
+                ? 'tuo'
+                : item.isPurchased
+                    ? 'acquisito'
+                    : `${Number(item.price) || 0} crediti`;
+            const itemDetails = `${tagsText} · ${item.license || 'CC-BY'} · ${priceText}`;
 
-            li.innerHTML = `<span>Item di <strong>${displayCreatorName}</strong></span> <span class="community-item-tags">${tagsText}</span>`;
+            const authorLine = document.createElement('span');
+            const authorName = document.createElement('strong');
+            authorName.textContent = displayCreatorName;
+            authorLine.append(document.createTextNode('Item di '), authorName);
+
+            const detailsLine = document.createElement('span');
+            detailsLine.classList.add('community-item-tags');
+            detailsLine.textContent = itemDetails;
+            li.append(authorLine, detailsLine);
             
             li.addEventListener('click', () => {
                 caricaTestiDaDB(item._id);
                 document.getElementById('dropdown-selected-text').textContent = `Visualizzando l'Item di: ${displayCreatorName}`;
-                
-                const btnDelete = document.getElementById('btn-delete-item');
-                if (creatorName === loggedInUsername) {
-                    activeItemId = item._id; 
-                    btnDelete.classList.remove('hidden');
-                } else {
-                    activeItemId = null; 
-                    btnDelete.classList.add('hidden'); 
-                }
-                
                 dropdownMenu.classList.add('hidden');
             });
             existingItemsList.appendChild(li);
@@ -268,6 +255,7 @@ async function loadCommunityItems() {
 document.getElementById('btn-create-new').addEventListener('click', () => {
     clearUI();
     activeItemId = null; 
+    viewedItemId = null;
     document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
     document.getElementById('btn-delete-item').classList.add('hidden'); 
     dropdownMenu.classList.add('hidden');
@@ -290,6 +278,84 @@ function clearUI() {
         setActiveDuration(aud.id, '15s');
     });
     document.getElementById('item-creatore').value = loggedInUsername;
+    document.getElementById('btn-purchase-item').classList.add('hidden');
+    resetCommercialFields();
+    document.querySelectorAll('.associated-content-checkbox').forEach((checkbox) => {
+        checkbox.checked = false;
+    });
+}
+
+function resetCommercialFields() {
+    document.getElementById('item-prezzo').value = '0';
+    document.getElementById('item-license').value = 'CC-BY';
+    document.getElementById('item-is-public').checked = false;
+    document.getElementById('item-sales-count').value = '0';
+    document.getElementById('item-revenue').value = '0 crediti';
+    document.getElementById('item-language').value = 'it';
+    document.getElementById('item-target-audience').value = 'general';
+}
+
+async function loadAssociatedContentOptions(selectedIds = []) {
+    const container = document.getElementById('associated-contents-list');
+    if (!container) return;
+
+    try {
+        if (museumContentsCache.length === 0 && museumId) {
+            const res = await fetch(`${myApi}/museums/${museumId}/contents`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Content request failed');
+            const data = await res.json();
+            museumContentsCache = data.contents || [];
+        }
+
+        renderAssociatedContentOptions(selectedIds);
+    } catch (error) {
+        container.innerHTML = '';
+        const message = document.createElement('p');
+        message.classList.add('associated-empty-message');
+        message.textContent = 'Contenuti non disponibili';
+        container.appendChild(message);
+    }
+}
+
+function renderAssociatedContentOptions(selectedIds = []) {
+    const container = document.getElementById('associated-contents-list');
+    const selected = new Set(selectedIds.map(String));
+    const candidates = museumContentsCache.filter(
+        (content) => content.universalId !== originalContentId
+    );
+    container.innerHTML = '';
+
+    if (candidates.length === 0) {
+        const message = document.createElement('p');
+        message.classList.add('associated-empty-message');
+        message.textContent = 'Nessun contenuto opzionale disponibile';
+        container.appendChild(message);
+        return;
+    }
+
+    candidates.forEach((content) => {
+        const label = document.createElement('label');
+        label.classList.add('associated-content-option');
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.classList.add('associated-content-checkbox');
+        checkbox.value = content._id;
+        checkbox.checked = selected.has(String(content._id));
+
+        const name = document.createElement('span');
+        name.classList.add('associated-content-name');
+        name.textContent = content.name || 'Contenuto';
+
+        const type = document.createElement('span');
+        type.classList.add('associated-content-type');
+        type.textContent = content.type || '';
+
+        label.append(checkbox, name, type);
+        container.appendChild(label);
+    });
 }
 
 async function caricaTestiDaDB(idToLoad) {
@@ -303,13 +369,33 @@ async function caricaTestiDaDB(idToLoad) {
         const currentItem = data.item || data; 
 
         if (currentItem.contentId) originalContentId = currentItem.contentId;
-        if (currentItem.content && currentItem.content._id) originalContentId = currentItem.content._id;
-        if (currentItem.targetAudience) originalTargetAudience = currentItem.targetAudience;
-        
-        if (currentItem.price !== undefined) document.getElementById('item-prezzo').value = currentItem.price;
+        document.getElementById('item-universal-id').value = originalContentId || '';
+        clearUI();
+        viewedItemId = currentItem._id;
+        activeItemId = currentItem.isOwned ? currentItem._id : null;
+
+        document.getElementById('item-prezzo').value = String(currentItem.price ?? 0);
+        document.getElementById('item-license').value = currentItem.license || 'CC-BY';
+        document.getElementById('item-is-public').checked = Boolean(currentItem.isPublic);
+        document.getElementById('item-sales-count').value = String(currentItem.salesCount ?? 0);
+        document.getElementById('item-revenue').value = currentItem.revenue === undefined
+            ? 'Riservato all’autore'
+            : `${currentItem.revenue} crediti`;
+        document.getElementById('item-target-audience').value = currentItem.targetAudience || 'general';
+        const firstText = currentItem.descriptions
+            ?.flatMap((description) => description.texts || [])
+            .find((textEntry) => textEntry.language);
+        document.getElementById('item-language').value = firstText?.language || 'it';
+        await loadAssociatedContentOptions(
+            (currentItem.associatedContents || []).map((content) => content._id || content)
+        );
         if (currentItem.year) document.getElementById('item-anno').value = currentItem.year;
 
-        clearUI();
+        document.getElementById('btn-delete-item').classList.toggle('hidden', !currentItem.isOwned);
+        document.getElementById('btn-purchase-item').classList.toggle(
+            'hidden',
+            currentItem.isOwned || currentItem.isPurchased || !currentItem.isPublic
+        );
         
         let creatorName = "Utente Ignoto";
         if (currentItem.creatorId && currentItem.creatorId.username) creatorName = currentItem.creatorId.username;
@@ -371,7 +457,7 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
                 entries.push({
                     text: text,
                     lengthCategory: duration,
-                    language: "it"
+                    language: document.getElementById('item-language').value
                 });
             }
             return entries;
@@ -392,11 +478,21 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
 
     // ECCO IL PAYLOAD PULITO: Invia solo le informazioni dell'Item!
     const payload = {
-        isPublic: true, 
+        isPublic: document.getElementById('item-is-public').checked,
         contentId: originalContentId, // Il gancio che collega questo Item all'opera fissa
-        targetAudience: originalTargetAudience || 'general',
-        descriptions: finalDescriptions
+        targetAudience: document.getElementById('item-target-audience').value,
+        descriptions: finalDescriptions,
+        price: Number(document.getElementById('item-prezzo').value),
+        license: document.getElementById('item-license').value,
+        associatedContents: Array.from(
+            document.querySelectorAll('.associated-content-checkbox:checked')
+        ).map((checkbox) => checkbox.value)
     };
+
+    if (!Number.isFinite(payload.price) || payload.price < 0) {
+        showToast("Inserisci un prezzo valido, maggiore o uguale a zero.", "error");
+        return;
+    }
 
     try {
         const method = activeItemId ? 'PUT' : 'POST';
@@ -417,10 +513,37 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
                 window.location.href = getVisitBuilderUrl();
             }, 1200);
         } else {
-            showToast("Errore di validazione dal server.", "error");
+            const errorData = await res.json().catch(() => ({}));
+            showToast(errorData.error || "Errore di validazione dal server.", "error");
         }
     } catch (error) {
         showToast("Errore di rete o connessione.", "error");
+    }
+});
+
+document.getElementById('btn-purchase-item').addEventListener('click', async () => {
+    if (!viewedItemId) return;
+
+    try {
+        const res = await fetch(`${myApi}/items/${viewedItemId}/purchase`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const responseData = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            showToast(responseData.error || "Acquisto non riuscito.", "error");
+            return;
+        }
+
+        document.getElementById('btn-purchase-item').classList.add('hidden');
+        showToast(
+            `Item acquisito. Saldo disponibile: ${responseData.walletBalance} crediti.`,
+            "success"
+        );
+        await caricaTestiDaDB(viewedItemId);
+        await loadCommunityItems();
+    } catch (error) {
+        showToast("Errore di connessione durante l'acquisto.", "error");
     }
 });
 

@@ -75,6 +75,8 @@ Notes:
 - An explicit `imageUrl` in `data/museums/*.json` overrides the convention, and can point at any URL.
 - Deleting a file clears the field on the next load; it does not leave a stale URL.
 - Contents with no image fall back to a placeholder showing the content name.
+- `Content.universalId` is required, unique and immutable; `Item.contentId` must use that value rather than a MongoDB `_id`.
+- Existing databases can be checked and migrated with `docker exec local_node_app npm run migrate:universal-ids`.
 
 **Museum floor plans** live at `uploads/maps/<museum>-map.png` and are referenced explicitly by `museum.mapData.imageUrl`. The plan is drawn under the map markers stretched to `mapData.bounds`, so **the bounds must have the same aspect ratio as the image** or the plan will shear away from the markers. MAMbo has one; Uffizi does not yet and falls back to a blank plate.
 

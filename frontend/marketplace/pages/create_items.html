@@ -76,14 +76,70 @@
                         <input type="text" id="item-anno" class="readonly-input" readonly>
                     </div>
                     <div class="meta-row">
+                        <span class="meta-label">ID UNIVERSALE</span>
+                        <input type="text" id="item-universal-id" class="readonly-input" readonly>
+                    </div>
+                    <div class="meta-row">
                         <span class="meta-label">PREZZO</span>
-                        <input type="text" id="item-prezzo" class="readonly-input" readonly>
+                        <div class="meta-control-with-unit">
+                            <input type="number" id="item-prezzo" class="metadata-control metadata-number" min="0" step="1" value="0">
+                            <span class="meta-unit">crediti</span>
+                        </div>
+                    </div>
+                    <div class="meta-row">
+                        <label class="meta-label" for="item-license">LICENZA</label>
+                        <select id="item-license" class="metadata-control">
+                            <option value="CC-BY">CC-BY</option>
+                            <option value="CC-BY-SA">CC-BY-SA</option>
+                            <option value="CC-BY-NC">CC-BY-NC</option>
+                            <option value="Copyright">Copyright</option>
+                            <option value="Public Domain">Public Domain</option>
+                        </select>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">PUBBLICAZIONE</span>
+                        <label class="publication-toggle" for="item-is-public">
+                            <input type="checkbox" id="item-is-public">
+                            <span>Disponibile nel marketplace</span>
+                        </label>
+                    </div>
+                    <div class="meta-row">
+                        <label class="meta-label" for="item-language">LINGUA</label>
+                        <select id="item-language" class="metadata-control">
+                            <option value="it">Italiano</option>
+                            <option value="en">English</option>
+                            <option value="fr">Francais</option>
+                            <option value="de">Deutsch</option>
+                            <option value="es">Espanol</option>
+                        </select>
+                    </div>
+                    <div class="meta-row">
+                        <label class="meta-label" for="item-target-audience">PUBBLICO</label>
+                        <select id="item-target-audience" class="metadata-control">
+                            <option value="general">Generale</option>
+                            <option value="children">Bambini e famiglie</option>
+                            <option value="student">Studenti</option>
+                            <option value="expert">Esperti</option>
+                            <option value="tourist">Turisti</option>
+                        </select>
                     </div>
                     <div class="meta-row">
                         <span class="meta-label">AUTORE ITEM</span>
                         <input type="text" id="item-creatore" class="readonly-input" readonly>
                     </div>
+                    <div class="meta-row">
+                        <span class="meta-label">VENDITE</span>
+                        <input type="text" id="item-sales-count" class="readonly-input" value="0" readonly>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">RICAVI</span>
+                        <input type="text" id="item-revenue" class="readonly-input" value="0 crediti" readonly>
+                    </div>
                 </div>
+                <fieldset class="associated-content-fieldset">
+                    <legend>CONTENUTI OPZIONALI</legend>
+                    <div id="associated-contents-list" class="associated-contents-list"></div>
+                </fieldset>
             </div>
 
             <!-- COLONNA DESTRA: ACCORDION EDITORIALI -->
@@ -166,9 +222,9 @@
         <div class="item-actions">
             <!-- Il bottone elimina è rosso e nascosto di default -->
             <button id="btn-delete-item" class="secondary-btn hidden" type="button">Elimina il mio Item</button>
-            
+            <button id="btn-purchase-item" class="secondary-btn hidden" type="button">Acquista Item</button>
             <button id="btn-cancel-exit" class="secondary-btn">Annulla</button>
-            <button id="btn-save-exit" class="primary-btn">Salva Item Pubblico</button>
+            <button id="btn-save-exit" class="primary-btn">Salva Item</button>
         </div>
 
     </main>

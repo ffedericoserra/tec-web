@@ -95,7 +95,7 @@
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/items` | List items | Optional |
-| GET | `/items/:id` | Get item details | No |
+| GET | `/items/:id` | Get visible item details | Optional |
 | POST | `/items` | Create item | Yes |
 | PUT | `/items/:id` | Update item (creator only) | Yes |
 | DELETE | `/items/:id` | Delete item (creator only) | Yes |
@@ -124,13 +124,21 @@
   ],
   "price": 10,
   "license": "CC-BY",
-  "isPublic": true
+  "isPublic": true,
+  "associatedContents": ["content-object-id"]
 }
 ```
 
 **Tone values:** `easy`, `medium`, `complex`
 **Length categories:** `3s`, `15s`, `45s`
+**Languages:** `it`, `en`, `fr`, `de`, `es`
+**Target audiences:** `general`, `children`, `student`, `expert`, `tourist`
 **Licenses:** `CC-BY`, `CC-BY-SA`, `CC-BY-NC`, `Copyright`, `Public Domain`
+
+`contentId` must be the immutable `universalId` of an existing Content. Anonymous
+users see public Items only; authenticated users also see Items they created or
+acquired. A purchase is idempotent, debits an Item only once, and updates the
+creator's balance plus the Item's `salesCount` and `revenue`.
 
 ## Visits
 

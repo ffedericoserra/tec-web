@@ -157,11 +157,8 @@ function calculatePendingVisitCost() {
 
     Object.entries(currentCounts).forEach(([itemId, currentCount]) => {
         const previousCount = originalVisitItemCounts[itemId] || 0;
-        const extraCount = currentCount - previousCount;
-
-        if (extraCount > 0) {
-            const itemPrice = Number(itemCatalog[itemId]?.price) || 0;
-            total += itemPrice * extraCount;
+        if (currentCount > previousCount && previousCount === 0) {
+            total += Number(itemCatalog[itemId]?.adoptionPrice) || 0;
         }
     });
 
@@ -181,7 +178,10 @@ function updateWalletPreview() {
 }
 
 function canAffordItemAddition(itemId) {
-    const itemPrice = Number(itemCatalog[itemId]?.price) || 0;
+    const currentCounts = countVisitItemsFromDom();
+    const itemPrice = currentCounts[itemId] || originalVisitItemCounts[itemId]
+        ? 0
+        : Number(itemCatalog[itemId]?.adoptionPrice) || 0;
     const remainingBalance = currentWalletBalance - calculatePendingVisitCost();
     return itemPrice <= remainingBalance;
 }
@@ -190,8 +190,17 @@ function refreshModalItemAvailability() {
     const remainingBalance = currentWalletBalance - calculatePendingVisitCost();
 
     Array.from(itemsContainer.querySelectorAll('.modal-artwork-item')).forEach((button) => {
+        if (button.dataset.action === 'create-item') {
+            button.disabled = false;
+            button.title = 'Create Item';
+            return;
+        }
+
         const itemId = button.dataset.itemId;
-        const itemPrice = Number(itemCatalog[itemId]?.price) || 0;
+        const currentCounts = countVisitItemsFromDom();
+        const itemPrice = currentCounts[itemId] || originalVisitItemCounts[itemId]
+            ? 0
+            : Number(itemCatalog[itemId]?.adoptionPrice) || 0;
         const canAfford = itemPrice <= remainingBalance;
 
         button.disabled = !canAfford;
@@ -226,7 +235,6 @@ async function loadMuseumItemCatalog(forceReload = false) {
     const validContentIds = new Set();
     museumContents.forEach((content) => {
         if (content.universalId) validContentIds.add(content.universalId);
-        validContentIds.add(content._id.toString());
     });
 
     itemCatalog = {};
@@ -470,16 +478,29 @@ async function apriModaleOpere() {
     try {
         const catalog = await loadMuseumItemCatalog(true);
         const museumItems = Object.entries(catalog);
+        const representedContentIds = new Set(
+            museumItems.map(([, itemInfo]) => itemInfo.contentId).filter(Boolean)
+        );
+        const contentsWithoutItems = museumContentsCache.filter(
+            (content) =>
+                content.type === 'Artwork' &&
+                content.universalId &&
+                !representedContentIds.has(content.universalId)
+        );
 
         itemsContainer.innerHTML = '';
-        if (museumItems.length > 0) {
+        if (museumItems.length > 0 || contentsWithoutItems.length > 0) {
             museumItems.forEach(([itemId, itemInfo]) => {
                 const itemDiv = document.createElement('button');
                 itemDiv.type = 'button';
                 itemDiv.className = 'modal-artwork-item';
                 itemDiv.dataset.itemId = itemId;
-                const itemPrice = Number(itemInfo.price) || 0;
-                const priceLabel = itemPrice > 0 ? formatCurrencyAmount(itemPrice) : 'Free';
+                const itemPrice = Number(itemInfo.adoptionPrice) || 0;
+                const priceLabel = itemInfo.isOwned
+                    ? 'Owned'
+                    : itemInfo.isPurchased
+                        ? 'Acquired'
+                        : itemPrice > 0 ? formatCurrencyAmount(itemPrice) : 'Free';
 
                 const finalImgUrl = resolveAssetUrl(itemInfo.imageUrl);
                 const imgTag = finalImgUrl
@@ -519,6 +540,52 @@ async function apriModaleOpere() {
                 };
                 itemsContainer.appendChild(itemDiv);
             });
+
+            contentsWithoutItems.forEach((content) => {
+                const itemDiv = document.createElement('button');
+                itemDiv.type = 'button';
+                itemDiv.classList.add('modal-artwork-item', 'create-content-item');
+                itemDiv.dataset.action = 'create-item';
+
+                const imageUrl = contentImagePath(content);
+                const finalImgUrl = resolveAssetUrl(imageUrl);
+                const imgTag = finalImgUrl
+                    ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(content.name)}" class="modal-artwork-image">`
+                    : '<span class="image-fallback">IMG</span>';
+
+                itemDiv.innerHTML = `
+                    <div class="modal-artwork-row">
+                        <div class="modal-artwork-thumb">${imgTag}</div>
+                        <span class="modal-artwork-copy">
+                            <strong>${escapeHTML(content.name || 'Opera')}</strong>
+                            <small>${escapeHTML(content.author || 'Autore Ignoto')}</small>
+                        </span>
+                        <span class="modal-artwork-price">Create Item</span>
+                    </div>
+                    <div class="modal-artwork-preview">
+                        <div class="modal-artwork-preview-frame">${imgTag}</div>
+                    </div>
+                `;
+
+                itemDiv.querySelectorAll('.modal-artwork-image').forEach((img) => {
+                    img.addEventListener('error', () => img.classList.add('is-hidden'));
+                });
+                itemDiv.addEventListener('click', () => {
+                    salvaStatoTemporaneo();
+                    const params = new URLSearchParams({
+                        museumId,
+                        museumName,
+                        title: content.name || 'Opera',
+                        author: content.author || 'Autore Ignoto',
+                        image: imageUrl,
+                        year: content.year || 'N/D',
+                        contentId: content.universalId
+                    });
+                    if (visitId) params.set('visitId', visitId);
+                    window.location.href = `create_items.html?${params.toString()}`;
+                });
+                itemsContainer.appendChild(itemDiv);
+            });
             refreshModalItemAvailability();
         } else {
             itemsContainer.innerHTML = renderBuilderMessage("No artworks found.");
@@ -535,7 +602,16 @@ let draggedItem = null;
 let placeholder = document.createElement('li');
 placeholder.className = 'placeholder';
 
-function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, author = "Autore Ignoto", contentId = "") {
+function creaEdAggiungiItem(
+    titoloOpera,
+    itemId,
+    targetList,
+    imageUrl = null,
+    author = "Autore Ignoto",
+    contentId = "",
+    nextDirections = "",
+    prevDirections = ""
+) {
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
@@ -554,7 +630,11 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
 
     const priceInfo = itemCatalog[itemId];
     const priceValue = Number(priceInfo?.price) || 0;
-    const priceLabel = priceValue > 0 ? `${priceValue} Aα` : 'Free';
+    const priceLabel = priceInfo?.isOwned
+        ? 'Owned'
+        : priceInfo?.isPurchased
+            ? 'Acquired'
+            : priceValue > 0 ? `${priceValue} Aα` : 'Free';
     const priceClass = priceValue > 0 ? 'is-paid' : 'is-free';
 
     li.innerHTML = `
@@ -585,6 +665,16 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
                 <button type="button" class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
             </div>
         </div>
+        <div class="route-fields">
+            <label class="route-field">
+                <span>Indicazioni dall'opera precedente</span>
+                <textarea class="direction-field item-prev-directions" placeholder="Come raggiungere questa tappa">${escapeHTML(prevDirections)}</textarea>
+            </label>
+            <label class="route-field">
+                <span>Indicazioni verso l'opera successiva</span>
+                <textarea class="direction-field item-next-directions" placeholder="Come raggiungere la prossima tappa">${escapeHTML(nextDirections)}</textarea>
+            </label>
+        </div>
     `;
 
     const itemImages = li.querySelectorAll('.draggable-item-image');
@@ -593,7 +683,7 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
     });
 
     li.addEventListener('click', function(e) {
-        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) {
+        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle') || e.target.closest('.direction-field')) {
             return;
         }
         salvaStatoTemporaneo();
@@ -612,7 +702,7 @@ function creaEdAggiungiItem(titoloOpera, itemId, targetList, imageUrl = null, au
     });
 
     li.addEventListener('keydown', function(e) {
-        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.delete-btn') && !e.target.closest('.drag-handle')) {
+        if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('.delete-btn') && !e.target.closest('.drag-handle') && !e.target.closest('.direction-field')) {
             e.preventDefault();
             li.click();
         }
@@ -680,6 +770,7 @@ function getDragAfterElement(container, y) {
 function salvaStatoTemporaneo() {
     const title = document.getElementById('v-title') ? document.getElementById('v-title').value : '';
     const desc = document.getElementById('v-desc') ? document.getElementById('v-desc').value : '';
+    const length = document.getElementById('v-length')?.value || 'normal';
     
     const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
     blocksHtmlNodes.forEach((block) => {
@@ -702,6 +793,7 @@ function salvaStatoTemporaneo() {
     const visitState = {
         title: title,
         desc: desc,
+        length: length,
         isPublic: getVisitVisibility(),
         blocks: blocksHtml,
         blockCounter: blockCounter,
@@ -780,14 +872,17 @@ function getItemTitle(item, relatedContent) {
 }
 
 function createItemInfo(item, museumContents) {
-    const relatedContent = museumContents.find(c => c.universalId === item.contentId || c._id?.toString() === item.contentId);
+    const relatedContent = museumContents.find(c => c.universalId === item.contentId);
 
     return {
         title: getItemTitle(item, relatedContent),
         author: relatedContent?.author || "Autore Ignoto",
         imageUrl: contentImagePath(relatedContent),
         contentId: item.contentId || "",
-        price: Number(item.price) || 0
+        price: Number(item.price) || 0,
+        adoptionPrice: Number(item.adoptionPrice ?? item.price) || 0,
+        isOwned: item.isOwned === true,
+        isPurchased: item.isPurchased === true
     };
 }
 
@@ -857,6 +952,7 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
         // 3. Compiliamo titolo e descrizione
         if(document.getElementById('v-title')) document.getElementById('v-title').value = visit.title;
         if(document.getElementById('v-desc')) document.getElementById('v-desc').value = cleanDesc;
+        if(document.getElementById('v-length')) document.getElementById('v-length').value = visit.length || 'normal';
         setVisitVisibility(visit.isPublic === true);
 
         if (!structurData || structurData.length === 0) {
@@ -867,6 +963,14 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
         // 4. Scarichiamo le opere per stampare le carte vere
         const itemMap = await loadMuseumItemCatalog(true);
         addVisitSequenceItemsToMap(itemMap, visit, museumContentsCache);
+        const sequenceEntriesByItem = new Map();
+        [...(visit.sequence || [])]
+            .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            .forEach((entry) => {
+                const itemId = getItemIdFromSequenceEntry(entry);
+                if (!sequenceEntriesByItem.has(itemId)) sequenceEntriesByItem.set(itemId, []);
+                sequenceEntriesByItem.get(itemId).push(entry);
+            });
 
         // 5. Ricreiamo i blocchi
         structurData.forEach(blockData => {
@@ -885,7 +989,17 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
             (blockData.items || []).forEach(itemId => {
                 const info = itemMap[itemId];
                 if (info) {
-                    creaEdAggiungiItem(info.title, itemId, targetList, info.imageUrl, info.author, info.contentId);
+                    const sequenceEntry = sequenceEntriesByItem.get(itemId)?.shift();
+                    creaEdAggiungiItem(
+                        info.title,
+                        itemId,
+                        targetList,
+                        info.imageUrl,
+                        info.author,
+                        info.contentId,
+                        sequenceEntry?.nextDirections || '',
+                        sequenceEntry?.prevDirections || ''
+                    );
                 } else {
                     console.warn(`Opera con ID ${itemId} non trovata nel database!`);
                 }
@@ -935,6 +1049,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             const state = savedState;
             if(document.getElementById('v-title')) document.getElementById('v-title').value = state.title;
             if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
+            if(document.getElementById('v-length')) document.getElementById('v-length').value = state.length || 'normal';
             setVisitVisibility(state.isPublic === true);
             
             const addBtn = document.getElementById('add-block-btn');
@@ -992,7 +1107,7 @@ window.addEventListener('DOMContentLoaded', async () => {
                     });
 
                     li.addEventListener('click', function(e) {
-                        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle')) return;
+                        if(e.target.closest('.delete-btn') || e.target.closest('.drag-handle') || e.target.closest('.direction-field')) return;
                         salvaStatoTemporaneo();
                         const params = new URLSearchParams({
                             itemId: itemId,
@@ -1100,12 +1215,12 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             questions: []
         });
         
-        itemsIds.forEach(id => {
+        Array.from(itemsNodes).forEach(node => {
             sequenceObjects.push({
-                itemId: id,
+                itemId: node.dataset.itemId,
                 order: globalOrder++,
-                nextDirections: "",
-                prevDirections: ""
+                nextDirections: node.querySelector('.item-next-directions')?.value.trim() || "",
+                prevDirections: node.querySelector('.item-prev-directions')?.value.trim() || ""
             });
         });
     });
@@ -1133,7 +1248,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         blocks: structurData,
         isPublic: getVisitVisibility(),
         type: questionCount > 0 ? "synchronized" : "standard",
-        length: "normal"  
+        length: document.getElementById('v-length')?.value || "normal"
     };
     
     try {

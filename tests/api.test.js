@@ -231,6 +231,19 @@ async function testMuseums() {
     allPassed = allPassed && passed;
   }
 
+  // Content creation requires a stable universal identifier
+  {
+    const { status } = await request(
+      'POST',
+      `/museums/${museumId}/contents`,
+      { type: 'Artwork', name: 'Missing universal ID' },
+      authToken
+    );
+    const passed = status === 400;
+    log('POST /museums/:id/contents requires universalId', passed);
+    allPassed = allPassed && passed;
+  }
+
   // Get museum visits
   {
     const { status, data } = await request('GET', `/museums/${museumId}/visits`);
@@ -285,13 +298,133 @@ async function testItems() {
     allPassed = allPassed && passed;
   }
 
-  // Purchase item
+  // Validate universal links and exercise the full commercial lifecycle
   {
-    const { status, data } = await request('POST', `/items/${itemId}/purchase`, null, studentToken);
-    // Can succeed (200), already purchased (400), or insufficient balance (400)
-    const passed = status === 200 || status === 400;
-    log('POST /items/:id/purchase works', passed, data.message || data.error);
-    allPassed = allPassed && passed;
+    const contentsRes = await request('GET', `/museums/${museumId}/contents`);
+    const contents = contentsRes.data?.contents || [];
+    const mainContent = contents.find((content) => content.type === 'Artwork');
+    const associatedContent = contents.find((content) => content._id !== mainContent?._id);
+    let temporaryItemId = null;
+
+    if (!mainContent || !associatedContent) {
+      log('Item lifecycle fixture is available', false);
+      allPassed = false;
+    } else {
+      const itemPayload = {
+        contentId: mainContent.universalId,
+        targetAudience: 'student',
+        descriptions: [
+          {
+            tone: 'medium',
+            texts: [
+              {
+                text: 'Temporary metadata test item',
+                lengthCategory: '15s',
+                language: 'en',
+              },
+            ],
+          },
+        ],
+        price: 7,
+        license: 'CC-BY-NC',
+        isPublic: false,
+        associatedContents: [associatedContent._id],
+      };
+
+      const invalidLink = await request(
+        'POST',
+        '/items',
+        { ...itemPayload, contentId: mainContent._id },
+        authToken
+      );
+      const invalidLinkPassed = invalidLink.status === 400;
+      log('POST /items rejects Mongo _id as contentId', invalidLinkPassed);
+      allPassed = allPassed && invalidLinkPassed;
+
+      const createRes = await request('POST', '/items', itemPayload, authToken);
+      temporaryItemId = createRes.data?.item?._id || null;
+      const metadataPassed =
+        createRes.status === 201 &&
+        createRes.data?.item?.contentId === mainContent.universalId &&
+        createRes.data?.item?.targetAudience === 'student' &&
+        createRes.data?.item?.descriptions?.[0]?.texts?.[0]?.language === 'en' &&
+        createRes.data?.item?.price === 7 &&
+        createRes.data?.item?.license === 'CC-BY-NC' &&
+        createRes.data?.item?.isPublic === false &&
+        createRes.data?.item?.associatedContents?.length === 1;
+      log('POST /items stores complete metadata and associations', metadataPassed);
+      allPassed = allPassed && metadataPassed;
+
+      if (temporaryItemId) {
+        const anonymousList = await request(
+          'GET',
+          `/items?contentId=${encodeURIComponent(mainContent.universalId)}`
+        );
+        const studentGet = await request('GET', `/items/${temporaryItemId}`, null, studentToken);
+        const ownerGet = await request('GET', `/items/${temporaryItemId}`, null, authToken);
+        const privacyPassed =
+          anonymousList.status === 200 &&
+          !anonymousList.data.items.some((item) => item._id === temporaryItemId) &&
+          studentGet.status === 403 &&
+          ownerGet.status === 200;
+        log('Private items are visible only to their creator', privacyPassed);
+        allPassed = allPassed && privacyPassed;
+
+        const publishRes = await request(
+          'PUT',
+          `/items/${temporaryItemId}`,
+          { isPublic: true },
+          authToken
+        );
+        const creatorBefore = await request('GET', '/auth/me', null, authToken);
+        const buyerBefore = await request('GET', '/auth/me', null, studentToken);
+        const purchaseRes = await request(
+          'POST',
+          `/items/${temporaryItemId}/purchase`,
+          null,
+          studentToken
+        );
+        const creatorAfter = await request('GET', '/auth/me', null, authToken);
+        const buyerAfter = await request('GET', '/auth/me', null, studentToken);
+        const soldItem = await request('GET', `/items/${temporaryItemId}`, null, authToken);
+
+        const purchasePassed =
+          publishRes.status === 200 &&
+          purchaseRes.status === 200 &&
+          purchaseRes.data.chargedAmount === 7 &&
+          buyerAfter.data?.user?.walletBalance === buyerBefore.data?.user?.walletBalance - 7 &&
+          creatorAfter.data?.user?.walletBalance === creatorBefore.data?.user?.walletBalance + 7 &&
+          soldItem.data?.item?.salesCount === 1 &&
+          soldItem.data?.item?.revenue === 7;
+        log('Purchase updates wallets, sales and revenue', purchasePassed);
+        allPassed = allPassed && purchasePassed;
+
+        const repeatPurchase = await request(
+          'POST',
+          `/items/${temporaryItemId}/purchase`,
+          null,
+          studentToken
+        );
+        const soldItemAfterRepeat = await request(
+          'GET',
+          `/items/${temporaryItemId}`,
+          null,
+          authToken
+        );
+        const idempotentPassed =
+          repeatPurchase.status === 200 &&
+          repeatPurchase.data.chargedAmount === 0 &&
+          soldItemAfterRepeat.data?.item?.salesCount === 1 &&
+          soldItemAfterRepeat.data?.item?.revenue === 7;
+        log('Repeated purchase is idempotent', idempotentPassed);
+        allPassed = allPassed && idempotentPassed;
+
+        const deleteRes = await request('DELETE', `/items/${temporaryItemId}`, null, authToken);
+        const deletePassed = deleteRes.status === 200;
+        log('DELETE /items cleans up an unreferenced sold item', deletePassed);
+        allPassed = allPassed && deletePassed;
+      }
+    }
   }
 
   // Purchase without auth
@@ -350,19 +483,19 @@ async function testVisits() {
     allPassed = allPassed && passed;
   }
 
-  // Create visit charges wallet for new items
+  // Create and edit a visit without losing route metadata
   {
     const beforeProfile = await request('GET', '/auth/me', null, authToken);
     const contentsRes = await request('GET', `/museums/${museumId}/contents`);
     const itemsRes = await request('GET', '/items', null, authToken);
 
     const validContentIds = new Set(
-      (contentsRes.data?.contents || []).flatMap((content) =>
-        content.universalId ? [content.universalId, content._id] : [content._id]
-      )
+      (contentsRes.data?.contents || []).map((content) => content.universalId)
     );
 
-    const museumItem = (itemsRes.data?.items || []).find((item) => validContentIds.has(item.contentId));
+    const museumItem = (itemsRes.data?.items || []).find(
+      (item) => validContentIds.has(item.contentId) && item.isOwned
+    );
 
     let passed = false;
     let details = 'no museum item found';
@@ -372,34 +505,67 @@ async function testVisits() {
         title: `Temp visit ${Date.now()}`,
         museumId,
         description: 'Temporary billing test',
-        sequence: [{ itemId: museumItem._id, nextDirections: '', prevDirections: '' }],
+        sequence: [{
+          itemId: museumItem._id,
+          nextDirections: 'Vai alla sala seguente',
+          prevDirections: 'Arriva dal corridoio principale',
+        }],
         blocks: [{ blockName: 'Room I', items: [museumItem._id] }],
         isPublic: false,
         type: 'standard',
-        length: 'normal',
+        length: 'deep',
       };
 
       const createRes = await request('POST', '/visits', payload, authToken);
       const afterProfile = await request('GET', '/auth/me', null, authToken);
       const tempVisitId = createRes.data?.visit?._id || null;
-      const itemPrice = Number(museumItem.price) || 0;
       const previousBalance = beforeProfile.data.user.walletBalance;
       const nextBalance = afterProfile.data?.user?.walletBalance;
+      const createdVisit = tempVisitId
+        ? await request('GET', `/visits/${tempVisitId}`, null, authToken)
+        : { status: 0, data: {} };
 
       passed =
         createRes.status === 201 &&
         typeof nextBalance === 'number' &&
-        createRes.data?.chargedAmount === itemPrice &&
-        nextBalance === previousBalance - itemPrice;
+        createRes.data?.chargedAmount === 0 &&
+        nextBalance === previousBalance &&
+        createdVisit.data?.visit?.length === 'deep' &&
+        createdVisit.data?.visit?.sequence?.[0]?.nextDirections === 'Vai alla sala seguente' &&
+        createdVisit.data?.visit?.sequence?.[0]?.prevDirections === 'Arriva dal corridoio principale';
 
       details = `charged: ${createRes.data?.chargedAmount ?? 'n/a'}`;
+
+      if (tempVisitId) {
+        const updateRes = await request(
+          'PUT',
+          `/visits/${tempVisitId}`,
+          {
+            length: 'quick',
+            sequence: [{
+              itemId: museumItem._id,
+              nextDirections: 'Svolta a destra',
+              prevDirections: 'Sali le scale',
+            }],
+          },
+          authToken
+        );
+        const updatedVisit = await request('GET', `/visits/${tempVisitId}`, null, authToken);
+        const updatePassed =
+          updateRes.status === 200 &&
+          updatedVisit.data?.visit?.length === 'quick' &&
+          updatedVisit.data?.visit?.sequence?.[0]?.nextDirections === 'Svolta a destra' &&
+          updatedVisit.data?.visit?.sequence?.[0]?.prevDirections === 'Sali le scale';
+        log('PUT /visits preserves edited length and directions', updatePassed);
+        allPassed = allPassed && updatePassed;
+      }
 
       if (tempVisitId) {
         await request('DELETE', `/visits/${tempVisitId}`, null, authToken);
       }
     }
 
-    log('POST /visits charges wallet for new items', passed, details);
+    log('POST /visits preserves route metadata without charging owned items', passed, details);
     allPassed = allPassed && passed;
   }
 

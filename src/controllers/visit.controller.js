@@ -5,7 +5,7 @@
 
 const Visit = require('../models/Visit');
 const User = require('../models/User');
-const Item = require('../models/Item');
+const { adoptItems } = require('../services/itemPurchaseService');
 
 function processSequence(sequence = []) {
   return sequence.map((item, index) => ({
@@ -68,71 +68,6 @@ function getAdditionalItemIds(nextSequence = [], previousSequence = []) {
   });
 
   return additionalItemIds;
-}
-
-async function chargeVisitItems(userId, additionalItemIds = []) {
-  if (!additionalItemIds.length) {
-    const user = await User.findById(userId).select('walletBalance');
-    return {
-      chargedAmount: 0,
-      walletBalance: user ? user.walletBalance : 0,
-    };
-  }
-
-  const items = await Item.find({ _id: { $in: additionalItemIds } }).select('price creatorId');
-  const itemsMap = new Map(items.map((item) => [String(item._id), item]));
-
-  let chargedAmount = 0;
-  const creatorCredits = new Map();
-
-  additionalItemIds.forEach((itemId) => {
-    const item = itemsMap.get(String(itemId));
-
-    if (!item) {
-      return;
-    }
-
-    const price = Number(item.price) || 0;
-    chargedAmount += price;
-
-    if (price > 0 && String(item.creatorId) !== String(userId)) {
-      const creatorKey = String(item.creatorId);
-      creatorCredits.set(creatorKey, (creatorCredits.get(creatorKey) || 0) + price);
-    }
-  });
-
-  if (chargedAmount > 0) {
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: userId, walletBalance: { $gte: chargedAmount } },
-      { $inc: { walletBalance: -chargedAmount } },
-      { new: true }
-    ).select('walletBalance');
-
-    if (!updatedUser) {
-      const error = new Error('Insufficient balance');
-      error.statusCode = 400;
-      throw error;
-    }
-
-    await Promise.all(
-      Array.from(creatorCredits.entries()).map(([creatorId, amount]) =>
-        User.findByIdAndUpdate(creatorId, {
-          $inc: { walletBalance: amount },
-        })
-      )
-    );
-
-    return {
-      chargedAmount,
-      walletBalance: updatedUser.walletBalance,
-    };
-  }
-
-  const user = await User.findById(userId).select('walletBalance');
-  return {
-    chargedAmount: 0,
-    walletBalance: user ? user.walletBalance : 0,
-  };
 }
 
 /**
@@ -214,7 +149,7 @@ exports.create = async (req, res, next) => {
     const processedBlocks = processBlocks(blocks || []);
     const additionalItemIds = getAdditionalItemIds(processedSequence, []);
 
-    const billing = await chargeVisitItems(req.user._id, additionalItemIds);
+    const billing = await adoptItems(req.user._id, additionalItemIds);
 
     const visit = new Visit({
       title,
@@ -240,6 +175,7 @@ exports.create = async (req, res, next) => {
       visit,
       chargedAmount: billing.chargedAmount,
       walletBalance: billing.walletBalance,
+      adoptedItemIds: billing.adoptedItemIds,
     });
   } catch (error) {
     next(error);
@@ -279,7 +215,7 @@ exports.update = async (req, res, next) => {
     const additionalItemIds = processedSequence
       ? getAdditionalItemIds(processedSequence, visit.sequence || [])
       : [];
-    const billing = await chargeVisitItems(req.user._id, additionalItemIds);
+    const billing = await adoptItems(req.user._id, additionalItemIds);
 
     Object.assign(visit, {
       ...(title && { title }),
@@ -298,6 +234,7 @@ exports.update = async (req, res, next) => {
       visit,
       chargedAmount: billing.chargedAmount,
       walletBalance: billing.walletBalance,
+      adoptedItemIds: billing.adoptedItemIds,
     });
   } catch (error) {
     next(error);
