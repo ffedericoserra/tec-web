@@ -22,7 +22,8 @@ See [docs/NAVIGATOR.md](docs/NAVIGATOR.md) for the navigator's known gaps and TO
 
 ## Running
 
-*Note: db seeding currently done at each server startup, as the script can't be directly run via npm on department machines.*
+*Note: demo data is seeded automatically only when the database has no museums.
+Normal server restarts preserve users, visits, and sessions.*
 
 **Development (local Docker):**
 ```bash
@@ -63,7 +64,7 @@ Static files are served from `uploads/` at the matching URL path (`uploads/museu
 # 1. Name the file after the content's universalId
 cp venere.jpg uploads/contents/mambo-morandi-natura-morta-1946.jpg
 
-# 2. Reload the configs (or just restart the server, which reseeds)
+# 2. Reload the configs
 docker exec local_node_app node scripts/load-museum.js data/museums/
 #   Loaded 13 contents (1 with images)
 ```
@@ -88,7 +89,7 @@ Node.js 22 + Express REST API with MongoDB persistence and real-time sync via So
 - **JWT (jsonwebtoken)** — stateless authentication. Token issued on login, verified by `requireAuth` middleware. No roles — authorization is creator-ownership checks in controllers
 - **Zod** — request body validation via `validate` middleware, before controllers run
 - **Socket.io** — real-time session sync (teacher advances/navigates, participants receive state updates). Auth via JWT handshake token
-- **Seed script** — runs on every server startup, wipes and recreates sample data from museum config files (`data/museums/*.json`) plus test users, items, and visits
+- **Seed script** — bootstraps an empty database at server startup. Running `npm run seed` explicitly wipes and recreates the demo users, museums, items, and visits
 
 Request flow: `route → validate(zodSchema) → requireAuth → controller → model`
 
@@ -136,6 +137,6 @@ frontend-navigator/            # Navigator SPA (React + Vite) — served at /, /
 ├── vite.config.js             # /api + /uploads proxy to :8000
 └── dist/                      # vite build output (gitignored — rebuild before deploy)
 scripts/
-├── seed.js                    # DB seed — runs on every server start
+├── seed.js                    # Destructive demo seed; auto-runs only on an empty DB
 └── load-museum.js             # Idempotent museum config loader
 ```

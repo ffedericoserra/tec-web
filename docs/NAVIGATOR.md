@@ -116,7 +116,8 @@ Defined in `src/main.jsx`. All four pages, plus a `*` fallback that bounces to `
 
 Same JWT scheme as the marketplace — there is **no server-side session**.
 
-- `localStorage.artaround_token` — the JWT.
+- `localStorage.token` — the shared marketplace/Navigator JWT. The legacy
+  `artaround_token` key is still read for existing browser sessions.
 - `localStorage.artaround_user` — cached user object (saves a `/auth/me` round-trip on warm starts).
 - Both keys are owned by `src/api.js` (`getToken` / `setToken` / `clearToken` / `getCachedUser` / `setCachedUser`).
 
@@ -187,7 +188,10 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 
 - Parallel-fetches `/auth/me`, `/museums/:slug`, `/museums/:slug/visits`.
 - 404 on the museum → redirects back to `/museums`.
-- **Lists public visits only** — `getVisits` filters `isPublic: true`. The user's own private/draft visits live in the marketplace; revisit if/when navigator should show them.
+- Lists public visits plus the authenticated user's own private visits. Private
+  entries are labelled in the list and remain hidden from other accounts.
+- Re-fetches visits when the browser tab becomes visible or receives focus, so
+  returning from the marketplace shows a newly-created visit without a reload.
 - Backend already sorts by `viewCount` desc; client doesn't re-sort.
 - Each card has a top row (title, author, length, `Start Visit` button) and a centered chevron that toggles a description block (`max-height: 200px`, internally scrollable). Cards without a non-empty `description` hide the chevron.
 - `Start Visit` → `navigate('/${museumSlug}/${v.slug}')`.
@@ -309,7 +313,6 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 - **No `<dialog>`.** Modals are overlay `<div>`s with their own keydown listener. Easier to control from React state and avoids cross-browser polyfills.
 - **CSS scoping.** No CSS modules / styled-components. Page CSS is global, but every page uses unique class prefixes (`.visit-`, `.museums-`, etc.) to avoid collision. Keep the prefix when you add classes to a page.
 - **Italian copy** is the default user-facing language. The seed contents are Italian and the TTS is hard-coded to `it-IT`. New strings should be Italian unless you wire i18n first.
-- **Public visits only on Navigator.** `VisitSelect` lists public visits. Private/draft visits are managed in the marketplace editor.
 - **Both frontends share the same JWT.** Login on the marketplace and the navigator picks up the session on the same origin, and vice versa.
 
 ---

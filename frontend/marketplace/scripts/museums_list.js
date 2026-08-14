@@ -221,7 +221,8 @@ function setupDropdownMenu() {
     if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            localStorage.removeItem("token") 
+            localStorage.removeItem("token")
+            localStorage.removeItem("artaround_token")
             window.location.href = "login.html" 
         });
     }

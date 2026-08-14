@@ -212,9 +212,14 @@ exports.getVisits = async (req, res, next) => {
       return res.status(404).json({ error: 'Museum not found' });
     }
 
+    const visibleVisits = [{ isPublic: true }];
+    if (req.user?._id) {
+      visibleVisits.push({ creatorId: req.user._id });
+    }
+
     const query = {
       museumId: museum._id,
-      isPublic: true,
+      $or: visibleVisits,
     };
 
     const visits = await Visit.find(query)

@@ -85,7 +85,7 @@
 | DELETE | `/museums/:id/save` | Remove from saved | Yes |
 | GET | `/museums/:id/contents` | Get Contents | No |
 | POST | `/museums/:id/contents` | Create Content | Yes |
-| GET | `/museums/:id/visits` | Get public visits | No |
+| GET | `/museums/:id/visits` | Get public visits plus the authenticated user's own visits | Optional |
 
 **Query Parameters for `/museums/:id/contents`:**
 - `type` - Filter by type: `Artwork`, `Artist`, `Movement`, `Place`

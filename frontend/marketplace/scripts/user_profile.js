@@ -469,6 +469,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('token');
+            localStorage.removeItem('artaround_token');
             window.location.href = "../../marketplace/pages/login.html";
         });
     }

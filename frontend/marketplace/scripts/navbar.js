@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logoutBtn.addEventListener('click', (e) => {
             e.preventDefault();
             localStorage.removeItem("token"); // Cancelliamo il passaporto
+            localStorage.removeItem("artaround_token");
             window.location.href = "homepage.html"; // Lo rimandiamo alla home pubblica
         });
     }
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function handleLogout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("artaround_token");
     localStorage.removeItem("user");
     window.location.href = "login.html";
 }

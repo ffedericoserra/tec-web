@@ -84,6 +84,33 @@ export default function VisitSelect() {
     };
   }, [museumSlug, navigate]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshVisits() {
+      try {
+        const res = await api(`/museums/${museumSlug}/visits`);
+        if (!cancelled) setVisits(res.visits || []);
+      } catch (err) {
+        if (!cancelled && err.status !== 401) {
+          setError(err.message || 'Impossibile aggiornare le visite');
+        }
+      }
+    }
+
+    function refreshWhenVisible() {
+      if (document.visibilityState === 'visible') refreshVisits();
+    }
+
+    window.addEventListener('focus', refreshVisits);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('focus', refreshVisits);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, [museumSlug]);
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return visits;
@@ -149,6 +176,9 @@ export default function VisitSelect() {
                         <p className="visit-card-meta">
                           Length: {capitalize(v.length) || '—'}
                         </p>
+                        {v.isPublic === false && (
+                          <p className="visit-card-meta">Visibility: Private</p>
+                        )}
                       </div>
                       <button
                         type="button"
