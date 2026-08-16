@@ -1,0 +1,709 @@
+/* ==========================================================================
+   ARTAROUND - USER PROFILE EDITORIAL STYLES
+   Colors: #710014 (Burgundy), #F2F1ED (Cream), #161616 (Anthracite)
+   Font: Helvetica
+   ========================================================================== */
+
+#artaround-profile {
+    font-family: 'Helvetica', Arial, sans-serif;
+    background-color: #F2F1ED;
+    color: #161616;
+    margin: 0;
+    padding: 0;
+    padding-top: 80px;
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+#artaround-profile .hidden { display: none !important; }
+
+#artaround-profile .profile-page-shell {
+    min-height: calc(100vh - 80px);
+    background-color: #F2F1ED;
+}
+
+/* --- Hero editoriale --- */
+#artaround-profile .profile-hero {
+    position: relative;
+    min-height: 360px;
+    padding: 70px 10vw 60px;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+    isolation: isolate;
+}
+
+#artaround-profile .profile-hero::before,
+#artaround-profile .profile-hero::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    z-index: 0;
+}
+
+#artaround-profile .profile-hero::before {
+    width: clamp(140px, 18vw, 260px);
+    height: clamp(140px, 18vw, 260px);
+    top: 18px;
+    right: 7%;
+    background-color: rgba(113, 0, 20, 0.15);
+}
+
+#artaround-profile .profile-hero::after {
+    width: clamp(220px, 28vw, 420px);
+    height: clamp(220px, 28vw, 420px);
+    top: -120px;
+    left: 54%;
+    transform: translateX(-50%);
+    background-color: rgba(113, 0, 20, 0.08);
+}
+
+#artaround-profile .page-grid-lines {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#artaround-profile .grid-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-right: 1px solid rgba(22, 22, 22, 0.15);
+}
+
+#artaround-profile .line-25 { left: 25%; }
+#artaround-profile .line-50 { left: 50%; }
+#artaround-profile .line-75 { left: 75%; }
+
+#artaround-profile .profile-hero-layout {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
+    gap: 60px;
+    align-items: end;
+    min-height: 300px;
+}
+
+#artaround-profile .profile-heading-block {
+    max-width: 760px;
+}
+
+#artaround-profile .header-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 48px;
+    color: rgba(22, 22, 22, 0.65);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#artaround-profile .header-back-link::before {
+    content: "";
+    width: 32px;
+    height: 1px;
+    background-color: currentColor;
+}
+
+#artaround-profile .header-back-link:hover {
+    color: #710014;
+    transform: translateX(-4px);
+}
+
+#artaround-profile .profile-kicker,
+#artaround-profile .text-label,
+#artaround-profile .profile-role,
+#artaround-profile .profile-item-label {
+    display: block;
+    color: #710014;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-profile .profile-kicker {
+    margin-bottom: 14px;
+    letter-spacing: 3px;
+}
+
+#artaround-profile .profile-title {
+    margin: 0;
+    color: #161616;
+    font-size: clamp(3rem, 8vw, 5.6rem);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -1px;
+}
+
+#artaround-profile .profile-meta-panel {
+    max-width: 360px;
+    padding: 28px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-profile .profile-meta-panel strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #161616;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#artaround-profile .profile-meta-panel p {
+    margin: 0;
+    color: rgba(22, 22, 22, 0.7);
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* --- Dashboard --- */
+#artaround-profile .profile-content-section {
+    padding: 80px 10vw;
+}
+
+#artaround-profile .profile-section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 60px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #161616;
+}
+
+#artaround-profile .section-title-new {
+    margin: 0;
+    color: #161616;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+#artaround-profile .profile-section-header p {
+    margin: 0;
+    color: #710014;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-align: right;
+    text-transform: uppercase;
+}
+
+#artaround-profile .profile-grid {
+    display: grid;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+    gap: 70px;
+    align-items: start;
+}
+
+#artaround-profile .profile-sidebar {
+    position: sticky;
+    top: 110px;
+    padding: 0;
+    color: #161616;
+    background: transparent;
+    border: none;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-radius: 0;
+    box-shadow: none;
+    text-align: left;
+}
+
+#artaround-profile .avatar-container {
+    display: block;
+    margin: 30px 0 24px;
+}
+
+#artaround-profile .profile-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: contain;
+    object-position: center;
+    border: 1px solid rgba(22, 22, 22, 0.18);
+    box-shadow: none;
+    filter: grayscale(100%) contrast(1.08);
+}
+
+#artaround-profile .profile-name {
+    margin: 0 0 8px;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -1px;
+    overflow-wrap: anywhere;
+}
+
+#artaround-profile .profile-role {
+    margin: 0 0 34px;
+}
+
+#artaround-profile .wallet-box {
+    margin: 0 0 34px;
+    padding: 30px 0;
+    background: transparent;
+    border: none;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+    border-radius: 0;
+}
+
+#artaround-profile .wallet-balance {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 8px;
+    margin: 14px 0 22px;
+}
+
+#artaround-profile .balance-amount {
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+#artaround-profile .balance-currency {
+    color: #710014;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+#artaround-profile .wallet-caption {
+    margin: 0 0 18px;
+    color: rgba(22, 22, 22, 0.68);
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+#artaround-profile .wallet-caption.is-success {
+    color: #0f6b3c;
+    font-weight: 700;
+}
+
+#artaround-profile .wallet-caption.is-error {
+    color: #710014;
+    font-weight: 700;
+}
+
+#artaround-profile .profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+#artaround-profile .w-100 {
+    width: 100%;
+}
+
+/* --- Bottoni e tab --- */
+#artaround-profile .btn-primary,
+#artaround-profile .btn-ghost,
+#artaround-profile .cancel-text-btn {
+    min-height: 44px;
+    padding: 14px 20px;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease;
+}
+
+#artaround-profile .btn-primary {
+    color: #F2F1ED;
+    background-color: #161616;
+    border: 1px solid #161616;
+}
+
+#artaround-profile .btn-primary:hover {
+    color: #F2F1ED;
+    background-color: #710014;
+    border-color: #710014;
+    transform: none;
+}
+
+#artaround-profile .btn-primary:disabled,
+#artaround-profile .btn-primary.is-loading {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+#artaround-profile .btn-ghost,
+#artaround-profile .cancel-text-btn {
+    color: #161616;
+    background: transparent;
+    border: 1px solid rgba(22, 22, 22, 0.35);
+}
+
+#artaround-profile .btn-ghost:hover,
+#artaround-profile .cancel-text-btn:hover {
+    color: #F2F1ED;
+    background-color: #161616;
+    border-color: #161616;
+}
+
+#artaround-profile .small-btn {
+    min-height: 38px;
+    padding: 10px 14px;
+    font-size: 0.7rem;
+}
+
+#artaround-profile .logout-text:hover {
+    background-color: #710014;
+    border-color: #710014;
+}
+
+#artaround-profile .profile-tabs {
+    display: flex;
+    gap: 30px;
+    margin: 0 0 44px;
+    padding: 0;
+    overflow-x: auto;
+    border-bottom: 2px solid #161616;
+}
+
+#artaround-profile .tab-btn {
+    margin: 0 0 -2px;
+    padding: 0 0 13px;
+    color: rgba(22, 22, 22, 0.62);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+#artaround-profile .tab-btn:hover,
+#artaround-profile .tab-btn.active {
+    color: #710014;
+}
+
+#artaround-profile .tab-btn.active {
+    border-bottom-color: #710014;
+}
+
+#artaround-profile .tab-content {
+    display: block;
+}
+
+#artaround-profile .tab-header {
+    margin-bottom: 28px;
+}
+
+#artaround-profile .tab-title {
+    margin: 0;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+/* --- Liste dinamiche --- */
+#artaround-profile .profile-list {
+    display: flex;
+    flex-direction: column;
+}
+
+#artaround-profile .profile-list-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 28px;
+    align-items: center;
+    padding: 28px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    transition: background-color 0.3s ease, padding 0.3s ease;
+}
+
+#artaround-profile .profile-list-item:last-child {
+    border-bottom: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-profile .profile-list-item:hover {
+    padding-left: 24px;
+    padding-right: 24px;
+    background-color: #710014;
+}
+
+#artaround-profile .item-info {
+    min-width: 0;
+}
+
+#artaround-profile .profile-item-label {
+    margin-bottom: 9px;
+    color: rgba(22, 22, 22, 0.58);
+    transition: color 0.3s ease;
+}
+
+#artaround-profile .item-info h4 {
+    margin: 0;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow-wrap: anywhere;
+    transition: color 0.3s ease;
+}
+
+#artaround-profile .profile-list-item:hover .profile-item-label,
+#artaround-profile .profile-list-item:hover .item-info h4 {
+    color: #F2F1ED;
+}
+
+#artaround-profile .profile-list-item:hover .btn-ghost {
+    color: #F2F1ED;
+    border-color: rgba(242, 241, 237, 0.72);
+}
+
+#artaround-profile .profile-list-item:hover .btn-ghost:hover {
+    color: #710014;
+    background-color: #F2F1ED;
+    border-color: #F2F1ED;
+}
+
+#artaround-profile .profile-empty-message {
+    margin: 0;
+    padding: 34px 0;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+    color: rgba(22, 22, 22, 0.65);
+    font-size: 1rem;
+    line-height: 1.6;
+    text-align: center;
+}
+
+#artaround-profile .profile-empty-message.error-text {
+    color: #710014;
+    font-weight: 800;
+}
+
+/* --- Modale profilo generata da JS --- */
+#artaround-profile .profile-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(22, 22, 22, 0.78);
+    backdrop-filter: blur(3px);
+    opacity: 1;
+    animation: none;
+}
+
+#artaround-profile .profile-modal-content {
+    width: min(560px, 100%);
+    max-width: 560px;
+    max-height: 86vh;
+    box-sizing: border-box;
+    padding: 40px;
+    overflow-y: auto;
+    color: #161616;
+    background-color: #F2F1ED;
+    border: none;
+    border-top: 4px solid #710014;
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    animation: none;
+}
+
+#artaround-profile .modal-profile-title {
+    margin: 0 0 10px;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+#artaround-profile .modal-profile-prompt {
+    margin: 0 0 30px;
+    color: rgba(22, 22, 22, 0.65);
+    line-height: 1.6;
+}
+
+#artaround-profile .modal-field {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 24px;
+}
+
+#artaround-profile .input-minimal {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 0 12px;
+    color: #161616;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.3);
+    border-radius: 0;
+    outline: none;
+    font-family: inherit;
+    font-size: 1.05rem;
+    transition: border-color 0.3s ease;
+}
+
+#artaround-profile .input-minimal:focus {
+    border-color: #710014;
+    box-shadow: none;
+}
+
+#artaround-profile .input-minimal::placeholder {
+    color: rgba(22, 22, 22, 0.42);
+}
+
+#artaround-profile .modal-divider {
+    width: 100%;
+    height: 1px;
+    margin: 8px 0 26px;
+    background-color: rgba(22, 22, 22, 0.22);
+}
+
+#artaround-profile .wallet-quick-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+#artaround-profile .wallet-quick-btn.active {
+    color: #F2F1ED;
+    background-color: #710014;
+    border-color: #710014;
+}
+
+#artaround-profile .wallet-balance-preview {
+    margin: 0 0 26px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(22, 22, 22, 0.2);
+}
+
+#artaround-profile .wallet-balance-preview p {
+    margin: 0 0 10px;
+    color: rgba(22, 22, 22, 0.65);
+    line-height: 1.5;
+}
+
+#artaround-profile .wallet-balance-preview strong {
+    color: #161616;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+#artaround-profile .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 34px;
+}
+
+#artaround-profile .modal-footer button {
+    width: auto;
+    min-width: 170px;
+    margin: 0;
+}
+
+@media (max-width: 1024px) {
+    #artaround-profile .profile-hero,
+    #artaround-profile .profile-content-section {
+        padding-left: 7vw;
+        padding-right: 7vw;
+    }
+
+    #artaround-profile .profile-hero-layout,
+    #artaround-profile .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 46px;
+    }
+
+    #artaround-profile .profile-meta-panel {
+        max-width: none;
+    }
+
+    #artaround-profile .profile-sidebar {
+        position: static;
+    }
+}
+
+@media (max-width: 640px) {
+    #artaround-profile .profile-hero {
+        min-height: auto;
+        padding: 44px 6vw 40px;
+    }
+
+    #artaround-profile .profile-hero-layout {
+        min-height: 0;
+    }
+
+    #artaround-profile .header-back-link {
+        margin-bottom: 34px;
+    }
+
+    #artaround-profile .profile-title {
+        font-size: clamp(2.6rem, 14vw, 4rem);
+    }
+
+    #artaround-profile .profile-content-section {
+        padding: 52px 6vw 72px;
+    }
+
+    #artaround-profile .profile-section-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    #artaround-profile .profile-section-header p {
+        text-align: left;
+    }
+
+    #artaround-profile .profile-list-item {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    #artaround-profile .item-actions,
+    #artaround-profile .item-actions .btn-ghost {
+        width: 100%;
+    }
+
+    #artaround-profile .modal-footer {
+        flex-direction: column-reverse;
+    }
+
+    #artaround-profile .modal-footer button {
+        width: 100%;
+    }
+
+    #artaround-profile .profile-modal-content {
+        padding: 32px 24px;
+    }
+}

@@ -5,6 +5,70 @@
 
 const Visit = require('../models/Visit');
 const User = require('../models/User');
+const { adoptItems } = require('../services/itemPurchaseService');
+
+function processSequence(sequence = []) {
+  return sequence.map((item, index) => ({
+    ...item,
+    order: index,
+  }));
+}
+
+function processBlocks(blocks = []) {
+  return blocks.map((block) => ({
+    type: block.type || 'artwork',
+    blockName: block.blockName || 'Mainboard',
+    items: block.type === 'questions' ? [] : block.items || [],
+    questions:
+      block.type === 'questions'
+        ? (block.questions || []).map((question) => ({
+            prompt: question.prompt,
+            answerType: question.answerType,
+            options: question.options || [],
+            ...(Number.isInteger(question.correctIndex) && {
+              correctIndex: question.correctIndex,
+            }),
+          }))
+        : [],
+  }));
+}
+
+function stripSectionAnswerKeys(blocks = []) {
+  return blocks.map((block) => ({
+    ...block,
+    questions: (block.questions || []).map((question) => ({
+      ...question,
+      correctIndex: undefined,
+    })),
+  }));
+}
+
+function buildItemCountMap(sequence = []) {
+  return sequence.reduce((counts, item) => {
+    const itemId = String(item.itemId);
+    counts[itemId] = (counts[itemId] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function getAdditionalItemIds(nextSequence = [], previousSequence = []) {
+  const previousCounts = buildItemCountMap(previousSequence);
+  const nextCounts = buildItemCountMap(nextSequence);
+  const additionalItemIds = [];
+
+  Object.entries(nextCounts).forEach(([itemId, nextCount]) => {
+    const previousCount = previousCounts[itemId] || 0;
+    const difference = nextCount - previousCount;
+
+    if (difference > 0) {
+      for (let index = 0; index < difference; index += 1) {
+        additionalItemIds.push(itemId);
+      }
+    }
+  });
+
+  return additionalItemIds;
+}
 
 /**
  * Get user's own visits
@@ -20,7 +84,7 @@ exports.getMyVisits = async (req, res, next) => {
     }
 
     const visits = await Visit.find(query)
-      .populate('museumId', 'name')
+      .populate('museumId', 'name slug')
       .sort({ updatedAt: -1 });
 
     res.json({ visits });
@@ -62,6 +126,9 @@ exports.getById = async (req, res, next) => {
         options: q.options,
       }));
     }
+    if (!isCreator && obj.blocks?.length) {
+      obj.blocks = stripSectionAnswerKeys(obj.blocks);
+    }
 
     res.json({ visit: obj });
   } catch (error) {
@@ -75,13 +142,14 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { title, museumId, description, imageUrl, sequence, type, length, isPublic, quiz } = req.body;
+    const { title, museumId, description, imageUrl, sequence, blocks, type, length, isPublic, quiz } = req.body;
 
     // Process sequence to add order
-    const processedSequence = (sequence || []).map((item, index) => ({
-      ...item,
-      order: index,
-    }));
+    const processedSequence = processSequence(sequence || []);
+    const processedBlocks = processBlocks(blocks || []);
+    const additionalItemIds = getAdditionalItemIds(processedSequence, []);
+
+    const billing = await adoptItems(req.user._id, additionalItemIds);
 
     const visit = new Visit({
       title,
@@ -90,6 +158,7 @@ exports.create = async (req, res, next) => {
       description,
       imageUrl,
       sequence: processedSequence,
+      blocks: processedBlocks,
       type: type || 'standard',
       length: length || 'normal',
       isPublic: isPublic !== false,
@@ -102,7 +171,12 @@ exports.create = async (req, res, next) => {
       $push: { myVisits: visit._id },
     });
 
-    res.status(201).json({ visit });
+    res.status(201).json({
+      visit,
+      chargedAmount: billing.chargedAmount,
+      walletBalance: billing.walletBalance,
+      adoptedItemIds: billing.adoptedItemIds,
+    });
   } catch (error) {
     next(error);
   }
@@ -125,22 +199,30 @@ exports.update = async (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to update this visit' });
     }
 
-    const { title, description, imageUrl, sequence, type, length, isPublic, quiz } = req.body;
+    const { title, description, imageUrl, sequence, blocks, type, length, isPublic, quiz } = req.body;
 
     // Process sequence to add order
     let processedSequence;
     if (sequence) {
-      processedSequence = sequence.map((item, index) => ({
-        ...item,
-        order: index,
-      }));
+      processedSequence = processSequence(sequence);
     }
+
+    let processedBlocks;
+    if (blocks) {
+      processedBlocks = processBlocks(blocks);
+    }
+
+    const additionalItemIds = processedSequence
+      ? getAdditionalItemIds(processedSequence, visit.sequence || [])
+      : [];
+    const billing = await adoptItems(req.user._id, additionalItemIds);
 
     Object.assign(visit, {
       ...(title && { title }),
       ...(description !== undefined && { description }),
       ...(imageUrl !== undefined && { imageUrl }),
       ...(processedSequence && { sequence: processedSequence }),
+      ...(processedBlocks && { blocks: processedBlocks }),
       ...(type && { type }),
       ...(length && { length }),
       ...(isPublic !== undefined && { isPublic }),
@@ -148,7 +230,12 @@ exports.update = async (req, res, next) => {
     });
 
     await visit.save();
-    res.json({ visit });
+    res.json({
+      visit,
+      chargedAmount: billing.chargedAmount,
+      walletBalance: billing.walletBalance,
+      adoptedItemIds: billing.adoptedItemIds,
+    });
   } catch (error) {
     next(error);
   }

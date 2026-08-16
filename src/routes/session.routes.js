@@ -12,6 +12,7 @@ const {
   logActivitySchema,
   sendMessageSchema,
   submitQuizSchema,
+  submitSectionAnswerSchema,
 } = require('../schemas/session.schema');
 
 // All routes require authentication
@@ -27,6 +28,15 @@ router.post('/:code/join', sessionController.join);
 router.post('/:code/leave', sessionController.leave);
 router.post('/:code/activity', validate(logActivitySchema), sessionController.logActivity);
 router.post('/:code/message', validate(sendMessageSchema), sessionController.sendMessage);
+router.post(
+  '/:code/sections/:sectionId/answers',
+  validate(submitSectionAnswerSchema),
+  sessionController.submitSectionAnswer
+);
+router.get(
+  '/:code/sections/:sectionId/responses',
+  sessionController.getSectionResponses
+);
 
 // Quiz
 router.post('/:code/quiz/start', sessionController.startQuiz);

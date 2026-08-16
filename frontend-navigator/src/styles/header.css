@@ -2,21 +2,60 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 18px;
+  gap: 10px;
+  min-height: 68px;
+  padding: 12px 18px;
   background: var(--bg);
   border-bottom: 1px solid var(--line-soft);
 }
 
+.page-header-back {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.page-header-marketplace {
+  min-height: var(--tap);
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.page-header-back:hover,
+.page-header-back:focus-visible,
+.page-header-marketplace:hover,
+.page-header-marketplace:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
 .page-header-brand {
-  flex: 1;
   min-width: 0;
   font-size: 17px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -38,21 +77,41 @@
 }
 
 .brand-sep {
-  color: var(--muted);
-  margin: 0 6px;
+  color: var(--line-soft);
+  margin: 0 8px;
   font-weight: 400;
+  text-transform: none;
 }
 
 .brand-sub {
-  color: var(--muted);
-  font-weight: 500;
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0;
 }
 
+.page-header-actions,
 .page-header-right {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-shrink: 0;
+}
+
+@media (max-width: 390px) {
+  .page-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .page-header-marketplace {
+    font-size: 10px;
+  }
+
+  .brand-sep,
+  .brand-sub {
+    display: none;
+  }
 }
 
 .profile {
@@ -64,21 +123,30 @@
   height: 36px;
   border-radius: 50%;
   border: 1.5px solid var(--ink);
-  background: var(--bg);
+  background: transparent;
   color: var(--ink);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.15s ease, color 0.15s ease;
+  overflow: hidden;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .profile-btn:hover,
 .profile-btn[aria-expanded='true'] {
-  background: var(--ink);
+  background: var(--accent);
   color: var(--bg);
+  border-color: var(--accent);
 }
 
 .profile-btn:focus-visible {
@@ -89,13 +157,14 @@
 .profile-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 8px);
-  min-width: 200px;
-  background: var(--surface);
+  top: calc(100% + 10px);
+  min-width: 210px;
+  background: var(--bg);
   border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
-  padding: 14px;
+  border-top: 3px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(22, 22, 22, 0.18);
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -120,26 +189,35 @@
 }
 
 .profile-username {
-  font-weight: 600;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
 }
 
 .profile-wallet {
   color: var(--muted);
 }
 
-.profile-logout {
-  margin-top: 8px;
+.profile-menu-action {
+  width: 100%;
+  margin-top: 10px;
   background: transparent;
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  padding: 9px 12px;
-  font-size: 14px;
-  font-weight: 500;
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  padding: 12px 0 4px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
 }
 
+.profile-menu-action:hover,
+.profile-menu-action:focus-visible,
 .profile-logout:hover,
 .profile-logout:focus-visible {
-  background: var(--ink);
-  color: var(--bg);
+  color: var(--accent);
   outline: none;
 }

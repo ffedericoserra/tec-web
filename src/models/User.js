@@ -15,9 +15,21 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [3, 'Username must be at least 3 characters'],
     },
+    // Manteniamo l'email per la registrazione classica
+    email: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+      lowercase: true,
+    },
     passwordHash: {
       type: String,
-      required: [true, 'Password is required'],
+      required: [true, 'Password is required'], // Rimesso l'obbligo della password
+    },
+    avatarUrl: {
+      type: String,
+      default: '/uploads/profiles/default-avatar.jpeg',
     },
     savedMuseums: [
       {
@@ -47,6 +59,10 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    savedVisits: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Visit' 
+    }],
   },
   {
     timestamps: true,

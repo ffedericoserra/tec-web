@@ -40,6 +40,8 @@
 | POST | /api/sessions/:code/leave | yes | Leave session |
 | POST | /api/sessions/:code/activity | yes | Log activity |
 | POST | /api/sessions/:code/message | yes | Post chat message |
+| POST | /api/sessions/:code/sections/:sectionId/answers | yes | Submit or update a section answer |
+| GET | /api/sessions/:code/sections/:sectionId/responses | yes | Section responses (teacher) |
 | POST | /api/sessions/:code/quiz/start | yes | Start quiz (teacher) |
 | POST | /api/sessions/:code/quiz | yes | Submit quiz answers |
 | GET | /api/sessions/:code/quiz | yes | Quiz results (teacher) |
@@ -83,7 +85,7 @@
 | DELETE | `/museums/:id/save` | Remove from saved | Yes |
 | GET | `/museums/:id/contents` | Get Contents | No |
 | POST | `/museums/:id/contents` | Create Content | Yes |
-| GET | `/museums/:id/visits` | Get public visits | No |
+| GET | `/museums/:id/visits` | Get public visits plus the authenticated user's own visits | Optional |
 
 **Query Parameters for `/museums/:id/contents`:**
 - `type` - Filter by type: `Artwork`, `Artist`, `Movement`, `Place`
@@ -93,7 +95,7 @@
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/items` | List items | Optional |
-| GET | `/items/:id` | Get item details | No |
+| GET | `/items/:id` | Get visible item details | Optional |
 | POST | `/items` | Create item | Yes |
 | PUT | `/items/:id` | Update item (creator only) | Yes |
 | DELETE | `/items/:id` | Delete item (creator only) | Yes |
@@ -122,13 +124,21 @@
   ],
   "price": 10,
   "license": "CC-BY",
-  "isPublic": true
+  "isPublic": true,
+  "associatedContents": ["content-object-id"]
 }
 ```
 
 **Tone values:** `easy`, `medium`, `complex`
 **Length categories:** `3s`, `15s`, `45s`
+**Languages:** `it`, `en`, `fr`, `de`, `es`
+**Target audiences:** `general`, `children`, `student`, `expert`, `tourist`
 **Licenses:** `CC-BY`, `CC-BY-SA`, `CC-BY-NC`, `Copyright`, `Public Domain`
+
+`contentId` must be the immutable `universalId` of an existing Content. Anonymous
+users see public Items only; authenticated users also see Items they created or
+acquired. A purchase is idempotent, debits an Item only once, and updates the
+creator's balance plus the Item's `salesCount` and `revenue`.
 
 ## Visits
 
@@ -146,6 +156,30 @@
   "title": "Renaissance Masterpieces",
   "museumId": "...",
   "description": "A tour through...",
+  "blocks": [
+    {
+      "type": "artwork",
+      "blockName": "Prima sala",
+      "items": ["..."]
+    },
+    {
+      "type": "questions",
+      "blockName": "Confronto di gruppo",
+      "questions": [
+        {
+          "prompt": "Che cosa ti ha colpito?",
+          "answerType": "open",
+          "options": []
+        },
+        {
+          "prompt": "Quale opera preferisci?",
+          "answerType": "multiple-choice",
+          "options": ["La prima", "La seconda"],
+          "correctIndex": 1
+        }
+      ]
+    }
+  ],
   "sequence": [
     { "itemId": "...", "nextDirections": "Turn right", "prevDirections": "" }
   ],
@@ -165,6 +199,11 @@
 **Visit types:** `standard`, `synchronized`
 **Visit lengths:** `quick`, `normal`, `deep`
 
+Each block has `type: "artwork"` or `type: "questions"`. Question blocks are
+shown as individual synchronized-session steps; open questions use `text`, while
+multiple-choice questions require the zero-based `correctIndex` of their correct
+option and responses use `selectedIndex`.
+
 ## Sessions (Synchronized Visits)
 
 All session endpoints require authentication.
@@ -178,6 +217,8 @@ All session endpoints require authentication.
 | POST | `/sessions/:code/leave` | Leave session |
 | POST | `/sessions/:code/activity` | Log participant action |
 | POST | `/sessions/:code/message` | Post a chat message |
+| POST | `/sessions/:code/sections/:sectionId/answers` | Submit or update an answer |
+| GET | `/sessions/:code/sections/:sectionId/responses` | Get live section responses (owner only) |
 | POST | `/sessions/:code/quiz/start` | Start the quiz (owner only) |
 | POST | `/sessions/:code/quiz` | Submit quiz answers |
 | GET | `/sessions/:code/quiz` | Get quiz results (owner only) |
@@ -195,9 +236,10 @@ All session endpoints require authentication.
 **Response includes mnemonic code:** `ROSSO_LEONE_42`
 
 **Session responses** carry `isOwner` so the client knows its role without
-comparing ObjectIds. For non-owners the other participants' `quizAnswers` /
-`quizScore` and every `quiz[].correctIndex` are stripped — the answer key only
-ever reaches the visit's author (also true of `GET /visits/:id`).
+comparing ObjectIds. For non-owners, other participants' section responses,
+`quizAnswers` / `quizScore`, every `quiz[].correctIndex`, and every question
+section `correctIndex` are stripped. The owner receives all section responses;
+each participant receives only their own.
 
 **Log Activity Request:**
 ```json
@@ -219,6 +261,19 @@ are still accepted. `joined` / `left` are written by the server and rejected her
 Broadcast to the whole room as `session:chat`, **including the sender** — clients
 append on the broadcast rather than keeping an optimistic copy.
 
+**Submit Section Answer Requests:**
+```json
+{ "questionId": "...", "text": "La luce e il movimento" }
+```
+
+```json
+{ "questionId": "...", "selectedIndex": 1 }
+```
+
+Answers can be submitted again while their question section is the active
+session step. The server updates the participant's existing answer and sends the
+new value to the owner in real time.
+
 ### Real-time (Socket.io, path `/socket.io`)
 
 Authenticate with `auth: { token }` at connect. Sockets carry room membership and
@@ -232,12 +287,14 @@ above, which then broadcast. Clients emit just two events:
 
 | Receive | Payload |
 |---------|---------|
-| `session:state` | `{ currentItemIndex, participants, participantCount, messages, activities, quizStarted }` — full catch-up, so a reload or late join needs no re-fetch |
+| `session:state` | `{ currentStepIndex, currentItemIndex, participants, participantCount, messages, activities, quizStarted, sectionResponses }` — full catch-up; responses are filtered by role |
+| `session:step-changed` | `{ currentStepIndex, currentItemIndex, step, isLast, isFirst }` |
 | `session:item-changed` | `{ currentItemIndex, isLast? , isFirst? }` |
 | `session:participants` | `{ participants }` |
 | `session:participant-joined` / `-left` | `{ userId, username }` |
 | `session:chat` | `{ userId, username, text, timestamp }` |
 | `session:activity` | `{ participantId, username, action, timestamp }` |
+| `session:section-response` | Updated response; emitted only to the session owner |
 | `session:quiz-started` | `{}` |
 | `session:quiz-submitted` | `{ userId, username, quizScore, total }` |
 | `session:ended` | `{}` |

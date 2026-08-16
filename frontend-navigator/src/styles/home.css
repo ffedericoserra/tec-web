@@ -8,26 +8,30 @@
 }
 
 .home-hero {
+  width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .home-title {
-  font-size: clamp(40px, 11vw, 56px);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: clamp(44px, 13vw, 62px);
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 0.95;
   margin: 0;
+  color: var(--ink);
 }
 
 .home-tagline {
-  font-size: clamp(18px, 4.5vw, 22px);
-  font-weight: 500;
-  color: var(--ink);
+  font-size: clamp(16px, 4.2vw, 19px);
+  font-weight: 400;
+  color: rgba(22, 22, 22, 0.72);
   margin: 0;
+  max-width: 320px;
 }
 
 .home-actions {
@@ -43,20 +47,21 @@
   width: 100%;
   min-height: var(--tap);
   padding: 14px 20px;
-  background: transparent;
-  color: var(--ink);
-  border: 1.5px solid var(--ink);
-  border-radius: 999px;
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: background 0.15s ease, color 0.15s ease;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
 .btn-primary:hover,
 .btn-primary:focus-visible {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
   outline: none;
 }
 
@@ -64,23 +69,30 @@
   background: none;
   border: 0;
   padding: 8px 12px;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
   text-decoration: none;
   color: var(--ink);
+  border-bottom: 1px solid currentColor;
 }
 
 .home-link:hover,
 .home-link:focus-visible {
-  text-decoration: underline;
+  color: var(--accent);
   outline: none;
 }
+
+/* The marketplace link is styled by the shared .marketplace-link in base.css,
+ * so the landing page and the museum list can't drift apart. */
 
 /* ---------- Auth dialog ---------- */
 
 .auth-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26, 26, 26, 0.45);
+  background: rgba(22, 22, 22, 0.78);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -101,10 +113,13 @@
 .auth-dialog {
   width: 100%;
   max-width: 440px;
-  background: var(--surface);
-  border-radius: var(--radius);
-  padding: 24px 22px 22px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  background: var(--bg);
+  border-radius: 0;
+  border-top: 4px solid var(--accent);
+  padding: 28px 24px 24px;
+  box-shadow: 0 14px 40px rgba(22, 22, 22, 0.2);
   animation: slide-up 0.18s ease;
 }
 
@@ -126,47 +141,54 @@
 }
 
 .auth-dialog h2 {
-  margin: 0 0 16px;
+  margin: 0 0 18px;
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 18px;
 }
 
 .auth-form label {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
-  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 .auth-form input {
-  padding: 12px 14px;
-  background: var(--bg);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-sm);
+  padding: 8px 0 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(22, 22, 22, 0.3);
+  border-radius: 0;
   font-size: 16px;
   min-height: var(--tap);
+  transition: border-color 0.2s ease;
 }
 
 .auth-form input:focus {
   outline: none;
-  border-color: var(--ink);
+  border-color: var(--accent);
 }
 
 .auth-error {
   margin: 4px 0 0;
   color: var(--accent);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .auth-actions {
-  margin-top: 14px;
+  margin-top: 16px;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -177,30 +199,51 @@
   background: none;
   border: 0;
   padding: 12px 14px;
-  font-size: 15px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   color: var(--muted);
+}
+
+.auth-cancel:hover,
+.auth-cancel:focus-visible {
+  color: var(--ink);
+  outline: none;
 }
 
 .auth-submit {
   min-height: var(--tap);
-  padding: 12px 22px;
-  border-radius: 999px;
-  border: 1.5px solid var(--ink);
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--bg);
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.auth-submit:hover,
+.auth-submit:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  outline: none;
 }
 
 .auth-submit:disabled {
   opacity: 0.5;
   cursor: default;
+  background: var(--ink);
+  border-color: var(--ink);
 }
 
 .auth-switch {
-  margin-top: 16px;
+  margin-top: 18px;
   text-align: center;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--muted);
 }
 
@@ -209,6 +252,11 @@
   border: 0;
   padding: 0 4px;
   color: var(--ink);
-  text-decoration: underline;
-  font-size: 14px;
+  font-weight: 800;
+  border-bottom: 1px solid currentColor;
+  font-size: 13px;
+}
+
+.auth-switch button:hover {
+  color: var(--accent);
 }

@@ -16,7 +16,7 @@ const validate = require('../middleware/validate');
 const { createItemSchema, updateItemSchema } = require('../schemas/item.schema');
 
 router.get('/', optionalAuth, itemController.list);
-router.get('/:id', itemController.getById);
+router.get('/:id', optionalAuth, itemController.getById);
 router.post('/', requireAuth, validate(createItemSchema), itemController.create);
 router.put('/:id', requireAuth, validate(updateItemSchema), itemController.update);
 router.delete('/:id', requireAuth, itemController.remove);

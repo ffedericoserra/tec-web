@@ -11,6 +11,7 @@ import ParticipantsPanel from '../components/ParticipantsPanel.jsx';
 import ChatPanel from '../components/ChatPanel.jsx';
 import ActivitiesPanel from '../components/ActivitiesPanel.jsx';
 import QuizScreen from '../components/QuizScreen.jsx';
+import QuestionSectionScreen from '../components/QuestionSectionScreen.jsx';
 import '../styles/visitRun.css';
 import '../styles/session.css';
 
@@ -131,6 +132,36 @@ function lastAvailableLengthIdx(description) {
   return max;
 }
 
+function buildSessionSteps(visit) {
+  const sequence = visit?.sequence || [];
+  const blocks = visit?.blocks || [];
+  if (blocks.length === 0) {
+    return sequence.map((_, itemIndex) => ({ type: 'artwork', itemIndex }));
+  }
+
+  const steps = [];
+  let itemIndex = 0;
+  for (const block of blocks) {
+    if (block.type === 'questions' && block.questions?.length) {
+      steps.push({
+        type: 'questions',
+        sectionId: String(block._id),
+        section: block,
+      });
+      continue;
+    }
+    for (let index = 0; index < (block.items || []).length; index += 1) {
+      steps.push({ type: 'artwork', itemIndex });
+      itemIndex += 1;
+    }
+  }
+  while (itemIndex < sequence.length) {
+    steps.push({ type: 'artwork', itemIndex });
+    itemIndex += 1;
+  }
+  return steps;
+}
+
 export default function VisitRun() {
   /* One component, two routes. `/:museumSlug/:visitSlug` is a solo visit;
    * `/session/:sessionCode` is a group visit (Extension 1). Session mode adds a
@@ -155,6 +186,8 @@ export default function VisitRun() {
   const [activities, setActivities] = useState([]);
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizResults, setQuizResults] = useState([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [sectionResponses, setSectionResponses] = useState([]);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [notice, setNotice] = useState(null);
 
@@ -245,12 +278,15 @@ export default function VisitRun() {
           setParticipants(sess.participants || []);
           setMessages(sess.messages || []);
           setQuizStarted(!!sess.quizStarted);
+          setCurrentStepIndex(sess.currentStepIndex || 0);
+          setSectionResponses(sess.sectionResponses || []);
           /* Start where the group already is, not at stop 1 — a student joining
            * halfway through should land on the artwork everyone is standing at.
            * The socket's session:state will confirm this a moment later. */
           setEntryIndex(sess.currentItemIndex || 0);
         } else {
           setEntryIndex(0);
+          setCurrentStepIndex(0);
         }
         setMode('describe');
         setLengthIdx(0);
@@ -290,6 +326,8 @@ export default function VisitRun() {
         setActivities(s.activities || []);
         setQuizStarted(!!s.quizStarted);
         setEntryIndex(s.currentItemIndex || 0);
+        setCurrentStepIndex(s.currentStepIndex || 0);
+        setSectionResponses(s.sectionResponses || []);
       },
       'session:participants': (s) => setParticipants(s.participants || []),
       'session:item-changed': ({ currentItemIndex }) => {
@@ -303,6 +341,23 @@ export default function VisitRun() {
           return currentItemIndex;
         });
       },
+      'session:step-changed': ({ currentStepIndex: nextStep }) => {
+        setCurrentStepIndex(nextStep || 0);
+        setAnswer(null);
+        setLengthIdx(0);
+      },
+      'session:section-response': (response) =>
+        setSectionResponses((list) => [
+          ...list.filter(
+            (entry) =>
+              !(
+                entry.sectionId === response.sectionId &&
+                entry.questionId === response.questionId &&
+                String(entry.userId) === String(response.userId)
+              )
+          ),
+          response,
+        ]),
       'session:chat': (msg) => setMessages((list) => [...list, msg]),
       'session:activity': (act) => setActivities((list) => [...list, act]),
       'session:quiz-started': () => setQuizStarted(true),
@@ -329,6 +384,12 @@ export default function VisitRun() {
   }, [panel, activities.length]);
 
   const sequence = visit?.sequence || [];
+  const sessionSteps = useMemo(() => buildSessionSteps(visit), [visit]);
+  const activeSessionStep = inSession
+    ? sessionSteps[currentStepIndex] || null
+    : null;
+  const activeQuestionSection =
+    activeSessionStep?.type === 'questions' ? activeSessionStep.section : null;
   const museumSlug = visit?.museumId?.slug || museumSlugParam;
   const entry = sequence[entryIndex] || null;
   const item = entry?.itemId || null;
@@ -360,15 +421,17 @@ export default function VisitRun() {
     [sequence, contents]
   );
 
-  const isFirst = entryIndex === 0;
-  const isLast = entryIndex >= sequence.length - 1;
+  const isFirst = inSession ? currentStepIndex === 0 : entryIndex === 0;
+  const isLast = inSession
+    ? currentStepIndex >= sessionSteps.length - 1
+    : entryIndex >= sequence.length - 1;
   const atMaxLength = mode === 'describe' && lengthIdx >= maxLen;
 
   const quiz = visit?.quiz || [];
   const quizActive = inSession && quizStarted && quiz.length > 0;
 
   let bodyText = '';
-  if (!visit || sequence.length === 0 || quizActive) {
+  if (!visit || activeQuestionSection || sequence.length === 0 || quizActive) {
     /* Empty during the quiz too, which is what stops TTS from reading the last
      * artwork's description over the questions — the speech effect keys on
      * bodyText and cancels when it's empty. */
@@ -731,7 +794,10 @@ export default function VisitRun() {
     );
   }
 
-  if (!visit || sequence.length === 0) {
+  if (
+    !visit ||
+    (sequence.length === 0 && (!inSession || sessionSteps.length === 0))
+  ) {
     return (
       <div className="page-visit-run">
         <PageHeader
@@ -822,6 +888,22 @@ export default function VisitRun() {
           code={sessionCode}
           isOwner={isOwner}
           results={quizResults}
+        />
+      ) : activeQuestionSection ? (
+        <QuestionSectionScreen
+          section={activeQuestionSection}
+          code={sessionCode}
+          isOwner={isOwner}
+          responses={sectionResponses}
+          isFirst={isFirst}
+          isLast={isLast && quiz.length === 0}
+          onPrevious={goPrevious}
+          onNext={
+            isLast && quiz.length > 0
+              ? () => sessionAction('quiz/start')
+              : goNext
+          }
+          nextLabel={isLast && quiz.length > 0 ? 'Start Quiz' : 'Next'}
         />
       ) : (
         <>
@@ -1066,7 +1148,14 @@ export default function VisitRun() {
       )}
 
       {panel === 'activities' && (
-        <ActivitiesPanel activities={activities} onClose={closePanel} />
+        <ActivitiesPanel
+          activities={activities}
+          visit={session?.visitId?.blocks ? session.visitId : visit}
+          responses={sectionResponses}
+          participants={participants}
+          sessionCode={sessionCode}
+          onClose={closePanel}
+        />
       )}
     </div>
   );

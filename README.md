@@ -5,23 +5,30 @@
 - [docs/SPECS.md](docs/SPECS.md) - project requirements and constraints
 - [docs/API.md](docs/API.md) - endpoints, requests, responses, errors
 - [docs/SCHEMA.md](docs/SCHEMA.md) - data models, MongoDB collections
+- [docs/NAVIGATOR.md](docs/NAVIGATOR.md) - navigator frontend developer guide
 
 ## Status
 
-**Completed:** Backend (base + synchronized sessions for extension 1). Marketplace frontend. Navigator frontend: museum/visit browsing, visit runner, TTS, voice control (controlled vocabulary), museum map, tone selection and swipeable description lengths.
+**Completed:**
+- Backend — base API + synchronized sessions (extension 1) + quiz submission/results
+- Marketplace — login, museum grid, single-museum view with stage-and-publish visit editor, content/item creation, marketplace purchase flow
+- Navigator — home, museum list, visit selection (incl. group visits), fullscreen visit runner with logistic/describe state machine, opt-in TTS (Italian), voice control (controlled vocabulary), museum map, tone selection and swipeable description lengths
 
 **In progress:** Floor plan for Uffizi, content images (one uploaded so far).
 
-**Not started:** AI integration, georeferencing, navigator UI for synchronized sessions.
+**Not started:** AI integration (Extension 2), georeferencing (Extension 2), navigator UI for synchronized sessions.
+
+See [docs/NAVIGATOR.md](docs/NAVIGATOR.md) for the navigator's known gaps and TODOs.
 
 ## Running
 
-*Note: db seeding currently done at each server startup, as the script can't be directly run via npm on department machines.*
+*Note: demo data is seeded automatically only when the database has no museums.
+Normal server restarts preserve users, visits, and sessions.*
 
 **Development (local Docker):**
 ```bash
 # First setup the '.env' file in the project root 
-docker-compose up
+docker compose up
 ```
 
 **Production (department machines):**
@@ -29,6 +36,14 @@ docker-compose up
 # First setup the '.env' file in the project root
 ssh gocker
 start node-22 site242557 src/index.js
+```
+
+**Navigator (build SPA before running):**
+```bash
+# Required before dev or prod — frontend-navigator/dist is gitignored
+cd frontend-navigator
+npm install
+npm run build
 ```
 
 **Testing**
@@ -41,7 +56,7 @@ API on port 8000. Production URL: https://site242557.tw.cs.unibo.it/api
 
 ## Media assets
 
-Static files are served from `uploads/` at the matching URL path (`uploads/foo.jpg` → `/uploads/foo.jpg`). They are committed to the repo so they reach the department machines.
+Static files are served from `uploads/` at the matching URL path (`uploads/museums/foo.jpg` -> `/uploads/museums/foo.jpg`). Images are grouped by purpose and committed so they reach the department machines.
 
 **Content images** are matched by filename convention — no config editing:
 
@@ -49,7 +64,7 @@ Static files are served from `uploads/` at the matching URL path (`uploads/foo.j
 # 1. Name the file after the content's universalId
 cp venere.jpg uploads/contents/mambo-morandi-natura-morta-1946.jpg
 
-# 2. Reload the configs (or just restart the server, which reseeds)
+# 2. Reload the configs
 docker exec local_node_app node scripts/load-museum.js data/museums/
 #   Loaded 13 contents (1 with images)
 ```
@@ -60,6 +75,8 @@ Notes:
 - An explicit `imageUrl` in `data/museums/*.json` overrides the convention, and can point at any URL.
 - Deleting a file clears the field on the next load; it does not leave a stale URL.
 - Contents with no image fall back to a placeholder showing the content name.
+- `Content.universalId` is required, unique and immutable; `Item.contentId` must use that value rather than a MongoDB `_id`.
+- Existing databases can be checked and migrated with `docker exec local_node_app npm run migrate:universal-ids`.
 
 **Museum floor plans** live at `uploads/maps/<museum>-map.png` and are referenced explicitly by `museum.mapData.imageUrl`. The plan is drawn under the map markers stretched to `mapData.bounds`, so **the bounds must have the same aspect ratio as the image** or the plan will shear away from the markers. MAMbo has one; Uffizi does not yet and falls back to a blank plate.
 
@@ -74,48 +91,54 @@ Node.js 22 + Express REST API with MongoDB persistence and real-time sync via So
 - **JWT (jsonwebtoken)** — stateless authentication. Token issued on login, verified by `requireAuth` middleware. No roles — authorization is creator-ownership checks in controllers
 - **Zod** — request body validation via `validate` middleware, before controllers run
 - **Socket.io** — real-time session sync (teacher advances/navigates, participants receive state updates). Auth via JWT handshake token
-- **Seed script** — runs on every server startup, wipes and recreates sample data from museum config files (`data/museums/*.json`) plus test users, items, and visits
+- **Seed script** — bootstraps an empty database at server startup. Running `npm run seed` explicitly wipes and recreates the demo users, museums, items, and visits
 
 Request flow: `route → validate(zodSchema) → requireAuth → controller → model`
 
 ### Marketplace
 
-*TBD*
+Vanilla HTML / CSS / ES modules, no framework (per project constraints). Lives in `frontend/marketplace/`, served by Express under the `/marketplace` route. Pages: login, museum grid, single-museum (My Visits with a stage-and-publish editor, Add Items grid, marketplace purchase flow). Uses the same JWT in `localStorage` as the navigator.
 
 ### Navigator
 
-*TBD*
+React 18 + Vite SPA, plain JS (no TypeScript). Lives in `frontend-navigator/`, built into `dist/` and served by Express on every route not owned by `/api`, `/marketplace`, or `/uploads`. Mobile-first; same JWT and same `/api` endpoints as the marketplace. See [docs/NAVIGATOR.md](docs/NAVIGATOR.md) for the full developer guide.
 
 ## Structure
 
 ```
-.env                    # Environment config (copy from .env.example)
+.env                          # Environment config (copy from .env.example)
 data/
-└── museums/            # Museum config files (JSON)
+└── museums/                  # Museum config files (JSON, loaded by seed)
     ├── uffizi.json
     └── mambo.json
-uploads/                # Static media, served at /uploads (committed)
-├── contents/           # <universalId>.jpg — picked up by the loader
-├── maps/               # Museum floor plans
-└── museums/            # Museum cover images
-src/
-├── index.js            # Express server entry point
-├── config/
-│   ├── db.js           # MongoDB connection
-│   └── env.js          # Environment variables
-├── models/             # Mongoose schemas
-│   ├── User.js
-│   ├── Museum.js
-│   ├── Content.js
-│   ├── Item.js
-│   ├── Visit.js
-│   └── Session.js
-├── controllers/        # Request handlers
-├── routes/             # API route definitions
-├── schemas/            # Zod validation schemas
-├── middleware/
-│   ├── auth.js         # JWT authentication
-│   ├── validate.js     # Zod validation
-│   └── errorHandler.js # Global error handling
-└── services/           # Business logic (AI, Socket.io stubs)
+uploads/                       # Static media, served at /uploads (committed)
+├── artists/                   # Artist portraits
+├── contents/                  # Artwork images; <universalId>.* is loader-compatible
+├── maps/                      # Museum floor plans
+├── movements/                # Art movement images
+├── museums/                   # Museum cover images
+├── placeholders/             # Shared image fallbacks
+├── profiles/                 # User avatars
+└── visits/                    # Visit cover images
+src/                           # Backend (Node + Express + Mongoose)
+├── index.js                   # Express entry point — wires API, marketplace, navigator
+├── config/                    # db.js, env.js
+├── models/                    # User, Museum, Content, Item, Visit, Session
+├── controllers/                # Request handlers
+├── routes/                    # API route definitions
+├── schemas/                   # Zod validation schemas
+├── middleware/                # auth.js, validate.js, errorHandler.js
+└── services/                  # socketService (real-time session sync), aiService (Extension 2 stub)
+frontend/marketplace/          # Marketplace SPA (vanilla JS) — served at /marketplace
+├── pages/                     # HTML files (homepage, login, register, ...)
+├── scripts/                   # Page-specific ES modules
+├── stylesheets/
+└── assets/
+frontend-navigator/            # Navigator SPA (React + Vite) — served at /, /museums, /:slug, ...
+├── src/                       # main.jsx + pages/components/styles
+├── vite.config.js             # /api + /uploads proxy to :8000
+└── dist/                      # vite build output (gitignored — rebuild before deploy)
+scripts/
+├── seed.js                    # Destructive demo seed; auto-runs only on an empty DB
+└── load-museum.js             # Idempotent museum config loader
 ```

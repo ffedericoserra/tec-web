@@ -7,11 +7,17 @@ package-lock.json
 CLAUDE.md
 note
 tmp
-
+uploads/**
+!uploads/**/
+!uploads/**/*.jpg
+!uploads/**/*.jpeg
+!uploads/**/*.png
+!uploads/**/*.webp
+!uploads/**/.gitkeep
 
 frontend-design
 next-prompt.md
 
 frontend-navigator/dist/
-
+AGENTS.md
 TODO

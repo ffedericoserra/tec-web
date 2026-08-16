@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Configurazione Museo</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/add_museum.css" />
+  </head>
+  <body id="artaround-add-museum" class="add-museum-body">
+    <header class="top-nav editorial-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+
+        <ul class="nav-links">
+          <li><a href="homepage.html#destinazioni">Plan your visit</a></li>
+          <li><a href="../../../frontend-navigator/dist/index.html">Navigator</a></li>
+          <li><a href="add_museum.html" class="active">Add museum</a></li>
+          <li><a href="about.html">About us</a></li>
+        </ul>
+
+        <div class="nav-auth-wrapper">
+          <ul class="nav-auth">
+            <li class="user-only"><a href="user_profile.html">Account</a></li>
+            <li class="user-only"><a href="#" id="logout-btn">Log out</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="add-museum-shell">
+      <section class="add-museum-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
+        </div>
+
+        <div class="add-museum-hero-layout">
+          <div class="add-museum-heading-block">
+            <a href="homepage.html#destinazioni" class="header-back-link">Back to museums</a>
+            <span class="add-museum-kicker">Gestione istituzione</span>
+            <h1 class="add-museum-title">Configura il tuo museo</h1>
+          </div>
+
+          <aside class="add-museum-meta-panel" aria-label="Museum configuration">
+            <strong>Scheda museo</strong>
+            <p>Inserisci identita, orari, contatti e materiali digitali per pubblicare una nuova destinazione.</p>
+          </aside>
+        </div>
+      </section>
+
+      <form id="add-museum-form" class="add-museum-form">
+        <section class="form-band identity-band">
+          <div class="form-section-heading">
+            <span class="text-label">Identita</span>
+            <h2>Dati principali</h2>
+          </div>
+
+          <div class="input-group full-width">
+            <label for="m-name" class="text-label">Nome ufficiale *</label>
+            <input
+              type="text"
+              id="m-name"
+              class="input-minimal input-display"
+              placeholder="Es: Museo del Novecento"
+              required
+            />
+          </div>
+
+          <div class="input-group full-width">
+            <label for="m-address" class="text-label">Indirizzo fisico</label>
+            <input
+              type="text"
+              id="m-address"
+              class="input-minimal"
+              placeholder="Via, Citta, CAP"
+            />
+          </div>
+        </section>
+
+        <section class="form-grid-layout">
+          <div class="opening-hours-section">
+            <div class="form-section-heading compact">
+              <span class="text-label">Orari</span>
+              <h2>Apertura</h2>
+            </div>
+
+            <div class="hours-grid">
+              <div class="hours-row">
+                <label>Mon</label>
+                <input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <label>Tue</label>
+                <input type="text" placeholder="Chiuso" />
+              </div>
+              <div class="hours-row">
+                <label>Wed</label>
+                <input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <label>Thu</label>
+                <input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <label>Fri</label>
+                <input type="text" placeholder="09:00 - 18:00" />
+              </div>
+              <div class="hours-row">
+                <label>Sat</label>
+                <input type="text" placeholder="10:00 - 20:00" />
+              </div>
+              <div class="hours-row">
+                <label>Sun</label>
+                <input type="text" placeholder="10:00 - 20:00" />
+              </div>
+            </div>
+          </div>
+
+          <div class="details-section">
+            <div class="form-section-heading compact">
+              <span class="text-label">Contenuti</span>
+              <h2>Dettagli</h2>
+            </div>
+
+            <div class="input-group">
+              <label for="m-description" class="text-label">Descrizione del museo</label>
+              <textarea
+                id="m-description"
+                class="matrix-input"
+                placeholder="Una breve introduzione per i visitatori..."
+              ></textarea>
+            </div>
+
+            <div class="input-group">
+              <label for="m-image" class="text-label">URL immagine di copertina</label>
+              <input
+                type="url"
+                id="m-image"
+                class="input-minimal"
+                placeholder="https://link-immagine-copertina.jpg"
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="m-map-image" class="text-label">URL mappa digitale (SVG consigliato)</label>
+              <input
+                type="url"
+                id="m-map-image"
+                class="input-minimal"
+                placeholder="https://link-mappa-museo.svg"
+              />
+            </div>
+
+            <div class="contacts-box">
+              <div class="form-section-heading compact">
+                <span class="text-label">Contatti</span>
+                <h2>Web</h2>
+              </div>
+
+              <input
+                type="url"
+                id="m-website"
+                class="input-minimal"
+                placeholder="Sito Web Ufficiale"
+              />
+              <input
+                type="email"
+                id="m-email"
+                class="input-minimal"
+                placeholder="Email per informazioni"
+              />
+              <input
+                type="tel"
+                id="m-phone"
+                class="input-minimal"
+                placeholder="Telefono Biglietteria"
+              />
+            </div>
+          </div>
+        </section>
+
+        <div class="form-actions-fixed">
+          <button type="button" class="btn-ghost cancel-btn" onclick="window.history.back()">
+            Annulla
+          </button>
+          <button type="submit" class="btn-primary">
+            Salva configurazione
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/add_museum.js"></script>
+  </body>
+</html>

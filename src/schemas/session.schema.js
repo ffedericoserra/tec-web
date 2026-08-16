@@ -43,9 +43,21 @@ const submitQuizSchema = z.object({
     .min(1, 'At least one answer is required'),
 });
 
+const submitSectionAnswerSchema = z
+  .object({
+    questionId: z.string().min(1, 'Question ID is required'),
+    selectedIndex: z.number().int().min(0).optional(),
+    text: z.string().trim().max(1000).optional(),
+  })
+  .refine(
+    (answer) => answer.selectedIndex !== undefined || Boolean(answer.text),
+    'An answer is required'
+  );
+
 module.exports = {
   createSessionSchema,
   logActivitySchema,
   sendMessageSchema,
   submitQuizSchema,
+  submitSectionAnswerSchema,
 };

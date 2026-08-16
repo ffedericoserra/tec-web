@@ -15,11 +15,15 @@ const pointOfInterestSchema = z.object({
   label: z.string().min(1, 'Label is required'),
 });
 
-const themeSchema = z.object({
-  primaryColor: z.string().optional(),
-  secondaryColor: z.string().optional(),
-  font: z.string().optional(),
-}).optional();
+const openingHoursSchema = z.object({
+  mon: z.string().optional(),
+  tue: z.string().optional(),
+  wed: z.string().optional(),
+  thu: z.string().optional(),
+  fri: z.string().optional(),
+  sat: z.string().optional(),
+  sun: z.string().optional(),
+});
 
 const mapDataSchema = z.object({
   imageUrl: z.string().url().optional(),
@@ -36,21 +40,25 @@ const createMuseumSchema = z.object({
   name: z.string().min(1, 'Museum name is required').trim(),
   address: z.string().trim().optional(),
   description: z.string().trim().optional(),
-  theme: themeSchema,
+  website: z.string().url('Inserisci un URL valido').optional().or(z.literal('')),
+  email: z.string().email('Inserisci un email valida').optional().or(z.literal('')),
+  phone: z.string().trim().optional(),
+  openingHours: openingHoursSchema.optional(),
   mapData: mapDataSchema,
   pointsOfInterest: z.array(pointOfInterestSchema).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
 });
 
 const updateMuseumSchema = createMuseumSchema.partial();
 
 const createContentSchema = z.object({
   type: z.enum(['Artwork', 'Artist', 'Movement', 'Place']),
-  universalId: z.string().optional(),
+  universalId: z.string().trim().min(1, 'Universal ID is required'),
   name: z.string().min(1, 'Content name is required').trim(),
   author: z.string().trim().optional(),
   year: z.string().trim().optional(),
   imageUrl: z.string().optional(),
+  imgPath: z.string().optional(),
   imageRecognitionUrl: z.string().url().optional(),
   coordinates: coordinatesSchema.optional(),
   qrCode: z.string().optional(),

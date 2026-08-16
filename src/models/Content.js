@@ -18,8 +18,10 @@ const contentSchema = new mongoose.Schema(
     },
     universalId: {    // Stable external ID, used by Item.contentId for linking
       type: String,
+      required: [true, 'Universal ID is required'],
       unique: true,
-      sparse: true, // Allows multiple null values
+      trim: true,
+      immutable: true,
     },
     name: {
       type: String,
@@ -35,6 +37,9 @@ const contentSchema = new mongoose.Schema(
       trim: true,
     },
     imageUrl: {
+      type: String,
+    },
+    imgPath: {
       type: String,
     },
     imageRecognitionUrl: {
@@ -57,8 +62,6 @@ const contentSchema = new mongoose.Schema(
 
 // Index for efficient queries
 contentSchema.index({ museumId: 1, type: 1 });
-contentSchema.index({ universalId: 1 });
-
 const Content = mongoose.model('Content', contentSchema);
 
 module.exports = Content;

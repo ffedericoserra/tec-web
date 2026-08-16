@@ -8,31 +8,48 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 8px 20px 32px;
+  padding: 20px 20px 32px;
 }
 
 .page-museums-title {
-  text-align: center;
-  font-size: 22px;
-  font-weight: 600;
-  margin: 16px 0 18px;
-  letter-spacing: -0.01em;
+  text-align: left;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  margin: 0 0 20px;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.search-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
 .search-input {
   width: 100%;
   min-height: var(--tap);
-  padding: 12px 20px;
-  border-radius: 999px;
-  border: 1.5px solid var(--ink);
+  padding: 6px 0 10px;
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid rgba(22, 22, 22, 0.3);
   background: transparent;
-  font-size: 16px;
+  font-size: 17px;
   appearance: none;
   -webkit-appearance: none;
 }
 
 .search-input::placeholder {
-  color: var(--muted);
+  color: rgba(22, 22, 22, 0.42);
 }
 
 .search-input:focus {
@@ -42,16 +59,16 @@
 
 .museum-list {
   list-style: none;
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   padding: 0;
 }
 
 .museum-list li {
-  border-bottom: 1px solid var(--line-soft);
+  border-top: 1px solid var(--line-soft);
 }
 
-.museum-list li:first-child {
-  border-top: 1px solid var(--line-soft);
+.museum-list li:last-child {
+  border-bottom: 1px solid var(--line-soft);
 }
 
 .museum-row {
@@ -59,24 +76,37 @@
   text-align: left;
   background: transparent;
   border: 0;
-  padding: 16px 4px;
+  padding: 18px 4px;
   font-size: 17px;
+  font-weight: 700;
   min-height: var(--tap);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  transition: background 0.2s ease, color 0.2s ease, padding 0.2s ease;
 }
 
 .museum-row:hover,
-.museum-row:focus-visible {
-  background: var(--surface-alt);
+.museum-row:focus-visible,
+.museum-row:active {
+  background: var(--accent);
+  color: var(--bg);
+  padding-left: 12px;
+  padding-right: 12px;
   outline: none;
 }
 
 .museum-row-arrow {
   color: var(--muted);
   font-size: 18px;
+  transition: color 0.2s ease;
+}
+
+.museum-row:hover .museum-row-arrow,
+.museum-row:focus-visible .museum-row-arrow,
+.museum-row:active .museum-row-arrow {
+  color: var(--bg);
 }
 
 .status {
@@ -88,6 +118,7 @@
 
 .status.error {
   color: var(--accent);
+  font-weight: 700;
 }
 
 .empty {

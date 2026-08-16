@@ -1,0 +1,120 @@
+/* ==========================================================================
+   ARTAROUND - NAVBAR.CSS (Stile antiproiettile globale)
+   ========================================================================== */
+
+/* Forza la sovrascrittura del bianco di styles.css */
+header.top-nav.editorial-nav {
+    background-color: #F2F1ED !important; 
+    border-bottom: 1px solid #161616 !important; 
+    position: fixed !important; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; 
+    height: 80px !important;
+    display: flex;
+    align-items: center;
+    padding: 0 !important;
+    box-shadow: none !important; /* Rimuove ombre globali */
+}
+
+header.editorial-nav .nav-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 10vw;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+/* Logo Aα allineato alla colonna di sinistra */
+header.editorial-nav .brand { 
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
+header.editorial-nav .logo-text { 
+    font-size: 2.4rem !important; 
+    font-weight: 700 !important;
+    color: #161616 !important;
+    font-family: "Playfair Display", "Georgia", serif !important;
+    letter-spacing: -1px !important;
+    text-transform: none !important; 
+}
+
+/* Link principali */
+header.editorial-nav .nav-links { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    gap: clamp(18px, 3vw, 48px);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+header.editorial-nav .nav-links li {
+    flex: 0 1 auto;
+}
+
+/* Stile dei link (forziamo l'Helvetica per sovrascrivere stili globali) */
+header.editorial-nav a,
+header.editorial-nav .nav-auth a { 
+    color: #161616 !important; 
+    font-size: 0.75rem !important; 
+    text-transform: uppercase !important; 
+    font-weight: bold !important; 
+    text-decoration: none !important; 
+    transition: color 0.3s !important;
+    white-space: nowrap;
+    font-family: 'Helvetica', Arial, sans-serif !important;
+}
+
+/* Il link attivo con la riga bordeaux (sovrascrive l'oro di styles.css) */
+header.editorial-nav .nav-links a.active {
+    color: #710014 !important;
+    border-bottom: 2px solid #710014 !important;
+    padding-bottom: 5px !important;
+}
+
+header.editorial-nav a:hover,
+header.editorial-nav .nav-auth a:hover { 
+    color: #710014 !important; 
+}
+
+/* Auth Links (Account, Logout) nella colonna di destra */
+header.editorial-nav .nav-auth-wrapper { 
+    flex: 0 0 auto;
+}
+
+header.editorial-nav .nav-auth { 
+    display: flex; 
+    align-items: center;
+    gap: clamp(14px, 2vw, 30px); 
+    list-style: none; 
+    margin: 0;
+    padding: 0;
+}
+
+@media (max-width: 900px) {
+    header.editorial-nav .nav-wrapper {
+        gap: 16px;
+        padding: 0 24px;
+    }
+
+    header.editorial-nav .nav-links {
+        justify-content: flex-start;
+        gap: 16px;
+        overflow-x: auto;
+    }
+
+    header.editorial-nav .nav-auth {
+        gap: 14px;
+    }
+}

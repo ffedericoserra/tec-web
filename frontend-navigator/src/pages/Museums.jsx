@@ -54,15 +54,19 @@ export default function Museums() {
     <div className="page-museums">
       <PageHeader right={<ProfileMenu user={user} />} />
       <main className="page-museums-body">
+        <span className="kicker">ArtAround Navigator</span>
         <h1 className="page-museums-title">Select a Museum</h1>
-        <input
-          type="search"
-          className="search-input"
-          placeholder="Search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Cerca museo"
-        />
+        <label className="search-field">
+          <span className="search-label">Search</span>
+          <input
+            type="search"
+            className="search-input"
+            placeholder="Search a museum…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Cerca museo"
+          />
+        </label>
         {loading && <p className="status">Caricamento…</p>}
         {error && !loading && <p className="status error">{error}</p>}
         {!loading && !error && (

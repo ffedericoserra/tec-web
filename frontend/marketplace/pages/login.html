@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - Login</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/login.css" />
+  </head>
+  <body id="artaround-login" class="login-body">
+    <header class="top-nav editorial-nav">
+      <div class="nav-wrapper">
+        <a href="homepage.html" class="brand">
+          <span class="logo-text">A&alpha;</span>
+        </a>
+
+        <ul class="nav-links">
+          <li>
+            <a href="homepage.html#destinazioni" id="nav-plan"
+              >Plan your visit</a
+            >
+          </li>
+          <li><a href="../../../frontend-navigator/dist/index.html">Navigator</a></li>
+          <li><a href="#" id="nav-add-museum">Add museum</a></li>
+          <li><a href="about.html" id="nav-about">About us</a></li>
+        </ul>
+
+        <div class="nav-auth-wrapper">
+          <ul class="nav-auth">
+            <li class="guest-only">
+              <a href="login.html" class="active">Login</a>
+            </li>
+            <li class="guest-only"><a href="register.html">Sign-up</a></li>
+            <li class="user-only hidden">
+              <a href="user_profile.html">Account</a>
+            </li>
+            <li class="user-only hidden">
+              <a href="#" id="logout-btn">Log out</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <main class="login-page-shell">
+      <section class="login-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
+        </div>
+
+        <div class="shape-circle circle-small"></div>
+        <div class="shape-circle circle-large"></div>
+
+        <div class="login-layout">
+          <section class="login-heading-block">
+            <span class="login-kicker">Accesso personale</span>
+            <h1 class="login-title">
+              <span class="font-light">ART</span><br />
+              <span class="burgundy-text">AROUND.</span>
+            </h1>
+            <p class="login-copy">
+              Accedi per creare visite, salvare tour e gestire la tua esperienza
+              museale.
+            </p>
+          </section>
+
+          <section class="login-panel" aria-labelledby="login-panel-title">
+            <div class="login-panel-header">
+              <span class="text-label">Account</span>
+              <h2 id="login-panel-title">Login</h2>
+            </div>
+
+            <form id="login-form" class="login-form">
+              <div class="input-group">
+                <label for="login-username" class="text-label"
+                  >Username or email</label
+                >
+                <input
+                  id="login-username"
+                  class="input-slot"
+                  name="username"
+                  type="text"
+                  autocomplete="username"
+                  required
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="login-password" class="text-label">Password</label>
+                <input
+                  id="login-password"
+                  class="input-slot"
+                  name="pwd"
+                  type="password"
+                  autocomplete="current-password"
+                  required
+                />
+              </div>
+
+              <button class="main-btn" type="submit">Login</button>
+
+              <div id="error-msg" class="login-error" aria-live="polite"></div>
+            </form>
+
+            <p class="register-prompt">
+              <span>Don't have an account?</span>
+              <a href="register.html">Create one here</a>
+            </p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/login.js"></script>
+  </body>
+</html>

@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - ArtAround</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="main-container">
+      <header class="top-bar">
+        <a href="homepage.html" class="nav-link">← Torna alla Home</a>
+        <a href="../../../frontend-navigator/dist/index.html" class="nav-link">Navigator</a>
+      </header>
+
+      <main class="center-content">
+        <h2 class="subtitle">Accedi al tuo account</h2>
+        
+        <form id="login-form">
+          <div>
+            <label>Username:</label>
+            <input type="text" id="usernameInput" placeholder="Inserisci username" />
+          </div>
+          <br>
+          <div>
+            <label>Password:</label>
+            <input type="password" id="passwordInput" placeholder="Inserisci password" />
+          </div>
+          <br>
+          <button id="eseguiLoginBtn">Entra</button>
+        </form>
+
+        <p id="loginMessage"></p>
+      </main>
+    </div>
+
+    <script>
+const moduloLogin = document.getElementById('login-form');
+      const campoUsername = document.getElementById('usernameInput');
+      const campoPassword = document.getElementById('passwordInput');
+      const messaggioTesto = document.getElementById('loginMessage');
+
+      moduloLogin.addEventListener('submit', function(event) {
+        
+        event.preventDefault();
+
+        const usernameDigitato = campoUsername.value;
+        const passwordDigitata = campoPassword.value;
+
+        if(!usernameDigitato || !passwordDigitata) {
+            messaggioTesto.textContent = "Attenzione: compila tutti i campi!";
+            return;
+        }
+
+        messaggioTesto.textContent = "Connessione al server in corso...";
+
+        const datiDaInviare = {
+          username: usernameDigitato,
+          password: passwordDigitata
+        };
+
+        // ... Da qui in poi il codice della fetch() rimane ESATTAMENTE IDENTICO a prima! ...
+        fetch('http://localhost:8000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(datiDaInviare)
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.token) {
+            // LOGIN RIUSCITO!
+            
+            // 1. Salvo il token nel browser per le chiamate future
+            localStorage.setItem('authToken', data.token);
+            
+            // 2. Prendo il nome utente e lo trasformo in minuscolo per sicurezza
+            const nomeUtente = data.user.username.toLowerCase();
+
+            // 3. Controllo chi è l'utente e lo reindirizzo alla pagina giusta
+            if (nomeUtente.includes('autore')) {
+                messaggioTesto.textContent = "Benvenuto Autore! Reindirizzamento al marketplace...";
+                // Reindirizzo l'autore
+                window.location.href = "marketplace-autore.html"; 
+                
+            } else if (nomeUtente.includes('docente')) {
+                messaggioTesto.textContent = "Benvenuto Docente! Reindirizzamento in corso...";
+                // Reindirizzo il docente
+                window.location.href = "marketplace-docente.html";
+                
+            } else if (nomeUtente.includes('visitatore')) {
+                messaggioTesto.textContent = "Benvenuto Visitatore! Preparo il tuo percorso...";
+                // Reindirizzo il visitatore
+                window.location.href = "marketplace-visitatore.html";
+                
+            } else {
+                // Se è un utente nuovo che non contiene quelle parole nel nome
+                messaggioTesto.textContent = "Benvenuto " + data.user.username + "! Accesso in corso...";
+                window.location.href = "marketplace-generico.html";
+            }
+
+          } else if (data.error) {
+            // ERRORE dal server (es. password errata)
+            messaggioTesto.textContent = "Errore: " + data.error;
+          }
+        })
+        .catch(error => {
+          messaggioTesto.textContent = "Impossibile connettersi al server. Assicurati che sia acceso!";
+          console.error(error);
+        });
+      });
+    </script>
+  </body>
+</html>

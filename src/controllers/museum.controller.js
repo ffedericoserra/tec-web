@@ -14,7 +14,7 @@ const User = require('../models/User');
  */
 exports.list = async (req, res, next) => {
   try {
-    const museums = await Museum.find().select('name slug address description imageUrl theme').sort({ name: 1 });
+    const museums = await Museum.find().select('name slug address description imageUrl').sort({ name: 1 });
     res.json({ museums });
   } catch (error) {
     next(error);
@@ -43,13 +43,16 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { name, address, description, theme, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl } = req.body;
 
     const museum = new Museum({
       name,
       address,
       description,
-      theme,
+      website,
+      email,
+      phone,
+      openingHours,
       mapData,
       pointsOfInterest,
       imageUrl,
@@ -68,11 +71,11 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const { name, address, description, theme, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl } = req.body;
 
     const museum = await Museum.findByIdAndUpdate(
       req.params.id,
-      { name, address, description, theme, mapData, pointsOfInterest, imageUrl },
+      { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl },
       { new: true, runValidators: true }
     );
 
@@ -158,7 +161,18 @@ exports.getContents = async (req, res, next) => {
  */
 exports.createContent = async (req, res, next) => {
   try {
-    const { type, universalId, name, author, year, imageRecognitionUrl, coordinates, qrCode } = req.body;
+    const {
+      type,
+      universalId,
+      name,
+      author,
+      year,
+      imageUrl,
+      imgPath,
+      imageRecognitionUrl,
+      coordinates,
+      qrCode,
+    } = req.body;
 
     // Verify museum exists
     const museum = await Museum.findById(req.params.id);
@@ -173,6 +187,8 @@ exports.createContent = async (req, res, next) => {
       name,
       author,
       year,
+      imageUrl,
+      imgPath,
       imageRecognitionUrl,
       coordinates,
       qrCode,
@@ -180,59 +196,6 @@ exports.createContent = async (req, res, next) => {
     await content.save();
 
     res.status(201).json({ content });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Upload museum logo
- * POST /api/museums/:id/image
- */
-exports.uploadImage = async (req, res, next) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file provided or file type not allowed' });
-    }
-
-    const museum = await Museum.findBySlugOrId(req.params.id);
-    if (!museum) {
-      return res.status(404).json({ error: 'Museum not found' });
-    }
-
-    museum.imageUrl = `/uploads/museums/${req.file.filename}`;
-    await museum.save();
-
-    res.json({ imageUrl: museum.imageUrl });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Upload content display image
- * POST /api/museums/:id/contents/:contentId/image
- */
-exports.uploadContentImage = async (req, res, next) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file provided or file type not allowed' });
-    }
-
-    const museum = await Museum.findBySlugOrId(req.params.id);
-    if (!museum) {
-      return res.status(404).json({ error: 'Museum not found' });
-    }
-
-    const content = await Content.findById(req.params.contentId);
-    if (!content || content.museumId.toString() !== museum._id.toString()) {
-      return res.status(404).json({ error: 'Content not found' });
-    }
-
-    content.imageUrl = `/uploads/contents/${req.file.filename}`;
-    await content.save();
-
-    res.json({ imageUrl: content.imageUrl });
   } catch (error) {
     next(error);
   }
@@ -249,13 +212,18 @@ exports.getVisits = async (req, res, next) => {
       return res.status(404).json({ error: 'Museum not found' });
     }
 
+    const visibleVisits = [{ isPublic: true }];
+    if (req.user?._id) {
+      visibleVisits.push({ creatorId: req.user._id });
+    }
+
     const query = {
       museumId: museum._id,
-      isPublic: true,
+      $or: visibleVisits,
     };
 
     const visits = await Visit.find(query)
-      .select('title slug description imageUrl sequence length type viewCount createdAt')
+      .select('title slug description imageUrl sequence type length isPublic viewCount createdAt creatorId')
       .populate('creatorId', 'username')
       // Only contentId: the navigator's visit list resolves stop names through
       // the museum's contents, so the full Item docs would be dead weight here.

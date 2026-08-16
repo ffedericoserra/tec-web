@@ -1,0 +1,187 @@
+/* ==========================================================================
+   ARTAROUND - HOMEPAGE EDITORIAL STYLES
+   Colors: #710014 (Burgundy), #F2F1ED (Cream), #161616 (Anthracite)
+   Font: Helvetica
+   ========================================================================== */
+
+#artaround-home .hidden { display: none; }
+html { scroll-behavior: smooth; }
+
+#artaround-home {
+    font-family: 'Helvetica', Arial, sans-serif;
+    background-color: #F2F1ED;
+    color: #161616;
+    margin: 0; padding: 0; overflow-x: hidden;
+    padding-top: 80px; 
+}
+
+
+/* --- Hero Section & Grid --- */
+#artaround-home .hero-editorial {
+    background-color: #F2F1ED; position: relative; width: 100%; 
+    height: calc(100vh - 70px); overflow: hidden; 
+    border-bottom: 1px solid rgba(22, 22, 22, 0.15);
+}
+
+#artaround-home .page-grid-lines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+#artaround-home .grid-line { position: absolute; top: 0; bottom: 0; border-right: 1px solid rgba(22, 22, 22, 0.15); }
+#artaround-home .line-25 { left: 25%; }
+#artaround-home .line-50 { left: 50%; }
+#artaround-home .line-75 { left: 75%; }
+
+#artaround-home .scroll-arrow-link {
+    position: absolute; bottom: 30px; left: 50%;
+    transform: translateX(-50%); width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 100; text-decoration: none;
+}
+#artaround-home .scroll-indicator {
+    width: 14px; height: 14px;
+    border-bottom: 2px solid #161616; border-right: 2px solid #161616;
+    transform: rotate(45deg); transition: transform 0.3s, border-color 0.3s;
+}
+#artaround-home .scroll-arrow-link:hover .scroll-indicator { transform: rotate(45deg) translate(5px, 5px); border-color: #710014; }
+
+#artaround-home .shape-circle { position: absolute; border-radius: 50%; mix-blend-mode: multiply; z-index: 1; }
+#artaround-home .circle-small { width: 12vw; height: 12vw; background-color: rgba(113, 0, 20, 0.15); top: 12%; left: 8%; }
+#artaround-home .circle-large { width: 45vw; height: 45vw; background-color: rgba(113, 0, 20, 0.15); top: 50%; right: 2%; transform: translateY(-50%); }
+
+#artaround-home .hero-left-content { position: absolute; left: 0; top: 0; width: 50%; height: 100%; z-index: 10; }
+#artaround-home .hero-text-inner { position: absolute; top: 25%; left: 10vw; width: 45vw; }
+
+#artaround-home .hero-title { font-size: 4.8rem; line-height: 0.95; margin: 0 0 20px 0; letter-spacing: -1px; color: #161616; text-shadow: none; }
+#artaround-home .font-light { color: rgba(22, 22, 22, 0.6); font-weight: 300; }
+#artaround-home .burgundy-text { color: #710014; font-weight: 800; }
+#artaround-home .hero-description { font-size: 1rem; line-height: 1.6; color: #161616; opacity: 0.8; margin-bottom: 40px; }
+
+#artaround-home .hero-actions { display: flex; align-items: center; gap: 40px; }
+#artaround-home .primary-btn { 
+    background: #161616; color: #F2F1ED; padding: 15px 35px; 
+    font-weight: bold; border: none; cursor: pointer; transition: background 0.3s; 
+    text-transform: uppercase; font-size: 0.8rem; border-radius: 4px;
+}
+#artaround-home .primary-btn:hover { background: #710014; }
+
+#artaround-home .hero-meta { display: flex; gap: 30px; font-size: 0.75rem; color: #161616; }
+#artaround-home .hero-meta strong { font-weight: bold; margin-bottom: 5px; display: block; text-transform: uppercase; }
+
+#artaround-home .hero-right-content { position: absolute; right: 0; top: 0; width: 50%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 10; }
+#artaround-home .hero-statue {
+    display: block;
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    object-position: center;
+    filter: grayscale(100%) contrast(1.2);
+}
+#artaround-home .right-vertical { position: absolute; right: 20px; top: 15%; writing-mode: vertical-rl; transform: rotate(180deg); font-size: 0.65rem; letter-spacing: 3px; color: rgba(22,22,22,0.4); text-transform: uppercase; }
+
+/* --- SEZIONE MUSEI --- */
+#artaround-home .museums-section { background-color: #F2F1ED; padding: 80px 10vw; }
+
+#artaround-home .museums-header-editorial {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid #161616; padding-bottom: 15px; margin-bottom: 60px;
+}
+#artaround-home .section-title-new { margin: 0; font-size: 1.1rem; color: #161616; letter-spacing: 3px; font-weight: 800; text-transform: uppercase; }
+
+#artaround-home .museum-search-wrapper { margin: 0; display: flex; flex-direction: column; width: 300px; }
+#artaround-home .search-label { font-size: 0.65rem; font-weight: bold; margin-bottom: 5px; letter-spacing: 2px; color: #161616; text-transform: uppercase; }
+#artaround-home .museum-search-wrapper input {
+    background: transparent; border: none; border-bottom: 1px solid rgba(22,22,22,0.3);
+    padding: 5px 0; font-size: 1.1rem; outline: none; transition: border-color 0.3s; color: #161616;
+}
+#artaround-home .museum-search-wrapper input:focus { border-color: #710014; }
+
+/* --- GRIGLIA CARD MUSEI (Sovrascrittura con !important) --- */
+#artaround-home #destinazioni .modern-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+    gap: 40px; 
+}
+
+#artaround-home .museum-card-image {
+    display: block;
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    object-position: center;
+}
+
+#artaround-home #museum-list .museum-icon,
+#artaround-home #destinazioni .modern-grid > div {
+    background-color: transparent !important; 
+    background: transparent !important;
+    border: none !important; 
+    border-top: 1px solid rgba(22, 22, 22, 0.2) !important; 
+    border-radius: 0 !important; 
+    box-shadow: none !important; 
+    padding: 30px !important; 
+    text-align: left !important;
+    transform: none !important; 
+    display: block !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+}
+
+#artaround-home #museum-list .museum-icon img {
+    display: none !important;
+}
+
+#artaround-home #museum-list .museum-icon h3,
+#artaround-home #destinazioni .modern-grid > div h3 { 
+    color: #161616 !important; 
+    font-size: 1.6rem !important; 
+    margin: 0 0 10px 0 !important; 
+    font-weight: bold !important; 
+    font-family: 'Helvetica', Arial, sans-serif !important;
+    transition: color 0.3s ease !important; 
+}
+
+#artaround-home #museum-list .museum-icon p,
+#artaround-home #destinazioni .modern-grid > div p { 
+    color: rgba(22, 22, 22, 0.6) !important; 
+    font-size: 0.95rem !important; 
+    margin: 0 !important;
+    transition: color 0.3s ease !important; 
+}
+
+#artaround-home #museum-list .museum-icon span,
+#artaround-home #museum-list .museum-icon .badge,
+#artaround-home #destinazioni .modern-grid > div span { 
+    color: #161616 !important; 
+    background: transparent !important; 
+    border: none !important;
+    font-size: 0.75rem !important; 
+    font-weight: 800 !important; 
+    text-transform: uppercase !important; 
+    letter-spacing: 1px !important;
+    display: block !important;
+    margin-bottom: 10px !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    transition: color 0.3s ease !important;
+}
+
+#artaround-home #museum-list .museum-icon:hover,
+#artaround-home #destinazioni .modern-grid > div:hover { 
+    border-top: 1px solid #710014 !important; 
+    background-color: #710014 !important; 
+    transform: none !important; 
+    box-shadow: none !important;
+}
+
+#artaround-home #museum-list .museum-icon:hover h3, 
+#artaround-home #museum-list .museum-icon:hover p,
+#artaround-home #museum-list .museum-icon:hover span,
+#artaround-home #museum-list .museum-icon:hover .badge,
+#artaround-home #destinazioni .modern-grid > div:hover h3,
+#artaround-home #destinazioni .modern-grid > div:hover p,
+#artaround-home #destinazioni .modern-grid > div:hover span { 
+    color: #F2F1ED !important; 
+}
+
+/* Previene che la navbar fissa copra la sezione quando si arriva da un'altra pagina */
+#artaround-home #destinazioni {
+    scroll-margin-top: 100px; /* 80px della navbar + 20px di respiro */
+}

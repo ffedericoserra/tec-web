@@ -77,6 +77,8 @@ function initSocket(httpServer) {
 
         socket.join(`session:${code}`);
         socket.sessionCode = code;
+        const isOwner = session.owner.toString() === socket.userId.toString();
+        if (isOwner) socket.join(`session:${code}:owner`);
 
         // Notify others
         socket.to(`session:${code}`).emit('session:participant-joined', {
@@ -95,6 +97,12 @@ function initSocket(httpServer) {
           messages: session.messages,
           activities: withUsernames(session),
           quizStarted: session.quizStarted,
+          currentStepIndex: session.currentStepIndex,
+          sectionResponses: isOwner
+            ? session.sectionResponses
+            : session.sectionResponses.filter(
+                (response) => response.userId.toString() === socket.userId.toString()
+              ),
         });
       } catch (err) {
         socket.emit('session:error', err.message);
@@ -143,4 +151,10 @@ function emitToSession(code, event, data) {
   }
 }
 
-module.exports = { initSocket, getIO, emitToSession };
+function emitToSessionOwner(code, event, data) {
+  if (io) {
+    io.to(`session:${code}:owner`).emit(event, data);
+  }
+}
+
+module.exports = { initSocket, getIO, emitToSession, emitToSessionOwner };
