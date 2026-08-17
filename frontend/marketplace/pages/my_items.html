@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround - I miei item</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/my_items.css" />
+  </head>
+  <body id="artaround-my-items">
+    <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
+    <main>
+      <section class="items-heading">
+        <span class="kicker">Collezione</span>
+        <h1>I miei item</h1>
+        <p>Parti da un Content del museo per gestire le tue descrizioni e quelle acquistate.</p>
+      </section>
+      <section class="items-workspace">
+        <div class="items-toolbar">
+          <label><span>Museo</span><select id="items-museum-select"><option value="">Tutti i musei</option></select></label>
+          <label><span>Cerca Content</span><input id="content-search" type="search" placeholder="Titolo o autore" /></label>
+        </div>
+        <div id="items-feedback" class="feedback" aria-live="polite">Caricamento contenuti...</div>
+        <div id="contents-grid" class="contents-grid"></div>
+      </section>
+    </main>
+
+    <div id="content-detail" class="detail-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+      <section class="detail-panel">
+        <div class="detail-heading">
+          <div><span class="kicker" id="detail-museum"></span><h2 id="detail-title">Content</h2><p id="detail-author"></p></div>
+          <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi">&times;</button>
+        </div>
+        <div class="detail-tabs" role="tablist">
+          <button class="tab-btn active" data-tab="mine" type="button">My Items</button>
+          <button class="tab-btn" data-tab="purchased" type="button">Purchased Items</button>
+        </div>
+        <div id="items-detail-list" class="items-detail-list"></div>
+      </section>
+    </div>
+
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/my_items.js"></script>
+  </body>
+</html>

@@ -16,8 +16,9 @@ The merge brought in a second, independently written marketplace. Both are kept:
 | URL | `/marketplace` | `/marketplace-v2` |
 | Linked from | navigator header + landing + museum list | nothing |
 | Style | ES modules, shared `api()` wrapper | plain `<script>`, per-file `fetch` |
-| Authors `Visit.blocks` (question sections) | **no** | **yes** |
-| Wallet cost preview when adding items | no | yes |
+| Authors `Visit.blocks` (question sections) | **no** | **no** |
+| Authors final `Visit.quiz` | no | **yes** |
+| Item purchase while adding a visit stop | yes | yes |
 
 Neither is a superset of the other, which is why both survive. **This needs a team decision**, and it is the largest open question in the repo:
 
@@ -25,13 +26,12 @@ Neither is a superset of the other, which is why both survive. **This needs a te
 - promote v2 to `/marketplace` and delete the other, or
 - keep both (current state) and accept two codebases doing one job.
 
-Until it's settled, question sections can only be authored at `/marketplace-v2`, which nothing links to — so in practice a user can't discover that feature.
+The v2 redesign intentionally removed section blocks in favour of one flat sequence. The backend and navigator still support `blocks[].questions`, but neither marketplace currently authors them.
 
 ## 1. Known bugs
 
 | What | Where | Notes |
 |------|-------|-------|
-| `PATCH /api/auth/update` doesn't exist | `frontend/marketplace/scripts/user_profile.js` (v2) calls it | Profile-edit form 404s. `auth.routes.js` has only `register`, `login`, `me`, `wallet`, `favorites`. Either add the route (with a Zod schema + `requireAuth`) or drop the form. |
 | Two marketplace links on `/museums` | navigator `PageHeader` + `Museums.jsx` footer | Header gained `GO TO MARKETPLACE` for every authed page while the museum list already had a footer link. Cosmetic; pick one. |
 | No dirty-state guard on the visit editor | `frontend-marketplace/js/museum.js` | Logout, "Change Museum" and browser-nav silently discard an unpublished draft. |
 
@@ -39,7 +39,7 @@ Until it's settled, question sections can only be authored at `/marketplace-v2`,
 
 - **README.txt is a mandatory deliverable** and doesn't exist yet: group members, architecture, which parts used AI assistance, feature list. Check [SPECS.md](SPECS.md) for the exact required contents.
 - **Seed vs SPECS account mismatch.** The spec asks for `autore1`, `autore2`, `visitatore1`, `visitatore2`; `scripts/seed.js` creates `autore1`, `visitatore1`, `docente1`.
-- **No quiz-authoring UI.** The backend accepts `quiz` on POST/PUT `/visits` and the navigator shows `Start Quiz` on the last step, but **neither** marketplace can write `Visit.quiz`, so only the two seeded didactic visits can reach the quiz screen. Deliberately deferred by the team. (Distinct from question *sections*, `blocks[].questions`, which only the v2 builder authors — see §0.)
+- **The active marketplace has no quiz-authoring UI.** The v2 draft can now write `Visit.quiz` when “Visita di gruppo” is enabled, but `/marketplace` still cannot. This is distinct from question sections (`blocks[].questions`), which neither editor now authors.
 
 ## 3. Extension 2 — not started
 
@@ -60,9 +60,9 @@ The only tier with grading headroom (18–33). Nothing here is stubbed-out-and-h
 
 - **Step-building logic is duplicated** between `frontend-navigator/src/pages/VisitRun.jsx` and `src/controllers/session.controller.js`. Both turn `blocks` + `sequence` into an ordered step list; they must agree or a session desyncs from what the runner draws.
 - **Two marketplaces** (§0) is itself the largest piece of debt.
-- **`create_visit.js` (v2) is ~55 KB in one file** with no module boundaries. Splitting it has to respect the no-bundler constraint.
+- **v2 still uses one plain script per page** with no module boundaries. `create_visit.js` was reduced substantially during the flat-sequence redesign, but shared API/auth helpers remain duplicated.
 - **Helpers duplicated across v2 scripts** (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) because there's no module system in play there.
-- **`alert()` / `confirm()`** are still the feedback mechanism in the v2 visit builder; `create_item.js` has a `showToast()` worth reusing.
+- **`confirm()`** is still used for purchases and destructive actions in v2; `create_item.js` has a `showToast()` worth extracting into a shared helper.
 - **Three localStorage token keys in play** (`token`, `artaround_token`, plus v2's `user` cache). Both marketplaces and the navigator now read and write compatibly, but it's one key too many; collapse to `token` once nothing depends on the legacy name.
 - **Stale logistic text after a sequence reorder.** `nextDirections` belongs to the transition but travels with its entry, so reordering can produce directions written for a different neighbour. Editorial problem, not a code fix — documented in NAVIGATOR.md §8.4 and MARKETPLACE.md.
 

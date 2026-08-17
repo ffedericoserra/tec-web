@@ -1,0 +1,41 @@
+:root { --cream:#f2f1ed; --ink:#161616; --burgundy:#710014; --line:rgba(22,22,22,.18); }
+* { box-sizing:border-box; }
+#artaround-my-items { margin:0; padding-top:80px; min-height:100vh; background:var(--cream); color:var(--ink); font-family:Helvetica,Arial,sans-serif; }
+.hidden { display:none !important; }
+.items-heading { padding:85px 10vw 65px; border-bottom:1px solid var(--line); background:linear-gradient(115deg,transparent 58%,rgba(113,0,20,.1)); }
+.kicker,.items-toolbar label span { color:var(--burgundy); font-size:.7rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
+.items-heading h1 { margin:10px 0 18px; font-size:clamp(3rem,7vw,5.8rem); line-height:.95; }
+.items-heading p { max-width:650px; margin:0; color:rgba(22,22,22,.65); font-size:1.05rem; line-height:1.6; }
+.items-workspace { padding:50px 10vw 90px; }
+.items-toolbar { display:grid; grid-template-columns:1fr 1fr; gap:30px; padding-bottom:22px; border-bottom:2px solid var(--ink); }
+.items-toolbar label { display:grid; gap:8px; }
+.items-toolbar select,.items-toolbar input { padding:12px 0; border:0; border-bottom:1px solid var(--ink); background:transparent; font:inherit; }
+.feedback { min-height:45px; padding:15px 0; color:rgba(22,22,22,.62); }
+.feedback.is-error { color:var(--burgundy); }
+.contents-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:18px; }
+.content-card { display:flex; min-height:310px; flex-direction:column; padding:0; border:1px solid var(--line); background:rgba(255,255,255,.25); color:inherit; text-align:left; cursor:pointer; transition:none; }
+.content-card:hover { transform:none; box-shadow:none; border-color:var(--ink); }
+.content-card img { width:100%; height:190px; object-fit:contain; background:rgba(255,255,255,.35); }
+.content-card-copy { display:grid; gap:7px; padding:18px; }
+.content-card-copy strong { font-size:1.15rem; }
+.content-card-copy span { color:rgba(22,22,22,.6); font-size:.82rem; }
+.empty-state { grid-column:1/-1; padding:35px; border:1px dashed var(--line); text-align:center; }
+.detail-overlay { position:fixed; inset:0; z-index:3000; display:flex; justify-content:flex-end; background:rgba(0,0,0,.55); }
+.detail-panel { width:min(720px,100%); height:100%; overflow:auto; padding:42px; background:var(--cream); }
+.detail-heading { display:flex; justify-content:space-between; gap:20px; }
+.detail-heading h2 { margin:9px 0; font-size:2.5rem; }
+.detail-heading p { color:rgba(22,22,22,.62); }
+.icon-btn { width:42px; height:42px; border:1px solid var(--line); background:transparent; font-size:1.4rem; cursor:pointer; }
+.detail-tabs { display:flex; gap:24px; margin-top:35px; border-bottom:1px solid var(--line); }
+.tab-btn { padding:14px 0; border:0; border-bottom:3px solid transparent; background:transparent; font-weight:800; text-transform:uppercase; cursor:pointer; }
+.tab-btn.active { color:var(--burgundy); border-color:var(--burgundy); }
+.items-detail-list { display:grid; gap:14px; margin-top:25px; }
+.item-row { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; align-items:center; padding:20px; border:1px solid var(--line); }
+.item-row h3 { margin:0 0 7px; }
+.item-row p { margin:0; color:rgba(22,22,22,.62); }
+.item-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.primary-btn,.secondary-btn,.danger-btn { border:1px solid var(--ink); padding:11px 15px; background:transparent; color:var(--ink); font-size:.74rem; font-weight:800; text-transform:uppercase; text-decoration:none; cursor:pointer; }
+.primary-btn { background:var(--ink); color:var(--cream); }
+.danger-btn { border-color:var(--burgundy); color:var(--burgundy); }
+.available-heading { display:flex; justify-content:space-between; align-items:center; margin-top:25px; }
+@media(max-width:720px){#artaround-my-items{padding-top:128px}.items-heading,.items-workspace{padding-left:22px;padding-right:22px}.items-toolbar{grid-template-columns:1fr}.detail-panel{padding:25px}.item-row{grid-template-columns:1fr}.item-actions{justify-content:flex-start}}

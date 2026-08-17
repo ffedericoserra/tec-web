@@ -77,7 +77,8 @@ header.editorial-nav .nav-auth a {
 }
 
 /* Il link attivo con la riga bordeaux (sovrascrive l'oro di styles.css) */
-header.editorial-nav .nav-links a.active {
+header.editorial-nav .nav-links a.active,
+header.editorial-nav .nav-auth a.active {
     color: #710014 !important;
     border-bottom: 2px solid #710014 !important;
     padding-bottom: 5px !important;
@@ -116,5 +117,24 @@ header.editorial-nav .nav-auth {
 
     header.editorial-nav .nav-auth {
         gap: 14px;
+    }
+}
+
+@media (max-width: 720px) {
+    header.top-nav.editorial-nav {
+        height: auto !important;
+        min-height: 80px;
+    }
+
+    header.editorial-nav .nav-wrapper {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+    }
+
+    header.editorial-nav .nav-links {
+        order: 3;
+        flex-basis: 100%;
+        padding-bottom: 4px;
     }
 }

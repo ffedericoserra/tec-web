@@ -160,7 +160,7 @@ Search + 4-column grid of museum contents (image / name / type+author / **Create
 
 - **No dirty-state guard** on Change Museum / logout / browser-nav (§6.1).
 - **No quiz-authoring UI.** The backend accepts `quiz` on POST/PUT `/visits` and the navigator shows `Start Quiz` on the last step, but nothing here writes `Visit.quiz`, so only seeded visits reach the quiz screen. Deliberately deferred.
-- **This editor doesn't write `Visit.blocks`** (question sections). Visits authored here have an empty `blocks`, and the navigator falls back to one step per `sequence` entry — a supported path, but it means question sections can only be authored in v2.
+- **This editor doesn't write `Visit.blocks`** (question sections). Visits authored here have an empty `blocks`, and the navigator falls back to one step per `sequence` entry — a supported path. The v2 draft now uses the same flat-sequence approach, so question sections currently have no authoring UI.
 - Polish ideas, not blocking: inline wallet balance in the chooser, preview-before-buy on marketplace rows.
 - Full backlog in [TBD.md](TBD.md).
 
@@ -174,14 +174,18 @@ Differences that matter if you work on it:
 
 - **Plain `<script>` tags, not modules**, and no shared `api()` wrapper — each script has its own `myApi` constant and calls `fetch` directly. Helpers (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) are duplicated across files because there's no module system in play.
 - **Fully static**: the whole directory is mounted, so URLs carry real paths and `.html` extensions (`/marketplace-v2/pages/visits_list.html?museumId=...`). Adding a page means adding a file.
-- **State passes between pages in the query string** — `museumId`, `museumName`, `visitId`, `contentId`, `itemId`. `create_visit.js` also parks work-in-progress in `sessionStorage` under `temp_visit_state`.
-- Pages: `homepage`, `login`, `register`, `about`, `visits_list`, `create_visits`, `create_items`, `add_museum`, `user_profile`. `navbar.js` loads on all of them and toggles `.guest-only` / `.user-only` on token presence — a display convenience, not a guard.
-- **It authors `Visit.blocks`** — artwork sections *and* question sections — which is the one capability the active marketplace lacks. `type` is derived: any question makes a visit `synchronized`. The payload carries `sequence` and `blocks` together and they must stay consistent (see [SCHEMA.md](SCHEMA.md)).
-- Its visit builder previews the wallet cost of adding items and blocks unaffordable ones.
-- ⚠️ **`user_profile.js` calls `PATCH /api/auth/update`, which does not exist** — profile editing 404s. See [TBD.md](TBD.md).
+- **State passes between pages in the query string** — `museumId`, `museumName`, `visitId`, `contentId`, `itemId`, `source`. The visit editor parks a draft in `sessionStorage` under `marketplace_v2_visit_draft` before opening the Item editor.
+- Pages: `homepage`, `login`, `register`, `about`, `visits_list`, `create_visits`, `my_items`, `create_items`, `user_profile`. The old museum grid and add-museum page were removed. `navbar.js` renders the shared navigation on every page: **Le mie visite / I miei item / About us / Navigator / Account / Log in-out**.
+- The homepage is now only a landing page. Museum selection happens inside **Le mie visite**, where it filters `GET /visits/my`, and inside **I miei item**, where it filters the base Content grid.
+- The visit editor writes one flat `sequence` and always clears `blocks`. Adding an entry is a two-step **Content → Item** choice; owned and purchased Item can be selected, while a public Item can be bought inline. Reordering uses explicit up/down controls and preserves per-entry route directions.
+- Enabling **Visita di gruppo** sets `type: synchronized` and reveals the final multiple-choice quiz editor (`Visit.quiz`). This is distinct from the removed question-section/block UI.
+- **I miei item** starts from the Content grid and opens two views: authored Item (create/edit/delete) and purchased Item, with an expandable marketplace list for additional purchases. Content cards deliberately have no hover movement animation.
+- `user_profile` is now account-only (identity and wallet recharge); visits no longer appear there. The removed profile-edit form no longer calls the nonexistent `PATCH /auth/update`.
 - It writes only `localStorage.token` + `user`, so a login there is picked up by the active marketplace (which reads both keys) but not vice-versa in the `user` cache — harmless, since both re-fetch `/auth/me`.
 
 Decide eventually whether to fold v2's question-section authoring into the active marketplace or promote v2; carrying both indefinitely is the current, deliberate compromise.
+
+The colleague-facing Italian summary of this first draft is in [MARKETPLACE_V2_DRAFT_RECAP_IT.md](MARKETPLACE_V2_DRAFT_RECAP_IT.md).
 
 ---
 

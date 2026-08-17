@@ -1,57 +1,51 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Controlliamo se l'utente ha il token di accesso
-    const token = localStorage.getItem("token");
-    
-    // Selezioniamo i gruppi di link
-    const guestLinks = document.querySelectorAll('.guest-only');
-    const userLinks = document.querySelectorAll('.user-only');
+document.addEventListener("DOMContentLoaded", () => {
+    const token = localStorage.getItem("token") || localStorage.getItem("artaround_token");
+    const wrapper = document.querySelector(".editorial-nav .nav-wrapper");
+    if (!wrapper) return;
 
-    // 2. LOGICA DI SCAMBIO VISUALIZZAZIONE
-    if (token) {
-        // Utente LOGGATO: Nascondiamo Login/Sign-up, Mostriamo Account/Logout
-        guestLinks.forEach(link => link.classList.add('hidden'));
-        userLinks.forEach(link => link.classList.remove('hidden'));
-    } else {
-        // Utente SLOGGATO: Mostriamo Login/Sign-up, Nascondiamo Account/Logout
-        guestLinks.forEach(link => link.classList.remove('hidden'));
-        userLinks.forEach(link => link.classList.add('hidden'));
-    }
+    const page = window.location.pathname.split("/").pop();
+    const activePage = page === "create_visits.html" ? "visits_list.html"
+        : page === "create_items.html" ? "my_items.html"
+            : page;
+    const links = [
+        ["visits_list.html", "Le mie visite"],
+        ["my_items.html", "I miei item"],
+        ["about.html", "About us"],
+        ["/frontend-navigator/dist/index.html", "Navigator"]
+    ];
 
-    // 3. GESTIONE DEL TASTO "LOG OUT"
-    const logoutBtn = document.getElementById('logout-btn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            localStorage.removeItem("token"); // Cancelliamo il passaporto
-            localStorage.removeItem("artaround_token");
-            window.location.href = "homepage.html"; // Lo rimandiamo alla home pubblica
-        });
-    }
+    wrapper.innerHTML = `
+        <a href="homepage.html" class="brand" aria-label="ArtAround home">
+            <span class="logo-text">A&alpha;</span>
+        </a>
+        <ul class="nav-links">
+            ${links.map(([href, label]) => `
+                <li><a href="${href}"${activePage === href ? ' class="active"' : ""}>${label}</a></li>
+            `).join("")}
+        </ul>
+        <div class="nav-auth-wrapper">
+            <ul class="nav-auth">
+                <li><a href="user_profile.html"${activePage === "user_profile.html" ? ' class="active"' : ""}>Account</a></li>
+                <li><a href="${token ? "#" : "login.html"}" id="${token ? "logout-btn" : "login-link"}">${token ? "Log out" : "Log in"}</a></li>
+            </ul>
+        </div>
+    `;
 
-    // 4. PROTEZIONE "ADD A MUSEUM"
-    const addMuseumBtn = document.getElementById('nav-add-museum');
-    if (addMuseumBtn) {
-        addMuseumBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            if (!token) {
-                alert("È necessario effettuare il login per aggiungere un museo.");
-                window.location.href = "login.html";
-            } else {
-                // SE E' LOGGATO: Qui decidi cosa fare. 
-                // Se usi un modale, rimuovi la classe hidden al modale:
-                // document.getElementById('add-museum-modal').classList.remove('hidden');
-                
-                // Se usi una pagina dedicata (come sembra dallo schema):
-                window.location.href = "add_museum.html"; 
-            }
-        });
-    }
+    document.getElementById("logout-btn")?.addEventListener("click", (event) => {
+        event.preventDefault();
+        clearAuth();
+        window.location.href = "homepage.html";
+    });
 });
 
-function handleLogout() {
+function clearAuth() {
     localStorage.removeItem("token");
     localStorage.removeItem("artaround_token");
+    localStorage.removeItem("artaround_user");
     localStorage.removeItem("user");
-    window.location.href = "login.html";
+}
+
+function handleLogout() {
+    clearAuth();
+    window.location.href = "homepage.html";
 }

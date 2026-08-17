@@ -13,6 +13,7 @@ if (!token) window.location.href = "login.html";
 const urlParams = new URLSearchParams(window.location.search);
 let activeItemId = urlParams.get('itemId'); 
 let viewedItemId = activeItemId;
+const sourcePage = urlParams.get('source') || 'my-items';
 const museumId = urlParams.get('museumId');
 const museumName = urlParams.get('museumName') || 'Sconosciuto';
 const visitId = urlParams.get('visitId');
@@ -33,9 +34,16 @@ function resolveAssetUrl(path) {
 }
 
 function getVisitBuilderUrl() {
+    if (sourcePage === 'my-items') {
+        const params = new URLSearchParams();
+        if (originalContentId) params.set('contentId', originalContentId);
+        return `my_items.html${params.toString() ? `?${params.toString()}` : ''}`;
+    }
+
     const params = new URLSearchParams({
         museumId: museumId,
-        museumName: museumName
+        museumName: museumName,
+        resume: '1'
     });
 
     if (visitId) params.set('visitId', visitId);
@@ -159,7 +167,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeItemId) {
         await caricaTestiDaDB(activeItemId);
-        document.getElementById('dropdown-selected-text').textContent = "Modificando il tuo Item selezionato";
     }
 
     // Carichiamo le varianti della community solo per QUESTO contentId
@@ -258,6 +265,7 @@ document.getElementById('btn-create-new').addEventListener('click', () => {
     viewedItemId = null;
     document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
     document.getElementById('btn-delete-item').classList.add('hidden'); 
+    document.getElementById('btn-save-exit').classList.remove('hidden');
     dropdownMenu.classList.add('hidden');
 });
 
@@ -392,10 +400,16 @@ async function caricaTestiDaDB(idToLoad) {
         if (currentItem.year) document.getElementById('item-anno').value = currentItem.year;
 
         document.getElementById('btn-delete-item').classList.toggle('hidden', !currentItem.isOwned);
+        document.getElementById('btn-save-exit').classList.toggle('hidden', !currentItem.isOwned);
         document.getElementById('btn-purchase-item').classList.toggle(
             'hidden',
             currentItem.isOwned || currentItem.isPurchased || !currentItem.isPublic
         );
+        document.getElementById('dropdown-selected-text').textContent = currentItem.isOwned
+            ? 'Modificando il tuo Item selezionato'
+            : currentItem.isPurchased
+                ? 'Visualizzando un Item acquistato'
+                : 'Visualizzando un Item disponibile';
         
         let creatorName = "Utente Ignoto";
         if (currentItem.creatorId && currentItem.creatorId.username) creatorName = currentItem.creatorId.username;
