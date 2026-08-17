@@ -6,5 +6,5 @@ export function isAuthenticated() {
 
 export function logout() {
   clearToken();
-  window.location.replace('/marketplace');
+  window.location.replace('/marketplace-fede-old');
 }

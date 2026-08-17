@@ -99,13 +99,13 @@ Request flow: `route → validate(zodSchema) → requireAuth → controller → 
 
 ### Marketplace
 
-Vanilla HTML / CSS / ES modules, no framework (per project constraints). Lives in `frontend-marketplace/`, served by Express under the `/marketplace` route. Pages: login, museum grid, single-museum (My Visits with a stage-and-publish editor, Add Items grid, marketplace purchase flow). Uses the same JWT in `localStorage` as the navigator.
+Vanilla HTML / CSS / JavaScript, no framework (per project constraints). Lives in `frontend/marketplace/`, served by Express under `/marketplace`. Pages: landing, Le mie visite, flat visit editor with group quiz, I miei item, Item editor and Account. Uses the same JWT in `localStorage` as the navigator.
 
-A second, independently written marketplace lives in `frontend/marketplace/` and is served at `/marketplace-v2`. Nothing links to it; it is kept reachable rather than discarded, and it is the only place that authors question sections (`Visit.blocks`). See [docs/MARKETPLACE.md](docs/MARKETPLACE.md) §9.
+The previous independently written marketplace lives in `frontend-marketplace/` and remains reachable at `/marketplace-fede-old`. See [docs/MARKETPLACE.md](docs/MARKETPLACE.md) §1–§8.
 
 ### Navigator
 
-React 18 + Vite SPA, plain JS (no TypeScript). Lives in `frontend-navigator/`, built into `dist/` and served by Express on every route not owned by `/api`, `/marketplace`, or `/uploads`. Mobile-first; same JWT and same `/api` endpoints as the marketplace. See [docs/NAVIGATOR.md](docs/NAVIGATOR.md) for the full developer guide.
+React 18 + Vite SPA, plain JS (no TypeScript). Lives in `frontend-navigator/`, built into `dist/` and served by Express on every route not owned by `/api`, either marketplace prefix, or `/uploads`. Mobile-first; same JWT and same `/api` endpoints as the marketplace. See [docs/NAVIGATOR.md](docs/NAVIGATOR.md) for the full developer guide.
 
 ## Structure
 
@@ -133,12 +133,12 @@ src/                           # Backend (Node + Express + Mongoose)
 ├── schemas/                   # Zod validation schemas
 ├── middleware/                # auth.js, validate.js, errorHandler.js
 └── services/                  # socketService (real-time session sync), itemPurchaseService (wallet), aiService (Extension 2 stub)
-frontend-marketplace/          # Marketplace (vanilla JS, ES modules) — served at /marketplace
+frontend-marketplace/          # Previous marketplace — served at /marketplace-fede-old
 ├── pages/                     # home.html, museums.html, museum.html
 ├── css/                       # base.css (tokens) + one per page
 ├── js/                        # api.js, auth.js, profile.js + one per page
 └── assets/
-frontend/marketplace/          # Parked 2nd marketplace — served at /marketplace-v2
+frontend/marketplace/          # Active marketplace — served at /marketplace
 ├── pages/                     # homepage, login, register, visits_list, create_visits, ...
 ├── scripts/                   # Page-specific scripts (plain <script>, not modules)
 ├── stylesheets/

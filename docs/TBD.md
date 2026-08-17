@@ -6,27 +6,21 @@ Last reviewed: 2026-08-17 (after merging `mazzo-navigator` into `fede-frontends`
 
 ---
 
-## 0. The big open decision: two marketplaces
+## 0. Two marketplace implementations
 
-The merge brought in a second, independently written marketplace. Both are kept:
+The repository still carries two independently written implementations, but the serving decision is now settled:
 
-| | Active | Parked |
+| | Active | Previous |
 |---|---|---|
-| Directory | `frontend-marketplace/` | `frontend/marketplace/` |
-| URL | `/marketplace` | `/marketplace-v2` |
-| Linked from | navigator header + landing + museum list | nothing |
-| Style | ES modules, shared `api()` wrapper | plain `<script>`, per-file `fetch` |
+| Directory | `frontend/marketplace/` | `frontend-marketplace/` |
+| URL | `/marketplace` | `/marketplace-fede-old` |
+| Linked from | navigator header + landing + museum list | direct URL only |
+| Style | plain `<script>`, per-file `fetch` | ES modules, shared `api()` wrapper |
 | Authors `Visit.blocks` (question sections) | **no** | **no** |
-| Authors final `Visit.quiz` | no | **yes** |
+| Authors final `Visit.quiz` | **yes** | no |
 | Item purchase while adding a visit stop | yes | yes |
 
-Neither is a superset of the other, which is why both survive. **This needs a team decision**, and it is the largest open question in the repo:
-
-- fold v2's question-section authoring into the active marketplace and delete v2, or
-- promote v2 to `/marketplace` and delete the other, or
-- keep both (current state) and accept two codebases doing one job.
-
-The v2 redesign intentionally removed section blocks in favour of one flat sequence. The backend and navigator still support `blocks[].questions`, but neither marketplace currently authors them.
+New marketplace work belongs in `frontend/marketplace/`. The old version survives for comparison and rollback, which is still technical debt, but there is no longer ambiguity about which one `/marketplace` serves. The active redesign intentionally uses one flat sequence; the backend and navigator still support `blocks[].questions`, but neither marketplace currently authors them.
 
 ## 1. Known bugs
 
@@ -39,7 +33,7 @@ The v2 redesign intentionally removed section blocks in favour of one flat seque
 
 - **README.txt is a mandatory deliverable** and doesn't exist yet: group members, architecture, which parts used AI assistance, feature list. Check [SPECS.md](SPECS.md) for the exact required contents.
 - **Seed vs SPECS account mismatch.** The spec asks for `autore1`, `autore2`, `visitatore1`, `visitatore2`; `scripts/seed.js` creates `autore1`, `visitatore1`, `docente1`.
-- **The active marketplace has no quiz-authoring UI.** The v2 draft can now write `Visit.quiz` when “Visita di gruppo” is enabled, but `/marketplace` still cannot. This is distinct from question sections (`blocks[].questions`), which neither editor now authors.
+- **Question sections have no authoring UI.** The active marketplace can write the final `Visit.quiz` when “Visita di gruppo” is enabled, but neither editor writes question sections (`blocks[].questions`).
 
 ## 3. Extension 2 — not started
 
@@ -60,9 +54,9 @@ The only tier with grading headroom (18–33). Nothing here is stubbed-out-and-h
 
 - **Step-building logic is duplicated** between `frontend-navigator/src/pages/VisitRun.jsx` and `src/controllers/session.controller.js`. Both turn `blocks` + `sequence` into an ordered step list; they must agree or a session desyncs from what the runner draws.
 - **Two marketplaces** (§0) is itself the largest piece of debt.
-- **v2 still uses one plain script per page** with no module boundaries. `create_visit.js` was reduced substantially during the flat-sequence redesign, but shared API/auth helpers remain duplicated.
-- **Helpers duplicated across v2 scripts** (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) because there's no module system in play there.
-- **`confirm()`** is still used for purchases and destructive actions in v2; `create_item.js` has a `showToast()` worth extracting into a shared helper.
+- **The active marketplace still uses one plain script per page** with no module boundaries. `create_visit.js` was reduced substantially during the flat-sequence redesign, but shared API/auth helpers remain duplicated.
+- **Helpers duplicated across active marketplace scripts** (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) because there's no module system in play there.
+- **`confirm()`** is still used for purchases and destructive actions in the active marketplace; `create_item.js` has a `showToast()` worth extracting into a shared helper.
 - **Three localStorage token keys in play** (`token`, `artaround_token`, plus v2's `user` cache). Both marketplaces and the navigator now read and write compatibly, but it's one key too many; collapse to `token` once nothing depends on the legacy name.
 - **Stale logistic text after a sequence reorder.** `nextDirections` belongs to the transition but travels with its entry, so reordering can produce directions written for a different neighbour. Editorial problem, not a code fix — documented in NAVIGATOR.md §8.4 and MARKETPLACE.md.
 

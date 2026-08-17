@@ -2,7 +2,7 @@ import { api, setToken, setCachedUser } from './api.js';
 import { isAuthenticated } from './auth.js';
 
 if (isAuthenticated()) {
-  window.location.replace('/marketplace/museums');
+  window.location.replace('/marketplace-fede-old/museums');
 } else {
   initLogin();
 }
@@ -42,7 +42,7 @@ function initLogin() {
       });
       setToken(token);
       setCachedUser(user);
-      window.location.replace('/marketplace/museums');
+      window.location.replace('/marketplace-fede-old/museums');
     } catch (err) {
       errorEl.textContent = err.status === 401 ? 'Invalid username or password.' : err.message;
       submitBtn.disabled = false;

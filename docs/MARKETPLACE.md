@@ -2,13 +2,13 @@
 
 The authoring side of ArtAround: where a user browses museums, writes **items** (the descriptive texts attached to an artwork), assembles them into **visits**, and buys other people's items. The navigator ([NAVIGATOR.md](NAVIGATOR.md)) then *runs* those visits.
 
-> **There are two marketplace implementations in this repo.** The one documented in §1–§8 is the active one, served at `/marketplace`. A second, independently written implementation is parked at `/marketplace-v2` — see §9. Nothing links to v2; it is reachable only by typing the URL.
+> **There are two marketplace implementations in this repo.** The active one lives in `frontend/marketplace/`, is served at `/marketplace`, and is documented in §9. The previous implementation in `frontend-marketplace/` remains available at `/marketplace-fede-old` and is documented in §1–§8.
 
 This doc is the source of truth for anyone picking up marketplace work. If you change the marketplace, update this file in the same place the change lands.
 
 ---
 
-## 1. Tech stack
+## 1. Previous implementation: tech stack
 
 Vanilla HTML / CSS / **ES modules**. No framework, no bundler, no build step — a hard project constraint (see [SPECS.md](SPECS.md)), not a preference. Web Components / Alpine / HTMX would be permitted; none are used.
 
@@ -24,9 +24,9 @@ Vanilla HTML / CSS / **ES modules**. No framework, no bundler, no build step —
 ```
 frontend-marketplace/
 ├── pages/          # one HTML file per route
-│   ├── home.html       # /marketplace                      (no-login landing)
-│   ├── museums.html    # /marketplace/museums              (logged-in museum grid)
-│   └── museum.html     # /marketplace/museums/:slug        (single museum)
+│   ├── home.html       # /marketplace-fede-old                      (no-login landing)
+│   ├── museums.html    # /marketplace-fede-old/museums              (logged-in museum grid)
+│   └── museum.html     # /marketplace-fede-old/museums/:slug        (single museum)
 ├── css/
 │   ├── base.css        # tokens + resets, imported by every page
 │   ├── home.css
@@ -48,12 +48,12 @@ frontend-marketplace/
 
 ```js
 const marketplaceDir = path.join(__dirname, "..", "frontend-marketplace")
-app.use("/marketplace/css",    express.static(path.join(marketplaceDir, "css")))
-app.use("/marketplace/js",     express.static(path.join(marketplaceDir, "js")))
-app.use("/marketplace/assets", express.static(path.join(marketplaceDir, "assets")))
-app.get("/marketplace",                  (req, res) => res.sendFile(".../pages/home.html"))
-app.get("/marketplace/museums",          (req, res) => res.sendFile(".../pages/museums.html"))
-app.get("/marketplace/museums/:slug",    (req, res) => res.sendFile(".../pages/museum.html"))
+app.use("/marketplace-fede-old/css",    express.static(path.join(marketplaceDir, "css")))
+app.use("/marketplace-fede-old/js",     express.static(path.join(marketplaceDir, "js")))
+app.use("/marketplace-fede-old/assets", express.static(path.join(marketplaceDir, "assets")))
+app.get("/marketplace-fede-old",                  (req, res) => res.sendFile(".../pages/home.html"))
+app.get("/marketplace-fede-old/museums",          (req, res) => res.sendFile(".../pages/museums.html"))
+app.get("/marketplace-fede-old/museums/:slug",    (req, res) => res.sendFile(".../pages/museum.html"))
 ```
 
 **One new page = one new `app.get` line + one HTML file in `pages/`.** The three static mounts already cover css/js/assets. URLs are clean (no `.html`), and the slug is parsed client-side from `window.location.pathname`.
@@ -67,9 +67,9 @@ This block sits before the navigator's catch-all, whose regex excludes anything 
 JWT in `localStorage`, no server-side session. Guards are client-side redirects.
 
 - **Three keys**, all owned by `js/api.js`: `token` and `artaround_token` (the JWT, written to *both*) and `artaround_user` (cached user).
-- **Why two token keys:** the navigator and the v2 pages settled on `token`; this app shipped with `artaround_token`. `getToken()` reads either and `setToken()` writes both, so a login anywhere carries over. More importantly `clearToken()` removes both (plus v2's `user`) — otherwise logging out here would leave the navigator still holding a valid token.
-- `home.js` — if `isAuthenticated()` on load → `replace('/marketplace/museums')`. Otherwise wires the login dialog: `POST /auth/login` → `setToken()` + `setCachedUser()` → redirect.
-- `museums.js` — if not authenticated → `replace('/marketplace')`. Else `GET /auth/me` + `GET /museums` in parallel. Any 401 triggers `logout()`.
+- **Why two token keys:** the navigator and the active marketplace pages settled on `token`; this previous implementation shipped with `artaround_token`. `getToken()` reads either and `setToken()` writes both, so a login anywhere carries over. More importantly `clearToken()` removes both (plus the active marketplace's `user`) — otherwise logging out here would leave the navigator still holding a valid token.
+- `home.js` — if `isAuthenticated()` on load → `replace('/marketplace-fede-old/museums')`. Otherwise wires the login dialog: `POST /auth/login` → `setToken()` + `setCachedUser()` → redirect.
+- `museums.js` — if not authenticated → `replace('/marketplace-fede-old')`. Else `GET /auth/me` + `GET /museums` in parallel. Any 401 triggers `logout()`.
 
 ### The `api()` contract
 
@@ -77,16 +77,16 @@ JWT in `localStorage`, no server-side session. Guards are client-side redirects.
 
 ---
 
-## 5. Museums page (`/marketplace/museums`)
+## 5. Museums page (`/marketplace-fede-old/museums`)
 
 - Default tab **All Museums**; **Saved Museums** filters client-side against the user's `savedMuseums` (from `/auth/me`).
 - Save toggle is a heart top-right of each card. Optimistic update, `POST`/`DELETE /museums/:id/save`, reverts on failure.
 - Search filters client-side (case-insensitive `name` includes) — the museum count is tiny, so no server-side query.
-- Card click → `/marketplace/museums/:slug`. Profile circle comes from `js/profile.js`.
+- Card click → `/marketplace-fede-old/museums/:slug`. Profile circle comes from `js/profile.js`.
 
 ---
 
-## 6. Single-museum page (`/marketplace/museums/:slug`)
+## 6. Single-museum page (`/marketplace-fede-old/museums/:slug`)
 
 The whole visit editor. Read this before changing it.
 
@@ -152,7 +152,7 @@ Search + 4-column grid of museum contents (image / name / type+author / **Create
 - **Auth-guard ordering.** Declare module-level `state`/`els` and all `function` declarations first, then put the `if (!isAuthenticated()) replace(...) else init()` block at the **bottom** of the file. Function declarations hoist; `const`s don't, so calling `init()` early throws a TDZ `ReferenceError` and silently breaks the page.
 - **Use `js/profile.js → mountProfile(user)`** after fetching `/auth/me`. The page must include the standard markup (ids `profileBtn`, `profileMenu`, `profileAvatar`, `profileUsername`, `logoutBtn`).
 - **Images come from `Content.imageUrl`**, filled by `scripts/load-museum.js` from `uploads/contents/<universalId>.<ext>`. Never guess image paths client-side.
-- The brand text is a link back to `/marketplace/museums` on the museum page (useful from a deep link) but a static label on the museums page.
+- The brand text is a link back to `/marketplace-fede-old/museums` on the museum page (useful from a deep link) but a static label on the museums page.
 
 ---
 
@@ -160,20 +160,20 @@ Search + 4-column grid of museum contents (image / name / type+author / **Create
 
 - **No dirty-state guard** on Change Museum / logout / browser-nav (§6.1).
 - **No quiz-authoring UI.** The backend accepts `quiz` on POST/PUT `/visits` and the navigator shows `Start Quiz` on the last step, but nothing here writes `Visit.quiz`, so only seeded visits reach the quiz screen. Deliberately deferred.
-- **This editor doesn't write `Visit.blocks`** (question sections). Visits authored here have an empty `blocks`, and the navigator falls back to one step per `sequence` entry — a supported path. The v2 draft now uses the same flat-sequence approach, so question sections currently have no authoring UI.
+- **This editor doesn't write `Visit.blocks`** (question sections). Visits authored here have an empty `blocks`, and the navigator falls back to one step per `sequence` entry — a supported path. The active marketplace uses the same flat-sequence approach, so question sections currently have no authoring UI.
 - Polish ideas, not blocking: inline wallet balance in the chooser, preview-before-buy on marketplace rows.
 - Full backlog in [TBD.md](TBD.md).
 
 ---
 
-## 9. The parked implementation (`/marketplace-v2`)
+## 9. Active implementation (`/marketplace`)
 
-A second, independently written marketplace lives in `frontend/marketplace/` and is served at `/marketplace-v2`. It arrived on the `mazzo-navigator` branch, which had deleted `frontend-marketplace/`; the merge into `fede-frontends` restored the original and parked this one rather than discarding either. **Nothing links to it.**
+The active marketplace lives in `frontend/marketplace/` and is served at `/marketplace`. It arrived as an independently written implementation and was later redesigned around the author workflows described below. The Navigator marketplace links now open this version; the previous implementation remains at `/marketplace-fede-old`.
 
 Differences that matter if you work on it:
 
 - **Plain `<script>` tags, not modules**, and no shared `api()` wrapper — each script has its own `myApi` constant and calls `fetch` directly. Helpers (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) are duplicated across files because there's no module system in play.
-- **Fully static**: the whole directory is mounted, so URLs carry real paths and `.html` extensions (`/marketplace-v2/pages/visits_list.html?museumId=...`). Adding a page means adding a file.
+- **Fully static**: the whole directory is mounted, so URLs carry real paths and `.html` extensions (`/marketplace/pages/visits_list.html?museumId=...`). Adding a page means adding a file.
 - **State passes between pages in the query string** — `museumId`, `museumName`, `visitId`, `contentId`, `itemId`, `source`. The visit editor parks a draft in `sessionStorage` under `marketplace_v2_visit_draft` before opening the Item editor.
 - Pages: `homepage`, `login`, `register`, `about`, `visits_list`, `create_visits`, `my_items`, `create_items`, `user_profile`. The old museum grid and add-museum page were removed. `navbar.js` renders the shared navigation on every page: **Le mie visite / I miei item / About us / Navigator / Account / Log in-out**.
 - The homepage is now only a landing page. Museum selection happens inside **Le mie visite**, where it filters `GET /visits/my`, and inside **I miei item**, where it filters the base Content grid.
@@ -183,9 +183,9 @@ Differences that matter if you work on it:
 - `user_profile` is now account-only (identity and wallet recharge); visits no longer appear there. The removed profile-edit form no longer calls the nonexistent `PATCH /auth/update`.
 - It writes only `localStorage.token` + `user`, so a login there is picked up by the active marketplace (which reads both keys) but not vice-versa in the `user` cache — harmless, since both re-fetch `/auth/me`.
 
-Decide eventually whether to fold v2's question-section authoring into the active marketplace or promote v2; carrying both indefinitely is the current, deliberate compromise.
+The previous implementation is retained for comparison, but new marketplace work belongs in `frontend/marketplace/` unless a task explicitly targets `/marketplace-fede-old`.
 
-The colleague-facing Italian summary of this first draft is in [MARKETPLACE_V2_DRAFT_RECAP_IT.md](MARKETPLACE_V2_DRAFT_RECAP_IT.md).
+The colleague-facing Italian summary of this first draft is in [MARKETPLACE_DRAFT_RECAP_IT.md](MARKETPLACE_DRAFT_RECAP_IT.md).
 
 ---
 

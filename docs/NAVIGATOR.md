@@ -107,7 +107,7 @@ app.get(/^\/(?!api|marketplace|uploads|frontend-navigator)[^.]*$/, (req, res) =>
 })
 ```
 
-The block is mounted **after** `/api`, `/marketplace`, and `/uploads`, so those owners always win. The catch-all matches any extensionless path that doesn't start with one of those prefixes — that's how React Router's deep links (`/museums`, `/<slug>`, `/<slug>/<visit-slug>`, `/session/<code>`) survive a hard refresh. The `[^.]*` clause means file requests like `/foo.png` still 404 instead of getting the SPA shell.
+The block is mounted **after** `/api`, both marketplace prefixes, and `/uploads`, so those owners always win. The catch-all matches any extensionless path that doesn't start with one of those prefixes — that's how React Router's deep links (`/museums`, `/<slug>`, `/<slug>/<visit-slug>`, `/session/<code>`) survive a hard refresh. The `[^.]*` clause means file requests like `/foo.png` still 404 instead of getting the SPA shell.
 
 ---
 
@@ -412,7 +412,6 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 These are deliberately deferred — *not* bugs. Don't fix without aligning with the team. **Keep this list honest: if you ship one, delete it here in the same commit.**
 
 - **No quiz-authoring UI in the marketplace.** The backend accepts `quiz` on POST/PUT `/visits`, and the runner shows `Start Quiz` on the last step, but only the seeded didactic visits carry questions — so a user-authored visit can never reach the quiz screen. Deliberately deferred by the team, not missed.
-- **`PATCH /api/auth/update` does not exist.** `frontend/marketplace/scripts/user_profile.js` calls it to save profile edits, so that form 404s. Either add the route or drop the call.
 - **Demo data gaps.** Uffizi has no floor plan (the map falls back to a blank plate); most contents still have no image.
 - **Step-building logic is duplicated** between `VisitRun.jsx` and `session.controller.js` (§12). Worth unifying if the block model grows.
 - **Natural-language commands** beyond the fixed vocabulary need the Extension 2 LLM work; `src/services/aiService.js` and `src/controllers/ai.controller.js` are still empty and the routes are commented out in `src/routes/index.js`.

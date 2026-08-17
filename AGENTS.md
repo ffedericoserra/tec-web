@@ -10,12 +10,12 @@ ArtAround: a museum tour navigation app for cultural heritage. University projec
 
 One Node.js + Express + MongoDB backend serving **two separate frontends** from the same origin:
 
-- **Marketplace** — vanilla HTML/CSS/ES modules. Authoring: write items, build visits, buy other people's items. Served at `/marketplace/...` from `frontend-marketplace/`.
+- **Marketplace** — vanilla HTML/CSS. Authoring: write items, build visits, buy other people's items. Served at `/marketplace/...` from `frontend/marketplace/`.
 - **Navigator** — React + Vite SPA, mobile-first. Running a visit in the museum: descriptions, TTS, voice commands, map, group visits. Owns every other route.
 
 Both share the same JWT in `localStorage` and the same `/api` endpoints.
 
-⚠️ **There is a second, independently written marketplace** in `frontend/marketplace/`, parked at `/marketplace-v2` and linked from nowhere. Two people built a marketplace on parallel branches; rather than discard either, the active one is `frontend-marketplace/` and the other is kept reachable. **When someone says "the marketplace", they mean `frontend-marketplace/`.** See [docs/MARKETPLACE.md](docs/MARKETPLACE.md) §9 before touching `frontend/marketplace/`.
+⚠️ **There is a second, independently written marketplace** in `frontend-marketplace/`, retained at `/marketplace-fede-old`. Two people built a marketplace on parallel branches; the implementation in `frontend/marketplace/` is now the active one. **When someone says "the marketplace", they mean `frontend/marketplace/`.** See [docs/MARKETPLACE.md](docs/MARKETPLACE.md) before touching either implementation.
 
 ---
 
@@ -79,8 +79,8 @@ src/                     # backend
 ├── schemas/             # Zod request validation
 ├── middleware/          # auth.js (requireAuth/optionalAuth), validate.js, errorHandler.js
 └── services/            # socketService (live sessions), itemPurchaseService (wallet), aiService (empty)
-frontend-marketplace/    # THE marketplace, at /marketplace     → docs/MARKETPLACE.md
-frontend/marketplace/    # parked 2nd marketplace, /marketplace-v2 → docs/MARKETPLACE.md §9
+frontend/marketplace/    # THE marketplace, at /marketplace → docs/MARKETPLACE.md §9
+frontend-marketplace/    # previous marketplace, /marketplace-fede-old → docs/MARKETPLACE.md §1–§8
 frontend-navigator/      # React SPA navigator     → docs/NAVIGATOR.md
 data/museums/*.json      # museum + content configs, loaded by scripts/load-museum.js
 uploads/                 # committed static media, served at /uploads

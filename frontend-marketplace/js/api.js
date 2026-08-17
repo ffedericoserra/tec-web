@@ -20,7 +20,7 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(LEGACY_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
-  localStorage.removeItem('user'); // written by the /marketplace-v2 pages
+  localStorage.removeItem('user'); // written by the /marketplace pages
 }
 
 export function getCachedUser() {

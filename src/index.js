@@ -25,34 +25,38 @@ app.use(express.json())
 // app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")))
 
-// Marketplace frontend (vanilla HTML/CSS/ES modules, served from
-// frontend-marketplace). One route per page; static mounts cover css/js/assets.
-const marketplaceDir = path.join(__dirname, "..", "frontend-marketplace")
-app.use("/marketplace/css", express.static(path.join(marketplaceDir, "css")))
-app.use("/marketplace/js", express.static(path.join(marketplaceDir, "js")))
+// Previous marketplace implementation, kept reachable under its own prefix.
+// It uses clean routes, so each page is wired explicitly.
+const oldMarketplaceDir = path.join(__dirname, "..", "frontend-marketplace")
 app.use(
-    "/marketplace/assets",
-    express.static(path.join(marketplaceDir, "assets")),
+    "/marketplace-fede-old/css",
+    express.static(path.join(oldMarketplaceDir, "css")),
 )
-app.get("/marketplace", (req, res) => {
-    res.sendFile(path.join(marketplaceDir, "pages", "home.html"))
+app.use(
+    "/marketplace-fede-old/js",
+    express.static(path.join(oldMarketplaceDir, "js")),
+)
+app.use(
+    "/marketplace-fede-old/assets",
+    express.static(path.join(oldMarketplaceDir, "assets")),
+)
+app.get("/marketplace-fede-old", (req, res) => {
+    res.sendFile(path.join(oldMarketplaceDir, "pages", "home.html"))
 })
-app.get("/marketplace/museums", (req, res) => {
-    res.sendFile(path.join(marketplaceDir, "pages", "museums.html"))
+app.get("/marketplace-fede-old/museums", (req, res) => {
+    res.sendFile(path.join(oldMarketplaceDir, "pages", "museums.html"))
 })
-app.get("/marketplace/museums/:slug", (req, res) => {
-    res.sendFile(path.join(marketplaceDir, "pages", "museum.html"))
+app.get("/marketplace-fede-old/museums/:slug", (req, res) => {
+    res.sendFile(path.join(oldMarketplaceDir, "pages", "museum.html"))
 })
 
-// The other marketplace implementation, parked at a second path rather than
-// deleted. Fully static (URLs carry real paths and .html extensions), so the
-// whole directory is mounted as-is. Nothing links here — it's reachable only by
-// typing the URL. See docs/MARKETPLACE.md.
-const marketplaceV2Dir = path.join(__dirname, "..", "frontend", "marketplace")
-app.get("/marketplace-v2", (req, res) => {
-    res.redirect("/marketplace-v2/pages/homepage.html")
+// Current marketplace. Fully static: URLs carry real paths and .html
+// extensions, so the whole directory is mounted as-is.
+const marketplaceDir = path.join(__dirname, "..", "frontend", "marketplace")
+app.get("/marketplace", (req, res) => {
+    res.redirect("/marketplace/pages/homepage.html")
 })
-app.use("/marketplace-v2", express.static(marketplaceV2Dir))
+app.use("/marketplace", express.static(marketplaceDir))
 
 // API routes
 app.use("/api", apiRoutes)

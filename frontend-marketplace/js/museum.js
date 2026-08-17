@@ -1666,7 +1666,7 @@ function escapeAttr(s) {
 }
 
 if (!isAuthenticated()) {
-  window.location.replace('/marketplace');
+  window.location.replace('/marketplace-fede-old');
 } else {
   init();
 }

@@ -1,4 +1,4 @@
-# Marketplace v2 — prima bozza di riorganizzazione
+# Marketplace — prima bozza di riorganizzazione
 
 Questa versione è una **prima bozza funzionale e curata** pensata per mostrare rapidamente al gruppo come riorganizzerei il marketplace. Non è una proposta definitiva: serve come base concreta da provare, discutere e rifinire insieme.
 

@@ -122,7 +122,7 @@ function buildCard(museum) {
   card.appendChild(name);
 
   const open = () => {
-    window.location.href = `/marketplace/museums/${museum.slug}`;
+    window.location.href = `/marketplace-fede-old/museums/${museum.slug}`;
   };
   card.addEventListener('click', open);
   card.addEventListener('keydown', (e) => {
@@ -162,7 +162,7 @@ function updateSaveBtn(btn, saved) {
 }
 
 if (!isAuthenticated()) {
-  window.location.replace('/marketplace');
+  window.location.replace('/marketplace-fede-old');
 } else {
   init();
 }
