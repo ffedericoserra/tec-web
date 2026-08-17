@@ -411,7 +411,7 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 
 These are deliberately deferred — *not* bugs. Don't fix without aligning with the team. **Keep this list honest: if you ship one, delete it here in the same commit.**
 
-- The active marketplace now authors both question-section blocks and the final quiz. Keep its `blocks`/`sequence` payload aligned with the duplicated step-building logic described in §12 whenever either editor or runner changes.
+- The active marketplace authors question-section blocks but no longer authors the final quiz. Seeded or externally authored `Visit.quiz` data is still supported by the runner. Keep the marketplace `blocks`/`sequence` payload aligned with the duplicated step-building logic described in §12 whenever either editor or runner changes.
 - **Demo data gaps.** Uffizi has no floor plan (the map falls back to a blank plate); most contents still have no image.
 - **Step-building logic is duplicated** between `VisitRun.jsx` and `session.controller.js` (§12). Worth unifying if the block model grows.
 - **Natural-language commands** beyond the fixed vocabulary need the Extension 2 LLM work; `src/services/aiService.js` and `src/controllers/ai.controller.js` are still empty and the routes are commented out in `src/routes/index.js`.

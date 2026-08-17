@@ -53,15 +53,12 @@ const visitVisibilityHint = document.getElementById('visit-visibility-hint');
 const visitGroupInput = document.getElementById('v-group');
 const visitGroupStatus = document.getElementById('visit-group-status');
 const visitGroupHint = document.getElementById('visit-group-hint');
-const finalQuizSection = document.getElementById('final-quiz-section');
-const finalQuizList = document.getElementById('final-quiz-list');
 let activeBlockList = null;
 let pendingItemReplacement = null;
 let currentWalletBalance = 0;
 let itemCatalog = {};
 let museumContentsCache = [];
 let originalVisitItemCounts = {};
-let finalQuiz = [];
 
 if (visitVisibilityInput) {
     visitVisibilityInput.addEventListener('change', () => {
@@ -144,93 +141,10 @@ function setGroupVisit(isGroup) {
     }
     if (visitGroupHint) {
         visitGroupHint.textContent = enabled
-            ? "Sessione sincronizzata e quiz finale abilitati"
-            : "Attiva per una sessione sincronizzata con quiz finale";
+            ? "Sessione sincronizzata abilitata"
+            : "Attiva per consentire una sessione sincronizzata";
     }
-    finalQuizSection?.classList.toggle('hidden', !enabled);
-    renderFinalQuiz();
 }
-
-function normalizeFinalQuiz(quiz = []) {
-    return quiz.map((question) => ({
-        question: question.question || '',
-        options: Array.isArray(question.options) && question.options.length >= 2
-            ? [...question.options]
-            : ['', '', ''],
-        correctIndex: Number.isInteger(question.correctIndex) ? question.correctIndex : 0
-    }));
-}
-
-function updateFinalQuizQuestion(index, card) {
-    const optionInputs = Array.from(card.querySelectorAll('.final-quiz-option'));
-    finalQuiz[index] = {
-        question: card.querySelector('.final-quiz-prompt').value,
-        options: optionInputs.map((input) => input.value),
-        correctIndex: Number(card.querySelector('.final-quiz-correct').value) || 0
-    };
-}
-
-function renderFinalQuiz() {
-    if (!finalQuizList) return;
-    finalQuizList.innerHTML = '';
-    if (!getGroupVisit()) return;
-
-    if (finalQuiz.length === 0) {
-        const empty = document.createElement('p');
-        empty.classList.add('builder-empty-message');
-        empty.textContent = 'Aggiungi almeno una domanda al quiz finale.';
-        finalQuizList.appendChild(empty);
-        return;
-    }
-
-    finalQuiz.forEach((question, index) => {
-        const card = document.createElement('article');
-        card.classList.add('final-quiz-card');
-        card.innerHTML = `
-            <div class="final-quiz-card-heading">
-                <h3>Domanda ${index + 1}</h3>
-                <button class="delete-final-quiz-question" type="button">Rimuovi</button>
-            </div>
-            <label>
-                <span>Domanda</span>
-                <input class="final-quiz-prompt" type="text" value="${escapeHTML(question.question)}" />
-            </label>
-            <div class="final-quiz-options">
-                ${question.options.map((option, optionIndex) => `
-                    <label>
-                        <span>Risposta ${optionIndex + 1}</span>
-                        <input class="final-quiz-option" type="text" value="${escapeHTML(option)}" />
-                    </label>
-                `).join('')}
-            </div>
-            <label class="final-quiz-correct-label">
-                <span>Risposta corretta</span>
-                <select class="final-quiz-correct">
-                    ${question.options.map((_, optionIndex) => `
-                        <option value="${optionIndex}"${optionIndex === question.correctIndex ? ' selected' : ''}>
-                            Risposta ${optionIndex + 1}
-                        </option>
-                    `).join('')}
-                </select>
-            </label>
-        `;
-
-        card.querySelectorAll('input, select').forEach((field) => {
-            field.addEventListener('input', () => updateFinalQuizQuestion(index, card));
-            field.addEventListener('change', () => updateFinalQuizQuestion(index, card));
-        });
-        card.querySelector('.delete-final-quiz-question').addEventListener('click', () => {
-            finalQuiz.splice(index, 1);
-            renderFinalQuiz();
-        });
-        finalQuizList.appendChild(card);
-    });
-}
-
-document.getElementById('add-final-quiz-question')?.addEventListener('click', () => {
-    finalQuiz.push({ question: '', options: ['', '', ''], correctIndex: 0 });
-    renderFinalQuiz();
-});
 
 function formatCurrencyAmount(value) {
     const numericValue = Number(value) || 0;
@@ -1093,7 +1007,6 @@ function salvaStatoTemporaneo() {
         length: length,
         isPublic: getVisitVisibility(),
         isGroup: getGroupVisit(),
-        quiz: finalQuiz,
         blocks: blocksHtml,
         blockCounter: blockCounter,
         museumId: museumId,
@@ -1253,7 +1166,6 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
         if(document.getElementById('v-desc')) document.getElementById('v-desc').value = cleanDesc;
         if(document.getElementById('v-length')) document.getElementById('v-length').value = visit.length || 'normal';
         setVisitVisibility(visit.isPublic === true);
-        finalQuiz = normalizeFinalQuiz(visit.quiz || []);
         setGroupVisit(visit.type === 'synchronized');
 
         if (!structurData || structurData.length === 0) {
@@ -1352,7 +1264,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             if(document.getElementById('v-desc')) document.getElementById('v-desc').value = state.desc;
             if(document.getElementById('v-length')) document.getElementById('v-length').value = state.length || 'normal';
             setVisitVisibility(state.isPublic === true);
-            finalQuiz = normalizeFinalQuiz(state.quiz || []);
             setGroupVisit(state.isGroup === true);
 
             const addBtn = document.getElementById('add-block-btn');
@@ -1506,25 +1417,6 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         return;
     }
 
-    if (getGroupVisit()) {
-        if (finalQuiz.length === 0) {
-            alert("Aggiungi almeno una domanda al quiz finale della visita di gruppo.");
-            return;
-        }
-
-        const incompleteQuizQuestion = finalQuiz.find((question) =>
-            !question.question.trim() ||
-            question.options.length < 2 ||
-            question.options.some((option) => !option.trim()) ||
-            question.correctIndex < 0 ||
-            question.correctIndex >= question.options.length
-        );
-        if (incompleteQuizQuestion) {
-            alert("Completa domanda, risposte e soluzione corretta del quiz finale.");
-            return;
-        }
-    }
-
     // Costruiamo il payload perfetto
     const payload = {
         title: title,
@@ -1534,14 +1426,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         blocks: structurData,
         isPublic: getVisitVisibility(),
         type: getGroupVisit() ? "synchronized" : "standard",
-        length: document.getElementById('v-length')?.value || "normal",
-        quiz: getGroupVisit()
-            ? finalQuiz.map((question) => ({
-                question: question.question.trim(),
-                options: question.options.map((option) => option.trim()),
-                correctIndex: question.correctIndex
-            }))
-            : []
+        length: document.getElementById('v-length')?.value || "normal"
     };
 
     try {

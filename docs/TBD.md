@@ -17,7 +17,7 @@ The repository still carries two independently written implementations, but the 
 | Linked from | navigator header + landing + museum list | direct URL only |
 | Style | plain `<script>`, per-file `fetch` | ES modules, shared `api()` wrapper |
 | Authors `Visit.blocks` (question sections) | **yes** | **no** |
-| Authors final `Visit.quiz` | **yes** | no |
+| Authors final `Visit.quiz` | **no** | no |
 | Item purchase while adding a visit stop | yes | yes |
 
 New marketplace work belongs in `frontend/marketplace/`. The old version survives for comparison and rollback, which is still technical debt, but there is no longer ambiguity about which one `/marketplace` serves. The active editor now writes the flat `sequence` and the matching section structure in `blocks`, including `blocks[].questions`.
