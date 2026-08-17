@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ArtAround — Marketplace</title>
+    <link rel="stylesheet" href="/marketplace/css/base.css" />
+    <link rel="stylesheet" href="/marketplace/css/home.css" />
+  </head>
+  <body>
+    <section class="hero">
+      <header class="top-bar">
+        <a href="/navigator" class="nav-link">Go to Navigator</a>
+      </header>
+
+      <div class="hero-content">
+        <h1 class="title">ArtAround</h1>
+        <p class="subtitle">Marketplace &amp; Editor</p>
+        <button type="button" class="login-btn" id="loginBtn">Login</button>
+      </div>
+
+      <a href="#about" class="about-link">
+        <span>About</span>
+        <span class="arrow" aria-hidden="true">&darr;</span>
+      </a>
+    </section>
+
+    <section class="about" id="about">
+      <h2>About ArtAround</h2>
+      <p>
+        ArtAround is a generic software suite for cultural heritage that brings
+        museums and galleries closer to their visitors. Curators, teachers and
+        independent authors publish guided visits in the Marketplace; visitors
+        explore them on their phone with the Navigator companion app.
+      </p>
+      <p>
+        Each visit adapts to who is taking it — interests, background, time
+        available and age — so the same artwork can be told a hundred different
+        ways. No two visits are alike.
+      </p>
+    </section>
+
+    <dialog id="loginDialog" class="login-dialog">
+      <form id="loginForm" class="login-form" novalidate>
+        <h3>Login</h3>
+        <p class="login-hint">Sign in to publish or buy content.</p>
+        <label>
+          Username
+          <input type="text" name="username" autocomplete="username" required minlength="3" />
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" autocomplete="current-password" required minlength="8" />
+        </label>
+        <p class="login-error" id="loginError" role="alert"></p>
+        <div class="login-actions">
+          <button type="button" class="btn-ghost" id="loginCancel">Cancel</button>
+          <button type="submit" class="btn-primary" id="loginSubmit">Sign in</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/marketplace/js/home.js"></script>
+  </body>
+</html>
