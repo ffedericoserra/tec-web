@@ -11,7 +11,7 @@ This doc is the source of truth for anyone picking up frontend work. If you chan
 - **React 18** + **React Router v6** (`BrowserRouter`, route params for slugs).
 - **Vite 5** dev server + bundler. Plain JS.
 - No state library, no UI kit, no CSS framework. All styles are hand-rolled CSS in `src/styles/`.
-- All third-party deps (root and dev) declared in `frontend-navigator/package.json`. As of this writing: `react`, `react-dom`, `react-router-dom`, plus `vite` and `@vitejs/plugin-react`.
+- All third-party deps (root and dev) declared in `frontend-navigator/package.json`. As of this writing: `react`, `react-dom`, `react-router-dom`, `socket.io-client`, plus `vite` and `@vitejs/plugin-react`.
 
 Design tokens live in `src/styles/base.css` (cream `#f6f3ee`, near-black `#1a1a1a`, muted `#6b6b6b`, terracotta `#b34a3a`). `--tap: 44px` enforces a minimum tap-target size.
 
@@ -28,28 +28,38 @@ frontend-navigator/
 │   ├── main.jsx              # BrowserRouter + Routes
 │   ├── api.js                # token storage + fetch wrapper
 │   ├── auth.js               # isAuthenticated(), logout()
+│   ├── voice.js              # COMMANDS registry, matchCommand(), listenOnce()
+│   ├── session.js            # connectSession() socket helper + ACTIVITY_LABELS
+│   ├── mapGeometry.js        # pure projection: buildGeometry/expandToAspect/imageToLatLng
 │   ├── styles/
-│   │   ├── base.css          # tokens + global resets
+│   │   ├── base.css          # tokens + global resets + shared .marketplace-link
 │   │   ├── account.css       # Account dashboard + wallet dialog
 │   │   ├── header.css        # PageHeader + ProfileMenu
 │   │   ├── home.css          # HomeNoLogin
 │   │   ├── museums.css       # Museums
 │   │   ├── visitSelect.css   # VisitSelect
-│   │   └── visitRun.css      # VisitRun + AssociatedContentsModal
+│   │   ├── visitRun.css      # VisitRun + AssociatedContentsModal + CommandSheet + MuseumMap
+│   │   └── session.css       # group visits: dialog, toolbar, panels, quiz
 │   ├── components/
 │   │   ├── AuthDialog.jsx              # login/register modal (overlay div)
-│   │   ├── PageHeader.jsx              # sticky brand bar with subtitle + right slot
+│   │   ├── PageHeader.jsx              # sticky brand bar: back, brand, marketplace, right slot
 │   │   ├── ProfileMenu.jsx             # avatar circle + dropdown with logout
 │   │   ├── GroupVisitDialog.jsx        # creates or joins a synchronized session
 │   │   ├── QuestionSectionScreen.jsx   # participant form + live owner results
 │   │   ├── ActivitiesPanel.jsx         # live activity/answer summary + text export
+│   │   ├── ChatPanel.jsx               # group chat
+│   │   ├── ParticipantsPanel.jsx       # who's here + the session code (owner only)
+│   │   ├── SessionPanel.jsx            # shared bottom-sheet shell for the three panels
+│   │   ├── QuizScreen.jsx              # student questions / guide live results
+│   │   ├── CommandSheet.jsx            # "Ask me anything": mic + tappable command list
+│   │   ├── MuseumMap.jsx               # "Map" modal: SVG floor plan of stops + facilities
 │   │   └── AssociatedContentsModal.jsx # opened by the `+` icon during a visit
 │   └── pages/
 │       ├── Account.jsx
 │       ├── HomeNoLogin.jsx
 │       ├── Museums.jsx
 │       ├── VisitSelect.jsx
-│       └── VisitRun.jsx
+│       └── VisitRun.jsx      # solo AND group visit runner
 └── dist/                     # vite build output (gitignored — rebuild before serving)
 ```
 
@@ -86,29 +96,36 @@ After that, `docker compose up` (or the gocker prod start) serves the bundle thr
 ### 3.3. Express wiring (`src/index.js`)
 
 ```js
-const navigatorDir = path.join(__dirname, '..', 'frontend-navigator', 'dist');
-app.use(express.static(navigatorDir));
-app.get(/^\/(?!api|marketplace|uploads)[^.]*$/, (req, res) => {
-  res.sendFile(path.join(navigatorDir, 'index.html'));
-});
+const navigatorDir = path.join(__dirname, "..", "frontend-navigator", "dist")
+
+// Serves the bundle under its own path too, for relative links written by the marketplace.
+app.use("/frontend-navigator/dist", express.static(navigatorDir))
+
+app.use(express.static(navigatorDir))
+app.get(/^\/(?!api|marketplace|uploads|frontend-navigator)[^.]*$/, (req, res) => {
+  res.sendFile(path.join(navigatorDir, "index.html"))
+})
 ```
 
-The block is mounted **after** `/api`, `/marketplace`, and `/uploads`, so those owners always win. The catch-all matches any extensionless path that doesn't start with one of those three prefixes — that's how React Router's deep links (`/museums`, `/<slug>`, `/<slug>/<visit-slug>`) survive a hard refresh. The `[^.]*` clause means file requests like `/foo.png` still 404 instead of getting the SPA shell.
+The block is mounted **after** `/api`, `/marketplace`, and `/uploads`, so those owners always win. The catch-all matches any extensionless path that doesn't start with one of those prefixes — that's how React Router's deep links (`/museums`, `/<slug>`, `/<slug>/<visit-slug>`, `/session/<code>`) survive a hard refresh. The `[^.]*` clause means file requests like `/foo.png` still 404 instead of getting the SPA shell.
 
 ---
 
 ## 4. Routes
 
-Defined in `src/main.jsx`. All four pages, plus a `*` fallback that bounces to `/`.
+Defined in `src/main.jsx`, plus a `*` fallback that bounces to `/`.
 
 | Path | Component | Auth | Notes |
 |------|-----------|------|-------|
 | `/` | `HomeNoLogin` | public | Auto-redirects to `/museums` if already authed; otherwise opens the AuthDialog on user action |
 | `/museums` | `Museums` | required | List of museums with search and a profile menu |
 | `/account` | `Account` | required | Profile data, wallet recharge, created visits and saved visits |
-| `/:museumSlug` | `VisitSelect` | required | Museum landing — pick a public visit |
+| `/session/:sessionCode` | `VisitRun` | required | **The same runner in group-visit mode.** Declared before the slug routes so a code can't be read as a museum slug |
+| `/:museumSlug` | `VisitSelect` | required | Museum landing — pick a visit |
 | `/:museumSlug/:visitSlug` | `VisitRun` | required | The fullscreen visit runner |
 | `*` | redirect | — | Anything else → `/` |
+
+Ordering matters twice: `/account` must precede `/:museumSlug`, and `/session/:sessionCode` must precede `/:museumSlug/:visitSlug`. Both are single- or two-segment paths that a slug route would otherwise swallow.
 
 ---
 
@@ -152,7 +169,7 @@ Always go through this wrapper rather than `fetch` directly so 401 handling stay
 
 ## 7. Shared components
 
-- **`PageHeader`** — sticky top bar used on authenticated pages, with a minimal Back control, the `ArtAround` brand, and a `go to marketplace` link immediately before the profile or contextual action. Props: `subtitle` (renders `ArtAround | <subtitle>` muted) and `right` (slot for profile / End Visit / etc.). The brand cell ellipsizes long museum names so all controls stay visible.
+- **`PageHeader`** — sticky top bar used on authenticated pages, with a minimal Back control, the `ArtAround` brand, and a `GO TO MARKETPLACE` link immediately before the profile or contextual action. Returns `null` when not authenticated. Props: `subtitle` (renders `ArtAround | <subtitle>` muted), `right` (slot for profile / End Visit / etc.), and `brandTo` (optional route — wraps the brand word in a `<Link>`; the subtitle stays inert since it names the museum you're already in). `brandTo` is **opt-in**: `VisitSelect` passes `/museums`, but `VisitRun` deliberately leaves the brand dead so `End Visit` stays the only way out of a visit. The brand cell ellipsizes long museum names so all controls stay visible.
 - **`ProfileMenu`** — circular profile image from `user.avatarUrl`, with the default avatar as fallback. Click toggles a dropdown showing username, wallet balance, a link to `/account`, and Logout. Closes on outside-mousedown or `Escape`. Uses `aria-expanded` for hover/active styling.
 - **`AuthDialog`** — overlay-style login/register modal. Registration sends `username`, `email`, and `password`, matching the marketplace and backend schema; login sends `username` (or email) and `password`. Closes on Escape and backdrop click. Errors render under the form.
 - **`AssociatedContentsModal`** — bottom-sheet/modal opened by VisitRun's `+` icon. Renders associated contents (image / type / name / author / year). See §8.4 for the lazy-fetch detail.
@@ -186,14 +203,16 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 
 ### 8.3. `VisitSelect` (`/:museumSlug`)
 
-- Parallel-fetches `/auth/me`, `/museums/:slug`, `/museums/:slug/visits`.
+- Parallel-fetches `/auth/me`, `/museums/:slug`, `/museums/:slug/visits`, `/museums/:slug/contents`.
 - 404 on the museum → redirects back to `/museums`.
 - Lists public visits plus the authenticated user's own private visits. Private
   entries are labelled in the list and remain hidden from other accounts.
 - Re-fetches visits when the browser tab becomes visible or receives focus, so
   returning from the marketplace shows a newly-created visit without a reload.
 - Backend already sorts by `viewCount` desc; client doesn't re-sort.
-- Each card has a top row (title, author, length, `Start Visit` button) and a centered chevron that toggles a description block (`max-height: 200px`, internally scrollable). Cards without a non-empty `description` hide the chevron.
+- Each card has a top row (title, author, length, `Start Visit` button) and a centered chevron that expands a description block (`max-height: 200px`, internally scrollable) **plus a numbered stop list** (`N STOPS` heading, then `[# | content name | content type]` rows, `max-height: 220px`, internally scrollable). The chevron is hidden only when a card has *neither* a non-empty `description` nor any sequence entries.
+- The stop list is why `getVisits` populates `sequence.itemId` with `select: 'contentId'` — the list endpoint used to return bare item ObjectIds, so nothing client-side could name a stop. Only `contentId` is selected; full Item docs (9 texts each) would be dead weight on a list screen. Names and types then come from the `contents` map, because `Item.contentId` is a `universalId` string that populate can't follow (same reason as §8.4).
+- An entry whose content can't be resolved renders as `Contenuto non disponibile` rather than being dropped, so the numbering always matches the runner's stop numbers.
 - `Start Visit` → `navigate('/${museumSlug}/${v.slug}')`.
 - The "join/create a group visit" action opens `GroupVisitDialog`. The host can
   create a session for the selected visit; participants join using its code.
@@ -241,11 +260,22 @@ Transitions:
   - In `logistic` mode → `mode='describe'` + `lengthIdx=0`.
   - In `describe` mode → increment `lengthIdx` up to `lastAvailableLengthIdx(description)`. Once at the longest available text it's `disabled` (no looping, no off-screen wrap).
   - Pulses with `is-prompt` (terracotta keyframe) only while `mode === 'logistic'` — that's the "highlighted in some way" the spec asks for.
-- `Map` and `Ask me anything` are inert (`aria-disabled`, `onClick e.preventDefault()`). Wire them when their backends arrive.
+- `Map` opens `MuseumMap` (§11) and `Ask me anything` opens `CommandSheet` (§10). Nothing in the runner is inert any more.
+
+**Length is also swipeable, Instagram-style.** Swipe left on the description for the next longer text, right for the shorter one; `.visit-length-dots` (one dot per available length, active one filled) shows where you are. `Describe!`, the `more`/`simpler` voice commands and the swipe all drive the same `lengthIdx`, so nothing can desync.
+
+- **The axis lock is load-bearing.** `.visit-description` is the only scrollable region on the page, so a gesture stays ambiguous until it travels `SWIPE_AXIS_LOCK` (10px), then commits to `'x'` or `'y'`; vertical is abandoned so the browser scrolls normally. `touch-action: pan-y` on the block is what makes the browser hand horizontal gestures over at all — without it the swipe only works with a mouse. Below `SWIPE_THRESHOLD` (45px) a horizontal drag is a stray finger.
+- `onPointerCancel` clears the gesture — that's what fires when the browser takes over for scrolling.
+- Swiping is inert in logistic mode and while an answer is showing; neither has a length ladder.
 
 **Logistic text source** — when arriving at entry `i` via Next, we render `sequence[i-1].nextDirections` (the previous entry's instructions to leave it). Falls back to `sequence[i].prevDirections`, then a generic Italian "Vai al prossimo punto della visita." This is owned by the *transition*, not by the entry itself. Caveat: reordering a sequence (in the marketplace editor) drags `nextDirections` with the entry it was authored under, so the runner can show stale text. Live with it for now.
 
-**Tone selection is hard-coded** — `descriptions[0]`, the first available tone wins. Spec'd as a temporary placeholder; revisit when a tone-picker UI lands.
+**Tone selection** is a pill in the description header (`.visit-tone-pill`, showing `EASY` / `MEDIUM` / `COMPLEX` + a caret) opening a small menu. It replaced the old hard-coded `descriptions[0]`, which — since the marketplace writes all three tones in a fixed `easy → medium → complex` order — always resolved to *easy*, making the other two unreachable.
+
+- **Tone is a visit-wide preference, not per-stop.** A visitor who wants the easy register wants it for the whole visit, so it's held in `tone` state and kept across Next/Previous.
+- `pickDescription(item, tone)` falls back to `descriptions[0]` when an item lacks the requested tone. The pill shows `effectiveTone` (`description.tone`), **not** the preference, so it never claims a tone the text isn't in. The preference survives the fallback and re-applies at the next item that has it. Tones the current item lacks are `disabled` in the menu, so the mismatch can only come from data, never from a click.
+- Switching tone **keeps `lengthIdx`** (you switch tone to re-hear the same depth differently), clamped down if the new tone carries fewer lengths.
+- Dismissal mirrors `ProfileMenu`: outside-mousedown or Escape.
 
 **`+` button → AssociatedContentsModal** — the visit fetch returns items but does **not** populate `associatedContents`; only `GET /items/:id` does. So the modal lazily fetches the populated item on first open and caches by `_id` (`assocCache`). Subsequent opens are synchronous. The modal renders each associated `Content` with image / type / name / author / year. Closes on backdrop mousedown or Escape.
 
@@ -289,7 +319,66 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 
 ---
 
-## 10. Adding a new page
+## 10. Voice control
+
+`src/voice.js` + `components/CommandSheet.jsx` satisfy the base-tier "controlled vocabulary" requirement (SPECS §5). `Ask me anything` opens `CommandSheet`, which holds **both** ways of issuing a command so they can't drift: a push-to-talk mic and a tappable list, both dispatching the same ids through `VisitRun`'s `runCommand(id)`.
+
+- **`COMMANDS` in `voice.js` is the single source of truth** — `{ id, label, hint, phrases[] }`. Adding a command there makes it available to the mic *and* the list at once. Eight ids: `more` / `simpler` / `next` / `previous` / `author` / `year` / `exit` / `map`.
+- **Recognition is `it-IT`**, matching the TTS voice and the Italian content, so `phrases` are Italian even though the button labels are English.
+- **`matchCommand()` checks phrases longest-first** across the whole registry, sorted once at module load into `PHRASE_INDEX`. This is load-bearing, not tidiness: `"dimmi di più"` (`more`) contains `"più"`, and `simpler` owns `"più breve"` — shortest-first substring matching mis-routes. `normalize()` also folds accents (`più → piu`) and apostrophe variants (`’ → '`) because recognizers are inconsistent about both.
+- **Push-to-talk, never continuous.** `listenOnce()` sets `continuous = false` and calls `speechSynthesis.cancel()` before starting — an open mic hears the runner reading a description aloud and fires phantom commands. `maxAlternatives = 3` and every alternative is tested: free accuracy on a fixed vocabulary.
+- **`simpler` is the only genuinely new state transition** — `handleSimpler()` walks `lengthIdx` *down* (45s → 15s → 3s). At `3s` it's a no-op and deliberately does **not** fall back to logistic mode; dropping the user into walking directions when they asked for something simpler would be confusing.
+- **Question commands (`author` / `year` / `exit`) set `answer`**, which wins over the description in the `bodyText` chain — so answers are spoken by the existing TTS effect with no new speech code. The area gets `.is-answer` (terracotta left border, `Risposta` pill, `×` dismiss). Every navigation command calls `setAnswer(null)` first, so an answer never outlives the item it described.
+- **`exit` needs no extra request** — `getVisit` does `.populate('museumId')` *unselected*, so `visit.museumId.pointsOfInterest` already rides along. It names the exit POIs without any "nearest" claim, since the base tier is explicitly *map without user positioning*.
+- **Graceful degradation**: `SPEECH_SUPPORTED` checks both `SpeechRecognition` and `webkitSpeechRecognition`. Firefox implements neither, so the mic is hidden entirely and the tap list is the complete interface — the fallback by design, not an afterthought.
+- ⚠️ **`SpeechRecognition` requires a secure context.** `localhost` qualifies, so dev works — but **on the department server over plain HTTP the mic will silently never start**. If deployment isn't HTTPS, voice is demo-only and the tap list carries the feature. Chrome also routes recognition through a server-side service, so it needs connectivity; it is not on-device.
+
+---
+
+## 11. Map
+
+`components/MuseumMap.jsx` satisfies the base-tier "map visualization without user positioning" requirement. The `Map` button and the `map` voice command both open it.
+
+- **Zero network cost.** `getVisit`'s unselected `.populate('museumId')` carries `mapData` + `pointsOfInterest`, and stop coordinates come out of the `contents` map `VisitRun` already built (coordinates live on the **Content**, not the Item, so populate can't reach them). The modal opens instantly.
+- **No "you are here" marker, deliberately.** The base tier is explicitly a map *without* positioning; the current stop is drawn in terracotta instead, which is the honest equivalent. Don't add a user dot without real georeferencing (Extension 2).
+- **Hand-rolled SVG, no map library** — the "minimal dependencies" rule, and ~17 markers don't need Leaflet. The projection lives in `src/mapGeometry.js`, **not** in the component, so anything else that places markers uses the same math. `buildGeometry()` projects lat/lng into a space whose aspect ratio comes from the **metric** span of the bounds (longitude degrees scaled by `cos(latitude)`), so a square room renders square. The longer axis is normalised to 100 units, which is why marker radii and font sizes are bare constants.
+- **The map has its own viewport — the part that isn't optional.** Real floor plans are wide: the MAMbo plan is 2.67:1, which at mobile width renders **134px tall** with ~9px markers if you just fit it to the plate. So `.map-plate` is a fixed **4:3** box (`PLATE_ASPECT` in the component must match `aspect-ratio` in the CSS), and the SVG `viewBox` is a *window* onto the plan. `expandToAspect()` grows the plan's extent to 4:3 for the fit view, so `preserveAspectRatio` never letterboxes.
+  - Opens **centred on the current stop** at `INITIAL_SPAN` (50%) rather than fitted — "where am I now" is the question the map answers. Mount-only effect, so panning is never undone by a re-render; the modal unmounts on close, so it re-centres on every open.
+  - Marker radii, stroke widths, font sizes and the route's dash pattern are all multiplied by `k = view.w / full.w`, so **pins stay a constant on-screen size while the plan zooms**. Verified constant across the full 8.3× range.
+  - ⚠️ **Never set `stroke-width` or `stroke-dasharray` on the map markers in `visitRun.css`.** Those are k-scaled *presentation attributes* in the JSX, and **CSS beats presentation attributes** — a stylesheet declaration silently wins and freezes the stroke while the radius keeps shrinking. This shipped as a bug once: at max zoom the intended 2.2px stroke rendered at 18.7px on a 20px marker, turning every stop into an unreadable blob. `.map-route` / `.map-stop circle` / `.map-poi circle` carry **colour only**; geometry belongs in `MuseumMap.jsx`.
+  - Drag to pan, pinch to zoom, `+`/`−` buttons, `Tutta la mappa` / `Tappa attuale` presets. `.map-svg` sets `touch-action: none` — a **deliberate scoped exception** to the app-wide `pan-x pan-y` (§14). A floor plan is unusable without pinch, so the plate takes the gestures itself.
+  - ⚠️ **`onPointerDown` clears the tracked-pointer map when `e.isPrimary`.** Not defensive noise: if a `pointerup` goes missing (capture lost, pointer leaves the window), the stale entry makes the next one-finger pan match the two-pointer *pinch* branch, and the one after that matches no branch — the map stops responding permanently. Found exactly this way in testing. `onLostPointerCapture` is wired to the same cleanup.
+  - A drag must not read as a tap: `dragged` is set once movement exceeds 4px and `pick()` bails on it.
+- **Bounds resolution order**: `mapData.bounds` from the museum config wins (it's what the plan image is registered against), but only when all four numbers are finite and non-degenerate. Otherwise `deriveBounds()` fits the box to the points themselves with 15% margin — the path any user-created museum takes, since `mapData` is optional. Spans below `MIN_SPAN` are widened around their midpoint so a single point can't divide by zero. With no placeable points, the modal shows "Mappa non disponibile".
+- ⚠️ **`mapData.bounds` must have the same aspect ratio as the plan image**, or the `preserveAspectRatio="none"` draw shears the plan away from the markers. MAMbo's bounds describe 130 m × 48.0 m — 2.7057, matching the image's 855/316 to 4 decimals. If you swap the image, recompute the bounds; don't just edit `imageUrl`.
+- **Placing markers is a data job, not a code job, and needs no schema change.** With bounds set, image position ↔ lat/lng is a bijection, and `imageToLatLng(bounds, u, v)` turns a pixel read off the plan (`u = px/width`, `v = py/height`) into coordinates for `data/museums/*.json`. MAMbo's 10 Artworks and 6 POIs were placed this way and verified out of the live DOM: every marker re-projects to its authored pixel within 0.03 px.
+- **MAMbo has a real floor plan; Uffizi does not (yet).** Uffizi's `imageUrl` 404s, `onError` flips `planOk`, and it falls back to a blank plate.
+- Stops are numbered by sequence position and joined by a dashed route polyline; entries whose Content has no coordinates keep their number and are listed under the map instead of being renumbered away. POIs use **emoji glyphs** rather than inline SVG icons — six facility pictograms would be six hand-drawn paths, and at marker size a pictogram beats a letter code. The legend lists only the facility types this museum actually has.
+
+---
+
+## 12. Group visits (Extension 1)
+
+`/session/:sessionCode` mounts the *same* `VisitRun`, gated on `inSession = !!sessionCode`. One runner, not two: TTS, tone, swipe, map, `+` and the command sheet must behave identically in a group visit, and a forked copy would drift. Only navigation ownership, the toolbar, the question sections and the quiz differ.
+
+- **Sockets are broadcast-only.** `src/session.js → connectSession(code, handlers)` connects, wires every handler *before* emitting `session:join` (so the catch-up `session:state` can't beat its listener), and re-joins on every `connect` because socket.io reconnects transparently and room membership doesn't survive that. The client emits exactly two events (`session:join`, `session:leave`); **every mutation is a REST call** that the server then broadcasts. If you add a session mutation, add a REST endpoint that calls `emitToSession()`; don't add a socket write-handler — ownership and bounds checks live in exactly one place (`session.controller.js`).
+- **The socket effect is keyed on `sessionCode` alone.** Anything else in the dep array tears down and rebuilds the connection on every state change, so all its handlers use functional `setState` rather than closing over current state.
+- **`session:state` is a full catch-up** (position, participants, chat backlog, activity log, `quizStarted`, section responses), so a reload or a late join rebuilds the whole view with no extra fetch.
+- **Loading takes one extra hop**: `GET /sessions/:code` → the session names the visit `_id` and (via a nested populate) the museum **slug**, then the usual `GET /visits/:id` + `GET /museums/:slug/contents` pair runs unchanged.
+- **Steps, not just stops.** A visit's `blocks[]` (see [SCHEMA.md](SCHEMA.md)) interleave artwork stops with question sections, so a session walks a *step* list rather than the raw `sequence`. ⚠️ **That list is built twice** — `buildSteps`-style logic in `VisitRun.jsx` and in `session.controller.js`. They must stay in agreement; change one and you must change the other. A visit with no `blocks` degrades to one artwork step per `sequence` entry.
+- **The guide never moves their own view.** `goNext`/`goPrevious` POST to `advance`/`previous` and everyone — guide included — follows the resulting broadcast. One broadcast drives every screen, so the group can't split across two artworks. Forward arrives in `logistic` mode, backward in `describe`, same rule as the solo runner.
+- **Students** get no Previous/Next at all (bottom bar is Map alone, `.is-student` centres it) and those rows greyed out in the command sheet — visibly not-theirs beats a mysteriously shorter list.
+- **Activities is the guide's feed of student commands.** `runCommand` logs any id in `LOGGED_COMMANDS` (`more`/`simpler`/`author`/`year`/`exit`/`map`) once, covering mic and tap together, and only for students. That set **must stay a subset of the activity enum in `src/models/Session.js`** or the server 400s.
+- **Chat is persisted on the Session** (`messages[]`) so reloads and late joins see the backlog. Sending POSTs and does **not** append locally: the server broadcasts to the whole room *including the sender*, so every client appends by one path with no optimistic copy to reconcile.
+- **Unread badges are synced by effect while a panel is open**, not stamped on open. Your own chat message returns through the socket like anyone else's, so stamping-on-open alone leaves a permanent "1" after you send.
+- **Quiz**: the guide's Next becomes `Start Quiz` on the last step (only when `visit.quiz` is non-empty), POSTs `quiz/start`, and `quizStarted` is **persisted** so a student reloading mid-quiz lands back on the quiz. Students answer; the guide sees scores land live and never answers. `bodyText` is forced empty while the quiz is up — that's what stops TTS reading the artwork over the questions.
+- **The answer key never reaches a student.** `presentSession()` strips other participants' quiz fields and every `quiz[].correctIndex` for non-owners, and `getById` in `visit.controller.js` does the same for anyone who isn't the visit's author. `GET /visits/:id` carries `optionalAuth` purely so it can tell them apart.
+- **End Visit is role-dependent**, matching server authorization: the guide confirms and POSTs `end` (broadcasting `session:ended`, which shows every student an explicit "the guide has ended this visit" screen rather than a silent redirect that reads as a crash); a student POSTs `leave` and the group carries on.
+- Failed session actions set `notice`, a dismissible line — **not** `setError`, which would swap the whole runner for an error screen over one failed button press.
+
+---
+
+## 13. Adding a new page
 
 1. Create the component as a new file in `src/pages/`, default-exporting the function.
 2. Add a `<Route path="..." element={...} />` line in `src/main.jsx`.
@@ -307,30 +396,34 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 
 ---
 
-## 11. Conventions worth knowing
+## 14. Conventions worth knowing
 
 - **Late-fetch guard.** Every effect that fires `Promise.all([...])` uses a `cancelled` flag (`let cancelled = false; ... return () => { cancelled = true; }`) and ignores the response when set. Don't drop this — without it, navigating away mid-fetch can call `setState` on an unmounted component.
 - **No `<dialog>`.** Modals are overlay `<div>`s with their own keydown listener. Easier to control from React state and avoids cross-browser polyfills.
 - **CSS scoping.** No CSS modules / styled-components. Page CSS is global, but every page uses unique class prefixes (`.visit-`, `.museums-`, etc.) to avoid collision. Keep the prefix when you add classes to a page.
 - **Italian copy** is the default user-facing language. The seed contents are Italian and the TTS is hard-coded to `it-IT`. New strings should be Italian unless you wire i18n first.
 - **Both frontends share the same JWT.** Login on the marketplace and the navigator picks up the session on the same origin, and vice versa.
+- **Zoom is disabled**, because a pinched-in visit runner pushes the Next/Previous controls off-screen. This takes **two** rules that must stay in sync: `maximum-scale=1, user-scalable=no` on the viewport meta in `index.html` (Android/Chrome) and `html { touch-action: pan-x pan-y }` in `base.css` (iOS Safari, which has ignored `user-scalable=no` since iOS 10). `pan-x pan-y` still allows scrolling but blocks pinch *and* double-tap; `touch-action: manipulation` would **not** be enough, since it only kills double-tap. Separately, every input is `font-size: 16px` — that's what stops iOS zooming on focus, so don't drop any input below 16px. A deliberate accessibility trade-off (WCAG 1.4.4 wants 200% zoom), justified by the fixed runner layout.
 
 ---
 
-## 12. Known gaps / TODO
+## 15. Known gaps / TODO
 
-These are deliberately deferred — *not* bugs. Don't fix without aligning with the team.
+These are deliberately deferred — *not* bugs. Don't fix without aligning with the team. **Keep this list honest: if you ship one, delete it here in the same commit.**
 
-- **Tone picker.** `VisitRun` hard-codes `descriptions[0]`. A picker is needed to support the spec's "tone selection" requirement, but the UX for picking inside the runner isn't designed yet.
-- **Voice control.** Spec'd at the base tier (Next / Previous / Tell me more / Simpler / Where is the exit). Not wired. Web Speech API's `SpeechRecognition` is the obvious fit, but iOS Safari support is partial — design + browser fallbacks before implementing.
-- **Map dead-link.** The `Map` button is inert until 2D/3D map visualization lands.
-- **Ask me anything.** Inert until the Extension 2 LLM integration arrives.
+- **No quiz-authoring UI in the marketplace.** The backend accepts `quiz` on POST/PUT `/visits`, and the runner shows `Start Quiz` on the last step, but only the seeded didactic visits carry questions — so a user-authored visit can never reach the quiz screen. Deliberately deferred by the team, not missed.
+- **`PATCH /api/auth/update` does not exist.** `frontend/marketplace/scripts/user_profile.js` calls it to save profile edits, so that form 404s. Either add the route or drop the call.
+- **Demo data gaps.** Uffizi has no floor plan (the map falls back to a blank plate); most contents still have no image.
+- **Step-building logic is duplicated** between `VisitRun.jsx` and `session.controller.js` (§12). Worth unifying if the block model grows.
+- **Natural-language commands** beyond the fixed vocabulary need the Extension 2 LLM work; `src/services/aiService.js` and `src/controllers/ai.controller.js` are still empty and the routes are commented out in `src/routes/index.js`.
+- **No georeferencing / QR** (Extension 2). The map is deliberately position-free (§11).
 - **Stale logistic text after sequence reorder.** Documented in §8.4; the marketplace editor has the same caveat. Editorial responsibility, not a code fix.
-- **No service worker / offline support.** The visit runner needs network for the initial fetch. Future enhancement.
+- **No service worker / offline support.** The visit runner needs network for the initial fetch.
+- **Voice needs HTTPS in production** (§10) — not fixable client-side.
 
 ---
 
-## 13. Where to look in the backend
+## 16. Where to look in the backend
 
 Endpoints the navigator depends on (full reference in [API.md](API.md)):
 
@@ -339,9 +432,14 @@ Endpoints the navigator depends on (full reference in [API.md](API.md)):
 - `GET /api/museums/:slug/contents`, `GET /api/museums/:slug/visits`
 - `GET /api/visits/:slug`
 - `GET /api/items/:id` (only for `AssociatedContentsModal`)
-- `POST /api/sessions`, `POST /api/sessions/:code/join`
+- `PATCH /api/auth/wallet` (Account), `POST /api/auth/favorites/visits/:visitId`
+- `GET /api/visits/my` (Account)
+- `POST /api/sessions`, `POST /api/sessions/:code/join`, `.../leave`, `.../end`
 - `GET /api/sessions/:code`, `POST /api/sessions/:code/advance`, `POST /api/sessions/:code/previous`
+- `POST /api/sessions/:code/message`, `POST /api/sessions/:code/activity`
 - `POST /api/sessions/:code/sections/:sectionId/answers`
 - `GET /api/sessions/:code/sections/:sectionId/responses` (owner only)
+- `POST /api/sessions/:code/quiz/start`, `POST /api/sessions/:code/quiz`, `GET /api/sessions/:code/quiz`
+- Socket.io on `/socket.io` — see the real-time event table in [API.md](API.md)
 
 The backend wiring of the navigator block lives in `src/index.js`. The static-mount + catch-all assume `frontend-navigator/dist/` exists; if you redeploy and forget the build step you'll get a 500 from `res.sendFile` on the catch-all.

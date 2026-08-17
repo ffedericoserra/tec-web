@@ -13,6 +13,8 @@
 | POST | /api/auth/register | - | Create user |
 | POST | /api/auth/login | - | Get JWT |
 | GET | /api/auth/me | yes | Current user |
+| PATCH | /api/auth/wallet | yes | Recharge wallet balance |
+| POST | /api/auth/favorites/visits/:visitId | yes | Toggle a visit favourite |
 | GET | /api/museums | - | List museums |
 | GET | /api/museums/:id | - | Museum details |
 | POST | /api/museums | yes | Create museum |
@@ -56,6 +58,8 @@
 | POST | `/auth/register` | Create new user | No |
 | POST | `/auth/login` | Login, get JWT token | No |
 | GET | `/auth/me` | Get current user profile | Yes |
+| PATCH | `/auth/wallet` | Recharge wallet balance | Yes |
+| POST | `/auth/favorites/visits/:visitId` | Toggle a visit favourite | Yes |
 
 **Register/Login Request:**
 ```json
@@ -72,6 +76,23 @@
   "token": "eyJhbGc..."
 }
 ```
+
+**Recharge wallet** — `PATCH /auth/wallet`, body `{ "amount": 50 }`. Increments the
+balance (it does not set it) and responds:
+
+```json
+{
+  "message": "Wallet recharged successfully",
+  "walletBalance": 150,
+  "user": { "...": "full user, passwordHash stripped" }
+}
+```
+
+**Toggle favourite** — `POST /auth/favorites/visits/:visitId` takes no body and flips
+membership in `user.savedVisits`, responding with the resulting state (`isSaved`).
+
+> There is **no** `PATCH /auth/update`. The marketplace profile page calls one; that
+> call 404s. See [TBD.md](TBD.md).
 
 ## Museums
 

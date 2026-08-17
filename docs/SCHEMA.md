@@ -13,8 +13,11 @@
 
 ### User
 - `username` - Unique identifier
+- `email` - Contact address (collected at registration)
 - `passwordHash` - Bcrypt hashed password
+- `avatarUrl` - Profile image
 - `savedMuseums` - Array of saved museum IDs
+- `savedVisits` - Array of favourited visit IDs
 - `myVisits` - Array of created visit IDs
 - `purchasedItems` - Array of purchased item IDs
 - `walletBalance` - Virtual currency (default: 100)
@@ -48,18 +51,25 @@
 - `title`, `slug`, `description`, `imageUrl` - Metadata
 - `museumId`, `creatorId` - References
 - `sequence` - Ordered array of items with navigation directions
-- `type` - `standard` or `synchronized`
+- `blocks` - Section grouping laid over `sequence`; a block is either `artwork` (items) or `questions` (prompts answered during a synchronized visit)
+- `type` - `standard` or `synchronized` (the marketplace derives it: any question makes a visit synchronized)
 - `length` - `quick`, `normal`, or `deep` (description length preference)
-- `quiz` - Optional quiz questions
+- `quiz` - Optional end-of-visit quiz questions (distinct from `blocks[].questions`)
 - `isPublic`, `viewCount` - Visibility and stats
+
+**`sequence` and `blocks` describe the same visit twice.** `sequence` is the flat ordered item list; `blocks` groups those items and interleaves question sections between them. A synchronized session walks a *step* list rebuilt from `blocks`, falling back to one step per `sequence` entry when `blocks` is empty. That rebuild exists in two places — `frontend-navigator/src/pages/VisitRun.jsx` and `src/controllers/session.controller.js` — and they must agree.
 
 ### Session
 - `code` - Mnemonic code (e.g., `VERDE_TIGRE_55`)
 - `owner` - Teacher user ID
 - `visitId` - Associated visit
-- `participants` - Array of joined users
-- `currentItemIndex` - Shared navigation state
+- `participants` - Array of joined users, each carrying their `quizAnswers` and `quizScore`
+- `currentItemIndex` - Shared position within `visit.sequence`
+- `currentStepIndex` - Shared position within the rebuilt step list (artworks + question sections)
 - `activities` - Log of participant actions
+- `messages` - Persisted group chat, so reloads and late joins see the backlog
+- `sectionResponses` - Answers to `blocks[].questions`, visible only to the owner
+- `quizStarted` - Persisted, so a student reloading mid-quiz returns to the quiz
 - `isActive`, `startedAt`, `endedAt` - Status
 
 ## Data Models Collections Details
@@ -69,8 +79,11 @@
 {
   _id: ObjectId,
   username: String,              // unique, min 3 chars
-  passwordHash: String,          // bcrypt
+  email: String,
+  passwordHash: String,          // bcrypt (virtual `password` setter → pre-save hook)
+  avatarUrl: String,
   savedMuseums: [ObjectId],      // refs Museum
+  savedVisits: [ObjectId],       // refs Visit (favourites)
   myVisits: [ObjectId],          // refs Visit
   purchasedItems: [ObjectId],    // refs Item
   walletBalance: Number,         // default: 100
@@ -173,6 +186,17 @@
     prevDirections: String,
     overrideImage: String
   }],
+  blocks: [{
+    type: String,                // 'artwork'|'questions', default: 'artwork'
+    blockName: String,           // default: 'Mainboard'
+    items: [ObjectId],           // refs Item — the artworks grouped in this block
+    questions: [{
+      prompt: String,            // required
+      answerType: String,        // 'open'|'multiple-choice', default: 'open'
+      options: [String],         // multiple-choice only
+      correctIndex: Number       // multiple-choice only
+    }]
+  }],
   length: String,                // 'quick'|'normal'|'deep', default: 'normal'
   type: String,                  // 'standard'|'synchronized', default: 'standard'
   sessionCode: String,           // unique, sparse
@@ -199,17 +223,39 @@
   visitId: ObjectId,             // refs Visit
   participants: [{
     userId: ObjectId,            // refs User
-    username: String,
+    username: String,            // denormalised: panels render a name per row
     joinedAt: Date,
-    isActive: Boolean            // default: true
+    isActive: Boolean,           // default: true
+    quizAnswers: [{ questionIndex: Number, selectedIndex: Number }],
+    quizScore: Number
   }],
-  currentItemIndex: Number,      // default: 0
+  currentItemIndex: Number,      // default: 0 — position in visit.sequence
+  currentStepIndex: Number,      // default: 0 — position in the rebuilt step list
   isActive: Boolean,             // default: true
   activities: [{
     participantId: ObjectId,     // refs User
-    action: String,              // 'joined'|'left'|'tellMore'|'tellLess'|'simpler'|'tooSimple'
+    action: String,              // 'joined'|'left'|'more'|'simpler'|'author'|'year'|'exit'|'map'
+                                 //   + legacy 'tellMore'|'tellLess'|'tooSimple' (no UI, kept so
+                                 //   old sessions still validate)
     timestamp: Date
   }],
+  messages: [{                   // persisted chat — backlog survives reload / late join
+    userId: ObjectId,            // refs User
+    username: String,
+    text: String,
+    timestamp: Date
+  }],
+  sectionResponses: [{           // answers to visit.blocks[].questions; owner-visible only
+    sectionId: String,
+    questionId: String,
+    userId: ObjectId,            // refs User
+    username: String,
+    answerType: String,          // 'open'|'multiple-choice'
+    text: String,                // open answers, max 1000 chars
+    selectedIndex: Number,       // multiple-choice answers
+    submittedAt: Date
+  }],
+  quizStarted: Boolean,          // persisted so a mid-quiz reload returns to the quiz
   startedAt: Date,
   endedAt: Date,
   createdAt: Date,

@@ -2,23 +2,25 @@
 
 ## Documentation
 
+- [AGENTS.md](AGENTS.md) - orientation for coding agents: constraints, patterns, gotchas
 - [docs/SPECS.md](docs/SPECS.md) - project requirements and constraints
 - [docs/API.md](docs/API.md) - endpoints, requests, responses, errors
 - [docs/SCHEMA.md](docs/SCHEMA.md) - data models, MongoDB collections
 - [docs/NAVIGATOR.md](docs/NAVIGATOR.md) - navigator frontend developer guide
+- [docs/MARKETPLACE.md](docs/MARKETPLACE.md) - marketplace frontend developer guide
+- [docs/TBD.md](docs/TBD.md) - open bugs, gaps and backlog
 
 ## Status
 
-**Completed:**
-- Backend — base API + synchronized sessions (extension 1) + quiz submission/results
-- Marketplace — login, museum grid, single-museum view with stage-and-publish visit editor, content/item creation, marketplace purchase flow
-- Navigator — home, museum list, visit selection (incl. group visits), fullscreen visit runner with logistic/describe state machine, opt-in TTS (Italian), voice control (controlled vocabulary), museum map, tone selection and swipeable description lengths
+**Base tier (18–24) and Extension 1 (18–27) are complete.**
 
-**In progress:** Floor plan for Uffizi, content images (one uploaded so far).
+- Backend — full API, synchronized sessions, group chat, question sections, quiz submission/results, wallet + item purchase
+- Marketplace — login/register, museum grid, per-museum visit list, visit builder (artwork and question sections), item editor (3 tones × 3 lengths), purchase flow, profile + wallet
+- Navigator — home, museum list, account, visit selection with stop list, fullscreen visit runner (logistic/describe state machine, opt-in Italian TTS, voice control, museum map, tone selection, swipeable description lengths) and group visits at `/session/:code`
 
-**Not started:** AI integration (Extension 2), georeferencing (Extension 2), navigator UI for synchronized sessions.
+**Not started:** Extension 2 — AI integration and georeferencing. `src/services/aiService.js` and `src/controllers/ai.controller.js` are empty and the AI routes are commented out.
 
-See [docs/NAVIGATOR.md](docs/NAVIGATOR.md) for the navigator's known gaps and TODOs.
+**Known gaps:** Uffizi has no floor plan, most contents have no image, there is no quiz-authoring UI, and the mandatory `README.txt` deliverable is still missing. Full list in [docs/TBD.md](docs/TBD.md).
 
 ## Running
 
@@ -97,7 +99,9 @@ Request flow: `route → validate(zodSchema) → requireAuth → controller → 
 
 ### Marketplace
 
-Vanilla HTML / CSS / ES modules, no framework (per project constraints). Lives in `frontend/marketplace/`, served by Express under the `/marketplace` route. Pages: login, museum grid, single-museum (My Visits with a stage-and-publish editor, Add Items grid, marketplace purchase flow). Uses the same JWT in `localStorage` as the navigator.
+Vanilla HTML / CSS / ES modules, no framework (per project constraints). Lives in `frontend-marketplace/`, served by Express under the `/marketplace` route. Pages: login, museum grid, single-museum (My Visits with a stage-and-publish editor, Add Items grid, marketplace purchase flow). Uses the same JWT in `localStorage` as the navigator.
+
+A second, independently written marketplace lives in `frontend/marketplace/` and is served at `/marketplace-v2`. Nothing links to it; it is kept reachable rather than discarded, and it is the only place that authors question sections (`Visit.blocks`). See [docs/MARKETPLACE.md](docs/MARKETPLACE.md) §9.
 
 ### Navigator
 
@@ -128,10 +132,15 @@ src/                           # Backend (Node + Express + Mongoose)
 ├── routes/                    # API route definitions
 ├── schemas/                   # Zod validation schemas
 ├── middleware/                # auth.js, validate.js, errorHandler.js
-└── services/                  # socketService (real-time session sync), aiService (Extension 2 stub)
-frontend/marketplace/          # Marketplace SPA (vanilla JS) — served at /marketplace
-├── pages/                     # HTML files (homepage, login, register, ...)
-├── scripts/                   # Page-specific ES modules
+└── services/                  # socketService (real-time session sync), itemPurchaseService (wallet), aiService (Extension 2 stub)
+frontend-marketplace/          # Marketplace (vanilla JS, ES modules) — served at /marketplace
+├── pages/                     # home.html, museums.html, museum.html
+├── css/                       # base.css (tokens) + one per page
+├── js/                        # api.js, auth.js, profile.js + one per page
+└── assets/
+frontend/marketplace/          # Parked 2nd marketplace — served at /marketplace-v2
+├── pages/                     # homepage, login, register, visits_list, create_visits, ...
+├── scripts/                   # Page-specific scripts (plain <script>, not modules)
 ├── stylesheets/
 └── assets/
 frontend-navigator/            # Navigator SPA (React + Vite) — served at /, /museums, /:slug, ...
