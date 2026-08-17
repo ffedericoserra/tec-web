@@ -160,7 +160,7 @@ Search + 4-column grid of museum contents (image / name / type+author / **Create
 
 - **No dirty-state guard** on Change Museum / logout / browser-nav (§6.1).
 - **No quiz-authoring UI.** The backend accepts `quiz` on POST/PUT `/visits` and the navigator shows `Start Quiz` on the last step, but nothing here writes `Visit.quiz`, so only seeded visits reach the quiz screen. Deliberately deferred.
-- **This editor doesn't write `Visit.blocks`** (question sections). Visits authored here have an empty `blocks`, and the navigator falls back to one step per `sequence` entry — a supported path. The active marketplace uses the same flat-sequence approach, so question sections currently have no authoring UI.
+- **This previous editor doesn't write `Visit.blocks`** (question sections). Visits authored here have an empty `blocks`, and the navigator falls back to one step per `sequence` entry — a supported path. The active marketplace differs: it authors both artwork blocks and question-section blocks.
 - Polish ideas, not blocking: inline wallet balance in the chooser, preview-before-buy on marketplace rows.
 - Full backlog in [TBD.md](TBD.md).
 
@@ -174,13 +174,14 @@ Differences that matter if you work on it:
 
 - **Plain `<script>` tags, not modules**, and no shared `api()` wrapper — each script has its own `myApi` constant and calls `fetch` directly. Helpers (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) are duplicated across files because there's no module system in play.
 - **Fully static**: the whole directory is mounted, so URLs carry real paths and `.html` extensions (`/marketplace/pages/visits_list.html?museumId=...`). Adding a page means adding a file.
-- **State passes between pages in the query string** — `museumId`, `museumName`, `visitId`, `contentId`, `itemId`, `source`. The visit editor parks a draft in `sessionStorage` under `marketplace_v2_visit_draft` before opening the Item editor.
-- Pages: `homepage`, `login`, `register`, `about`, `visits_list`, `create_visits`, `my_items`, `create_items`, `user_profile`. The old museum grid and add-museum page were removed. `navbar.js` renders the shared navigation on every page: **Le mie visite / I miei item / About us / Navigator / Account / Log in-out**.
-- The homepage is now only a landing page. Museum selection happens inside **Le mie visite**, where it filters `GET /visits/my`, and inside **I miei item**, where it filters the base Content grid.
-- The visit editor writes one flat `sequence` and always clears `blocks`. Adding an entry is a two-step **Content → Item** choice; owned and purchased Item can be selected, while a public Item can be bought inline. Reordering uses explicit up/down controls and preserves per-entry route directions.
-- Enabling **Visita di gruppo** sets `type: synchronized` and reveals the final multiple-choice quiz editor (`Visit.quiz`). This is distinct from the removed question-section/block UI.
+- **State passes between pages in the query string** — `museumId`, `museumName`, `visitId`, `contentId`, `itemId`, `source`. The visit editor serializes its current DOM-backed block state to `sessionStorage.temp_visit_state` before opening the Item editor, then restores it on return. Links from a visit must carry `source=visit`; otherwise `create_item.js` returns to **I miei item**.
+- Pages: `homepage`, `login`, `register`, `about`, `add_museum`, `visits_list`, `create_visits`, `my_items`, `create_items`, `user_profile`. `navbar.js` renders the shared navigation on every page: **Le mie visite / I miei item / About us / Navigator / Account / Log in-out**. Adding a museum is a dedicated homepage action rather than another navbar entry.
+- The homepage includes the searchable image grid of museum destinations. Selecting a card opens **Le mie visite** with that museum preselected; the visits page has a second search field for the user's visit titles/descriptions.
+- The visit editor writes both the flat `sequence` required by item execution and ordered `blocks` required by question sections. Artwork sections support cross-section drag/reorder and route directions. Question sections support open and multiple-choice prompts with a correct answer for the latter.
+- Existing artwork cards expose **Modifica testi** and **Cambia Item**. Text editing keeps the same Item id, while replacement swaps the Item node in place and preserves the stop's directions; neither path requires deleting and reinserting the stop.
+- Enabling **Visita di gruppo** sets `type: synchronized` and reveals the final multiple-choice quiz editor (`Visit.quiz`). Question sections stay in `Visit.blocks`; the final quiz remains a separate end-of-session phase. Both are consumed by the existing realtime session runner.
 - **I miei item** starts from the Content grid and opens two views: authored Item (create/edit/delete) and purchased Item, with an expandable marketplace list for additional purchases. Content cards deliberately have no hover movement animation.
-- `user_profile` is now account-only (identity and wallet recharge); visits no longer appear there. The removed profile-edit form no longer calls the nonexistent `PATCH /auth/update`.
+- `user_profile` combines identity and wallet recharge with read-only collections for created visits and saved/favourite visits. Visit authoring still lives in **Le mie visite**; Item authoring still lives in **I miei item**.
 - It writes only `localStorage.token` + `user`, so a login there is picked up by the active marketplace (which reads both keys) but not vice-versa in the `user` cache — harmless, since both re-fetch `/auth/me`.
 
 The previous implementation is retained for comparison, but new marketplace work belongs in `frontend/marketplace/` unless a task explicitly targets `/marketplace-fede-old`.

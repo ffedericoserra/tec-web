@@ -25,6 +25,65 @@ function formatBalance(value) {
     return Number.isInteger(number) ? String(number) : number.toFixed(2);
 }
 
+function entityId(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
+}
+
+function visitMuseum(visit) {
+    return typeof visit.museumId === "object" && visit.museumId !== null
+        ? visit.museumId
+        : { _id: visit.museumId };
+}
+
+function accountVisitUrl(visit, isFavorite) {
+    const museum = visitMuseum(visit);
+    if (isFavorite && museum.slug && visit.slug) {
+        return `/${encodeURIComponent(museum.slug)}/${encodeURIComponent(visit.slug)}`;
+    }
+
+    const params = new URLSearchParams();
+    const museumId = entityId(museum);
+    if (museumId) params.set("museumId", museumId);
+    if (museum.name) params.set("museumName", museum.name);
+    return `visits_list.html${params.toString() ? `?${params.toString()}` : ""}`;
+}
+
+function renderVisitCollection(containerId, visits, isFavorite = false) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = "";
+
+    if (!visits.length) {
+        const empty = document.createElement("p");
+        empty.classList.add("account-empty");
+        empty.textContent = isFavorite
+            ? "Non hai ancora salvato visite nei preferiti."
+            : "Non hai ancora creato visite.";
+        container.appendChild(empty);
+        return;
+    }
+
+    visits.forEach((visit) => {
+        const museum = visitMuseum(visit);
+        const row = document.createElement("article");
+        row.classList.add("account-list-item");
+
+        const copy = document.createElement("div");
+        const title = document.createElement("strong");
+        title.textContent = visit.title || "Visita senza titolo";
+        const meta = document.createElement("span");
+        meta.textContent = museum.name || (isFavorite ? "Visita salvata" : "Visita creata");
+        copy.append(title, meta);
+
+        const link = document.createElement("a");
+        link.href = accountVisitUrl(visit, isFavorite);
+        link.textContent = isFavorite ? "Apri" : "Gestisci";
+        row.append(copy, link);
+        container.appendChild(row);
+    });
+}
+
 async function loadAccount() {
     try {
         const data = await api("/auth/me");
@@ -33,6 +92,8 @@ async function loadAccount() {
         document.getElementById("profile-email").textContent = user.email || "Email non disponibile";
         document.getElementById("profile-avatar").src = user.avatarUrl || "/uploads/profiles/default-avatar.jpeg";
         document.getElementById("wallet-balance").textContent = formatBalance(user.walletBalance);
+        renderVisitCollection("account-visits", user.myVisits || []);
+        renderVisitCollection("account-favorites", user.savedVisits || [], true);
     } catch (error) {
         document.getElementById("account-feedback").textContent = error.message;
     }

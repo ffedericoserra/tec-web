@@ -13,7 +13,7 @@
       <section class="account-heading">
         <span class="kicker">Area personale</span>
         <h1>Account</h1>
-        <p>Profilo e wallet sono separati dalla gestione delle visite e degli Item.</p>
+        <p>Profilo, wallet, visite create e preferiti in un'unica area personale.</p>
       </section>
       <section class="account-workspace">
         <article class="profile-card">
@@ -31,6 +31,25 @@
           </form>
           <div id="account-feedback" class="feedback" aria-live="polite"></div>
         </article>
+        <section class="account-library" aria-labelledby="account-library-title">
+          <div class="account-library-heading">
+            <div>
+              <span class="label">La tua raccolta</span>
+              <h2 id="account-library-title">Visite e preferiti</h2>
+            </div>
+            <a class="secondary-btn" href="visits_list.html">Gestisci le visite</a>
+          </div>
+          <div class="account-library-grid">
+            <article>
+              <h3>Le mie visite</h3>
+              <div id="account-visits" class="account-list"></div>
+            </article>
+            <article>
+              <h3>Preferiti</h3>
+              <div id="account-favorites" class="account-list"></div>
+            </article>
+          </div>
+        </section>
       </section>
     </main>
     <script src="../scripts/navbar.js"></script>

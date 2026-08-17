@@ -2,7 +2,7 @@
 
 Consolidated backlog: bugs, gaps and decisions still to make. Kept here so no single page's "known gaps" section is the only record. **When you close one, delete it here in the same change.**
 
-Last reviewed: 2026-08-17 (after merging `mazzo-navigator` into `fede-frontends`).
+Last reviewed: 2026-08-17 (hybrid merge on `fusione-fede-mazzo`).
 
 ---
 
@@ -16,11 +16,11 @@ The repository still carries two independently written implementations, but the 
 | URL | `/marketplace` | `/marketplace-fede-old` |
 | Linked from | navigator header + landing + museum list | direct URL only |
 | Style | plain `<script>`, per-file `fetch` | ES modules, shared `api()` wrapper |
-| Authors `Visit.blocks` (question sections) | **no** | **no** |
+| Authors `Visit.blocks` (question sections) | **yes** | **no** |
 | Authors final `Visit.quiz` | **yes** | no |
 | Item purchase while adding a visit stop | yes | yes |
 
-New marketplace work belongs in `frontend/marketplace/`. The old version survives for comparison and rollback, which is still technical debt, but there is no longer ambiguity about which one `/marketplace` serves. The active redesign intentionally uses one flat sequence; the backend and navigator still support `blocks[].questions`, but neither marketplace currently authors them.
+New marketplace work belongs in `frontend/marketplace/`. The old version survives for comparison and rollback, which is still technical debt, but there is no longer ambiguity about which one `/marketplace` serves. The active editor now writes the flat `sequence` and the matching section structure in `blocks`, including `blocks[].questions`.
 
 ## 1. Known bugs
 
@@ -33,7 +33,6 @@ New marketplace work belongs in `frontend/marketplace/`. The old version survive
 
 - **README.txt is a mandatory deliverable** and doesn't exist yet: group members, architecture, which parts used AI assistance, feature list. Check [SPECS.md](SPECS.md) for the exact required contents.
 - **Seed vs SPECS account mismatch.** The spec asks for `autore1`, `autore2`, `visitatore1`, `visitatore2`; `scripts/seed.js` creates `autore1`, `visitatore1`, `docente1`.
-- **Question sections have no authoring UI.** The active marketplace can write the final `Visit.quiz` when “Visita di gruppo” is enabled, but neither editor writes question sections (`blocks[].questions`).
 
 ## 3. Extension 2 — not started
 
@@ -54,7 +53,7 @@ The only tier with grading headroom (18–33). Nothing here is stubbed-out-and-h
 
 - **Step-building logic is duplicated** between `frontend-navigator/src/pages/VisitRun.jsx` and `src/controllers/session.controller.js`. Both turn `blocks` + `sequence` into an ordered step list; they must agree or a session desyncs from what the runner draws.
 - **Two marketplaces** (§0) is itself the largest piece of debt.
-- **The active marketplace still uses one plain script per page** with no module boundaries. `create_visit.js` was reduced substantially during the flat-sequence redesign, but shared API/auth helpers remain duplicated.
+- **The active marketplace still uses one plain script per page** with no module boundaries. Restoring section and question authoring made `create_visit.js` large again; shared API/auth helpers remain duplicated.
 - **Helpers duplicated across active marketplace scripts** (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) because there's no module system in play there.
 - **`confirm()`** is still used for purchases and destructive actions in the active marketplace; `create_item.js` has a `showToast()` worth extracting into a shared helper.
 - **Three localStorage token keys in play** (`token`, `artaround_token`, plus v2's `user` cache). Both marketplaces and the navigator now read and write compatibly, but it's one key too many; collapse to `token` once nothing depends on the legacy name.

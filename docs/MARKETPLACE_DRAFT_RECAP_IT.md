@@ -1,5 +1,7 @@
 # Marketplace — prima bozza di riorganizzazione
 
+> Stato: bozza storica superata dalla fusione `fusione-fede-mazzo`. La navbar e la pagina **I miei item** sono state mantenute; griglia musei, aggiunta museo, editor a sezioni/sezioni-domanda e raccolte Account sono state reintegrate. Per il comportamento corrente vedere [MARKETPLACE.md](MARKETPLACE.md#9-active-implementation-marketplace).
+
 Questa versione è una **prima bozza funzionale e curata** pensata per mostrare rapidamente al gruppo come riorganizzerei il marketplace. Non è una proposta definitiva: serve come base concreta da provare, discutere e rifinire insieme.
 
 ## Cosa è stato rimosso

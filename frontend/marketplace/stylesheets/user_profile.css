@@ -6,7 +6,7 @@
 .account-heading h1 { margin:10px 0 18px; font-size:clamp(3rem,7vw,5.8rem); line-height:.95; }
 .account-heading p { max-width:650px; margin:0; color:rgba(22,22,22,.65); line-height:1.6; }
 .account-workspace { display:grid; grid-template-columns:minmax(260px,.75fr) minmax(320px,1.25fr); gap:25px; padding:55px 10vw 90px; }
-.profile-card,.wallet-card { padding:35px; border:1px solid var(--line); background:rgba(255,255,255,.25); }
+.profile-card,.wallet-card,.account-library { padding:35px; border:1px solid var(--line); background:rgba(255,255,255,.25); }
 .profile-card { display:grid; gap:28px; align-content:start; }
 .profile-card img { width:110px; height:110px; border-radius:50%; object-fit:cover; filter:grayscale(1); }
 .profile-card h2,.profile-card p { margin:8px 0 0; }
@@ -19,4 +19,18 @@
 .primary-btn { border:1px solid var(--ink); padding:13px 20px; background:var(--ink); color:var(--cream); font-weight:800; text-transform:uppercase; cursor:pointer; }
 .primary-btn:hover { background:var(--burgundy); border-color:var(--burgundy); }
 .feedback { min-height:40px; padding-top:18px; color:var(--burgundy); font-weight:700; }
-@media(max-width:720px){#artaround-account{padding-top:128px}.account-heading,.account-workspace{padding-left:22px;padding-right:22px}.account-workspace{grid-template-columns:1fr}#wallet-form{align-items:stretch;flex-direction:column}}
+.account-library { grid-column:1/-1; margin-top:10px; }
+.account-library-heading { display:flex; justify-content:space-between; align-items:end; gap:25px; padding-bottom:24px; border-bottom:2px solid var(--ink); }
+.account-library-heading h2 { margin:8px 0 0; font-size:2rem; }
+.secondary-btn { display:inline-flex; padding:12px 18px; border:1px solid var(--ink); color:var(--ink); font-size:.75rem; font-weight:800; text-decoration:none; text-transform:uppercase; }
+.secondary-btn:hover { color:var(--cream); background:var(--ink); }
+.account-library-grid { display:grid; grid-template-columns:1fr 1fr; gap:32px; margin-top:28px; }
+.account-library-grid > article { min-width:0; }
+.account-library-grid h3 { margin:0 0 15px; font-size:.8rem; letter-spacing:2px; text-transform:uppercase; }
+.account-list { display:grid; gap:10px; }
+.account-list-item { display:flex; justify-content:space-between; align-items:center; gap:18px; padding:16px 0; border-top:1px solid var(--line); }
+.account-list-item strong { display:block; margin-bottom:5px; }
+.account-list-item span { color:rgba(22,22,22,.58); font-size:.78rem; }
+.account-list-item a { color:var(--burgundy); font-size:.7rem; font-weight:800; letter-spacing:1px; text-decoration:none; text-transform:uppercase; }
+.account-empty { margin:0; padding:20px 0; color:rgba(22,22,22,.58); }
+@media(max-width:720px){#artaround-account{padding-top:128px}.account-heading,.account-workspace{padding-left:22px;padding-right:22px}.account-workspace,.account-library-grid{grid-template-columns:1fr}#wallet-form{align-items:stretch;flex-direction:column}.account-library-heading{align-items:stretch;flex-direction:column}.account-list-item{align-items:flex-start;flex-direction:column}}

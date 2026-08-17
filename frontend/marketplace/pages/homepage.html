@@ -29,9 +29,8 @@
               e porta la tua visita nel Navigator.
             </p>
             <div class="hero-actions">
-              <button class="primary-btn" type="button" onclick="window.location.href='visits_list.html'">
-                Le mie visite
-              </button>
+              <a class="primary-btn" href="visits_list.html">Le mie visite</a>
+              <a class="secondary-btn" href="add_museum.html">Aggiungi museo</a>
             </div>
           </div>
         </div>
@@ -40,7 +39,23 @@
           <p class="vertical-text right-vertical">NIKE DI SAMOTRACIA 190 a.C.</p>
         </div>
       </section>
+
+      <section id="destinazioni" class="museums-section" aria-labelledby="destinations-title">
+        <div class="museums-header-editorial">
+          <div class="museum-search-wrapper">
+            <label class="search-label" for="museum-search">Cerca un museo</label>
+            <input id="museum-search" type="search" placeholder="Nome, citt&agrave; o indirizzo..." />
+          </div>
+          <div class="museums-title-block">
+            <span class="kicker">Scegli la destinazione</span>
+            <h2 id="destinations-title">Musei</h2>
+          </div>
+        </div>
+        <div id="museum-feedback" class="museum-feedback" aria-live="polite"></div>
+        <div id="museum-list" class="museum-grid"></div>
+      </section>
     </main>
     <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/homepage.js"></script>
   </body>
 </html>

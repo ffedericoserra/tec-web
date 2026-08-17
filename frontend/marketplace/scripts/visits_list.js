@@ -7,7 +7,9 @@ const museumSelect = document.getElementById("museum-select");
 const visitsContainer = document.getElementById("tours-list");
 const feedback = document.getElementById("visits-feedback");
 const addButton = document.getElementById("add-visit-btn");
+const visitSearch = document.getElementById("visit-search");
 let museums = [];
+let visits = [];
 let selectedMuseum = null;
 let pendingDelete = null;
 
@@ -42,16 +44,32 @@ function visitEditorUrl(visitId = "") {
     return `create_visits.html?${params.toString()}`;
 }
 
-function renderVisits(visits) {
+function filteredVisits() {
+    const term = visitSearch.value.trim().toLowerCase();
+    if (!term) return visits;
+    return visits.filter((visit) =>
+        `${visit.title || ""} ${visit.description || ""} ${visit.type || ""}`
+            .toLowerCase()
+            .includes(term)
+    );
+}
+
+function renderVisits() {
+    const visibleVisits = filteredVisits();
     visitsContainer.innerHTML = "";
-    if (visits.length === 0) {
-        visitsContainer.innerHTML = `<div class="empty-state"><h2>Nessuna visita</h2><p>Crea il primo percorso per ${escapeHTML(selectedMuseum.name)}.</p></div>`;
+    if (visibleVisits.length === 0) {
+        const message = !selectedMuseum
+            ? "Scegli un museo per cercare tra le tue visite."
+            : visits.length === 0
+            ? `Crea il primo percorso per ${escapeHTML(selectedMuseum.name)}.`
+            : "Nessuna visita corrisponde alla ricerca.";
+        visitsContainer.innerHTML = `<div class="empty-state"><h2>Nessuna visita</h2><p>${message}</p></div>`;
         return;
     }
 
-    visits.forEach((visit) => {
+    visibleVisits.forEach((visit) => {
         const card = document.createElement("article");
-        card.className = "visit-card";
+        card.classList.add("visit-card");
         card.innerHTML = `
             <div>
                 <span class="visit-label">${visit.type === "synchronized" ? "Visita di gruppo" : "Visita standard"}</span>
@@ -78,8 +96,9 @@ async function loadVisits() {
     visitsContainer.innerHTML = "";
     try {
         const data = await api(`/visits/my?museumId=${encodeURIComponent(selectedMuseum._id)}`);
-        renderVisits(data.visits || []);
-        feedback.textContent = "";
+        visits = data.visits || [];
+        renderVisits();
+        feedback.textContent = `${visits.length} ${visits.length === 1 ? "visita" : "visite"}`;
     } catch (error) {
         feedback.textContent = error.message;
         feedback.classList.add("is-error");
@@ -93,6 +112,7 @@ function selectMuseum(id) {
         localStorage.setItem("marketplace_v2_museum", selectedMuseum._id);
         loadVisits();
     } else {
+        visits = [];
         visitsContainer.innerHTML = `<div class="empty-state"><h2>Scegli un museo</h2><p>Le tue visite verranno filtrate per museo.</p></div>`;
     }
 }
@@ -144,6 +164,7 @@ document.getElementById("confirm-delete-btn").addEventListener("click", async ()
 });
 
 museumSelect.addEventListener("change", () => selectMuseum(museumSelect.value));
+visitSearch.addEventListener("input", renderVisits);
 addButton.addEventListener("click", () => {
     if (selectedMuseum) window.location.href = visitEditorUrl();
 });

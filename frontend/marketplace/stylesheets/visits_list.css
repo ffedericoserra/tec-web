@@ -9,8 +9,9 @@
 .visits-heading p { max-width: 620px; margin: 0; color: rgba(22,22,22,.68); font-size: 1.1rem; line-height: 1.6; }
 .visits-workspace { padding: 55px 10vw 90px; }
 .visits-toolbar { display: flex; justify-content: space-between; align-items: end; gap: 30px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
-.visits-toolbar label { display: grid; gap: 9px; min-width: min(420px, 100%); }
-.visits-toolbar select { border: 0; border-bottom: 1px solid var(--ink); padding: 10px 0; background: transparent; font-size: 1.05rem; }
+.visits-toolbar label { display: grid; gap: 9px; min-width: min(290px, 100%); flex:1; }
+.visits-toolbar select,.visits-toolbar input { width:100%; border:0; border-bottom:1px solid var(--ink); padding:10px 0; background:transparent; color:var(--ink); font:inherit; font-size:1.05rem; }
+.visits-toolbar select:focus,.visits-toolbar input:focus { border-color:var(--burgundy); outline:0; }
 .primary-btn, .secondary-btn, .danger-btn, .delete-btn { border: 1px solid var(--ink); padding: 13px 20px; font-weight: 800; text-decoration: none; text-transform: uppercase; cursor: pointer; }
 .primary-btn { background: var(--ink); color: var(--cream); }
 .primary-btn:hover:not(:disabled) { background: var(--burgundy); border-color: var(--burgundy); }

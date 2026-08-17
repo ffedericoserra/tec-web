@@ -18,9 +18,13 @@
 
       <section class="visits-workspace">
         <div class="visits-toolbar">
-          <label for="museum-select">
+          <label class="museum-filter" for="museum-select">
             <span>Museo</span>
             <select id="museum-select"><option value="">Caricamento musei...</option></select>
+          </label>
+          <label class="visit-search" for="visit-search">
+            <span>Cerca nelle visite</span>
+            <input id="visit-search" type="search" placeholder="Titolo o descrizione..." />
           </label>
           <button id="add-visit-btn" class="primary-btn" type="button" disabled>Crea nuova visita</button>
         </div>

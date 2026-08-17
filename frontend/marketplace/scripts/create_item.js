@@ -2,7 +2,7 @@
 const isLocal = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1');
 const baseUrl = isLocal ? 'http://localhost:8000' : window.location.origin;
 const myApi = `${baseUrl}/api`;
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("token") || localStorage.getItem("artaround_token");
 const CONTENT_PLACEHOLDER = "/uploads/placeholders/template-no-image.jpg";
 
 const loggedInUsername = localStorage.getItem("username") || "Tu"; 

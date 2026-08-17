@@ -3,65 +3,231 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Editor visita</title>
+    <title>ArtAround - Visit Builder</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
-    <link rel="stylesheet" href="../stylesheets/create_visit.css" />
+    <link rel="stylesheet" href="../stylesheets/create_items.css" />
   </head>
-  <body id="artaround-visit-editor">
+  <body id="artaround-visit-builder" class="visit-builder-body">
     <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
-    <main class="editor-shell">
-      <section class="editor-heading">
-        <a id="back-link" href="visits_list.html" class="back-link">Le mie visite</a>
-        <span class="kicker">Editor visita</span>
-        <h1 id="editor-title">Crea una visita</h1>
-        <p>Una sola sequenza di contenuti, pronta per il Navigator.</p>
-      </section>
 
-      <section class="editor-form">
-        <div class="museum-context">Museo: <strong id="museum-name">—</strong></div>
-        <div class="fields-grid">
-          <label><span>Titolo</span><input id="visit-title" type="text" maxlength="200" /></label>
-          <label><span>Approfondimento</span>
-            <select id="visit-length"><option value="quick">Rapida</option><option value="normal">Normale</option><option value="deep">Approfondita</option></select>
-          </label>
-          <label class="wide"><span>Introduzione</span><textarea id="visit-description" rows="3"></textarea></label>
-          <label class="toggle-field"><input id="visit-public" type="checkbox" /><span>Visita pubblica</span></label>
-          <label class="toggle-field"><input id="group-visit" type="checkbox" /><span>Visita di gruppo</span></label>
+    <main class="visit-builder-shell">
+      <section class="visit-builder-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
         </div>
 
-        <section class="sequence-section">
-          <div class="section-heading">
-            <div><span class="kicker">Contenuti</span><h2>Sequenza della visita</h2></div>
-            <button id="add-content-btn" class="primary-btn" type="button">Aggiungi contenuto</button>
+        <div class="visit-builder-hero-layout">
+          <div class="visit-builder-heading-block">
+            <a href="#" id="back-to-museum-btn" class="header-back-link"
+              >Back to museum page</a
+            >
+            <span class="visit-builder-kicker">Editor visita</span>
+            <h1 class="visit-builder-title">Costruisci la visita</h1>
           </div>
-          <div id="sequence-list" class="sequence-list"></div>
-        </section>
 
-        <section id="quiz-section" class="quiz-section hidden">
-          <div class="section-heading">
-            <div><span class="kicker">Visita di gruppo</span><h2>Quiz finale</h2></div>
-            <button id="add-question-btn" class="secondary-btn" type="button">Aggiungi domanda</button>
+          <aside class="visit-builder-meta-panel" aria-label="Museum context">
+            <strong>Museo</strong>
+            <p>
+              Stai creando una visita per
+              <span id="display-museum-name" class="highlight-museum">...</span>
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="visit-builder-editor">
+        <div class="visit-editor-wrapper">
+          <div class="visit-editor-toolbar">
+            <h2 class="section-title-new">Struttura</h2>
+            <p>Organizza sezioni, opere e sezioni-domanda.</p>
           </div>
-          <p class="section-help">Il quiz sarà disponibile alla fine della sessione sincronizzata.</p>
-          <div id="quiz-list" class="quiz-list"></div>
-        </section>
 
-        <div id="editor-feedback" class="feedback" aria-live="polite"></div>
-        <div class="form-actions">
-          <a class="secondary-btn" href="visits_list.html" id="cancel-link">Annulla</a>
-          <button class="primary-btn" id="save-visit-btn" type="button">Salva visita</button>
+          <div class="visit-meta-form">
+            <div class="input-group">
+              <label for="v-title" class="text-label">Titolo visita</label>
+              <input
+                type="text"
+                id="v-title"
+                placeholder="Visit title"
+                required
+              />
+            </div>
+            <div class="input-group">
+              <label for="v-desc" class="text-label">Introduzione</label>
+              <textarea
+                id="v-desc"
+                rows="2"
+                placeholder="Description or general introduction to your tour..."
+              ></textarea>
+            </div>
+
+            <div class="input-group visit-length-field">
+              <label for="v-length" class="text-label">Livello di approfondimento</label>
+              <select id="v-length">
+                <option value="quick">Rapida</option>
+                <option value="normal" selected>Normale</option>
+                <option value="deep">Approfondita</option>
+              </select>
+            </div>
+
+            <div class="input-group visit-visibility-field">
+              <span class="text-label">Visibilita visita</span>
+              <label class="visit-visibility-toggle" for="v-is-public">
+                <input type="checkbox" id="v-is-public" />
+                <span class="visibility-switch" aria-hidden="true"></span>
+                <span class="visibility-copy">
+                  <strong id="visit-visibility-status">Privata</strong>
+                  <small id="visit-visibility-hint"
+                    >Visibile solo dal tuo account</small
+                  >
+                </span>
+              </label>
+            </div>
+
+            <div class="input-group visit-group-field">
+              <span class="text-label">Modalit&agrave;</span>
+              <label class="visit-group-toggle" for="v-group">
+                <input type="checkbox" id="v-group" />
+                <span class="visibility-switch" aria-hidden="true"></span>
+                <span class="visibility-copy">
+                  <strong id="visit-group-status">Visita standard</strong>
+                  <small id="visit-group-hint">Attiva per una sessione sincronizzata con quiz finale</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="blocks-wrapper" id="blocks-container">
+            <div class="add-section-wrapper" id="add-block-btn">
+              <div class="add-section-content">
+                <button class="add-btn" type="button">+</button>
+                <span class="add-section-text">Add section</span>
+              </div>
+            </div>
+          </div>
+
+          <section id="final-quiz-section" class="final-quiz-section hidden">
+            <div class="final-quiz-heading">
+              <div>
+                <span class="text-label">Visita di gruppo</span>
+                <h2>Quiz finale</h2>
+              </div>
+              <button id="add-final-quiz-question" class="main-btn" type="button">
+                Aggiungi domanda
+              </button>
+            </div>
+            <p class="final-quiz-help">
+              Il quiz parte dopo l'ultima sezione e viene inviato in tempo reale a tutti i partecipanti.
+            </p>
+            <div id="final-quiz-list" class="final-quiz-list"></div>
+          </section>
+
+          <div class="action-buttons">
+            <button
+              id="cancel-btn"
+              class="main-btn cancel-visit-btn"
+              type="button"
+            >
+              Cancel / exit
+            </button>
+            <button
+              id="save-visit-btn"
+              class="main-btn save-visit-btn"
+              type="button"
+            >
+              Save
+            </button>
+          </div>
         </div>
       </section>
     </main>
 
-    <div id="content-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="content-modal-title">
-      <div class="modal-content">
-        <div class="modal-heading">
-          <div><span class="kicker" id="modal-step-label">1 / 2</span><h2 id="content-modal-title">Scegli un contenuto</h2></div>
-          <button id="close-content-modal" class="icon-btn" type="button" aria-label="Chiudi">&times;</button>
+    <div id="section-type-modal" class="modal-overlay hidden">
+      <div class="modal-content visit-builder-modal section-type-modal">
+        <h3 class="modal-top-title">Choose section type</h3>
+        <p class="section-type-intro">
+          Artwork sections contain visit stops. Question sections are shown
+          during shared sessions.
+        </p>
+        <div class="section-type-options">
+          <button
+            type="button"
+            class="section-type-option"
+            data-section-type="artwork"
+          >
+            <strong>Artwork section</strong>
+            <span>Add and arrange museum artworks.</span>
+          </button>
+          <button
+            type="button"
+            class="section-type-option"
+            data-section-type="questions"
+          >
+            <strong>Question section</strong>
+            <span>Add open or multiple-choice questions.</span>
+          </button>
         </div>
-        <button id="back-to-contents" class="text-btn hidden" type="button">← Torna ai contenuti</button>
-        <div id="content-picker" class="content-picker"></div>
+        <button
+          type="button"
+          class="main-btn close-modal-btn"
+          id="close-section-type-modal"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+
+    <div id="select-item-modal" class="modal-overlay hidden">
+      <div class="modal-content visit-builder-modal">
+        <h3 class="modal-top-title">Choose an artwork</h3>
+        <div class="visit-wallet-panel">
+          <p>Saldo attuale <strong id="visit-wallet-current">0 A&alpha;</strong></p>
+          <p>Nuove aggiunte <strong id="visit-wallet-pending">0 A&alpha;</strong></p>
+          <p>Residuo stimato <strong id="visit-wallet-remaining">0 A&alpha;</strong></p>
+        </div>
+        <div id="items-container" class="items-scroll-container"></div>
+        <button
+          type="button"
+          class="main-btn close-modal-btn"
+          id="close-item-modal"
+        >
+          Chiudi
+        </button>
+      </div>
+    </div>
+
+    <div id="cancel-confirm-modal" class="modal-overlay hidden">
+      <div class="modal-content visit-builder-modal center-text-modal">
+        <h2 class="warning-title">Pay attention</h2>
+        <p class="warning-text">
+          You are leaving the editor. Unsaved changes will be lost. Do you want
+          to save them before leaving this page?
+        </p>
+        <div class="modal-action-stack">
+          <button
+            id="confirm-save-btn"
+            class="main-btn confirm-save-btn"
+            type="button"
+          >
+            Save visit
+          </button>
+          <button
+            id="confirm-exit-btn"
+            class="main-btn confirm-exit-btn"
+            type="button"
+          >
+            Leave without saving
+          </button>
+          <button
+            id="close-cancel-modal"
+            class="main-btn continue-edit-btn"
+            type="button"
+          >
+            Keep editing
+          </button>
+        </div>
       </div>
     </div>
 
