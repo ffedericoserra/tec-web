@@ -40,8 +40,8 @@
       <section class="visit-builder-editor">
         <div class="visit-editor-wrapper">
           <div class="visit-editor-toolbar">
-            <h2 class="section-title-new">Struttura</h2>
-            <p>Organizza sezioni, opere e sezioni-domanda.</p>
+            <h2 class="section-title-new">Percorso della visita</h2>
+            <p>Ogni sezione qui sotto è un capitolo del percorso: le opere al suo interno si susseguono nell'ordine in cui compaiono.</p>
           </div>
 
           <div class="visit-meta-form">
@@ -103,7 +103,7 @@
             <div class="add-section-wrapper" id="add-block-btn">
               <div class="add-section-content">
                 <button class="add-btn" type="button">+</button>
-                <span class="add-section-text">Add section</span>
+                <span class="add-section-text">Aggiungi capitolo</span>
               </div>
             </div>
           </div>
@@ -130,10 +130,11 @@
 
     <div id="section-type-modal" class="modal-overlay hidden">
       <div class="modal-content visit-builder-modal section-type-modal">
-        <h3 class="modal-top-title">Choose section type</h3>
+        <h3 class="modal-top-title">Scegli il tipo di capitolo</h3>
         <p class="section-type-intro">
-          Artwork sections contain visit stops. Question sections are shown
-          during shared sessions.
+          I capitoli opere contengono le tappe della visita, nell'ordine in
+          cui le disponi qui sotto. I capitoli domanda vengono mostrati
+          durante le sessioni di gruppo.
         </p>
         <div class="section-type-options">
           <button
@@ -141,16 +142,16 @@
             class="section-type-option"
             data-section-type="artwork"
           >
-            <strong>Artwork section</strong>
-            <span>Add and arrange museum artworks.</span>
+            <strong>Capitolo opere</strong>
+            <span>Aggiungi e ordina le opere del museo lungo il percorso.</span>
           </button>
           <button
             type="button"
             class="section-type-option"
             data-section-type="questions"
           >
-            <strong>Question section</strong>
-            <span>Add open or multiple-choice questions.</span>
+            <strong>Capitolo domande</strong>
+            <span>Aggiungi domande aperte o a risposta multipla.</span>
           </button>
         </div>
         <button
@@ -165,7 +166,7 @@
 
     <div id="select-item-modal" class="modal-overlay hidden">
       <div class="modal-content visit-builder-modal">
-        <h3 class="modal-top-title">Choose an artwork</h3>
+        <h3 class="modal-top-title">Scegli un'opera</h3>
         <div class="visit-wallet-panel">
           <p>Saldo attuale <strong id="visit-wallet-current">0 A&alpha;</strong></p>
           <p>Nuove aggiunte <strong id="visit-wallet-pending">0 A&alpha;</strong></p>

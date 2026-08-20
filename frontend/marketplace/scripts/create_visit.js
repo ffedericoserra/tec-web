@@ -427,7 +427,7 @@ function normalizeBlockAddButton(block) {
     button.removeAttribute('title');
 }
 
-function createNewBlock(defaultTitle = "New Section", sectionType = "artwork", questions = []) {
+function createNewBlock(defaultTitle = "Nuovo capitolo", sectionType = "artwork", questions = []) {
     blockCounter++;
     const block = document.createElement('div');
     block.classList.add('visit-block');
@@ -445,7 +445,7 @@ function createNewBlock(defaultTitle = "New Section", sectionType = "artwork", q
 
     block.innerHTML = `
       <div class="block-header">
-        <span class="block-number">${toRoman(blockCounter)}</span>
+        <span class="block-number">Capitolo ${toRoman(blockCounter)}</span>
         <input type="text" class="block-title-input" value="${escapeHTML(defaultTitle)}">
         <span class="block-count">0 ${sectionType === 'questions' ? 'questions' : 'artworks'}</span>
         <button class="delete-block-btn" type="button" title="Remove section" aria-label="Remove section">&times;</button>
@@ -489,7 +489,7 @@ document.querySelectorAll('[data-section-type]').forEach((button) => {
         const sectionType = button.dataset.sectionType;
         if (sectionType === 'questions') setGroupVisit(true);
         createNewBlock(
-            sectionType === 'questions' ? 'Questions' : 'New Section',
+            sectionType === 'questions' ? 'Domande' : 'Nuovo capitolo',
             sectionType
         );
         sectionTypeModal.classList.add('hidden');
@@ -503,7 +503,7 @@ document.getElementById('close-section-type-modal').addEventListener('click', ()
 function aggiornaContatoriBlocchi() {
     const blocks = document.querySelectorAll('.visit-block');
     blocks.forEach((block, index) => {
-        block.querySelector('.block-number').textContent = toRoman(index + 1);
+        block.querySelector('.block-number').textContent = `Capitolo ${toRoman(index + 1)}`;
         const isQuestions = block.dataset.sectionType === 'questions';
         const count = isQuestions
             ? block.querySelectorAll('.question-editor').length
@@ -555,21 +555,20 @@ async function apriModaleOpere(itemToReplace = null) {
                         : itemPrice > 0 ? formatCurrencyAmount(itemPrice) : 'Free';
 
                 const finalImgUrl = resolveAssetUrl(itemInfo.imageUrl);
+                const priceClass = itemPrice > 0 && !itemInfo.isOwned && !itemInfo.isPurchased ? 'is-paid' : 'is-free';
                 const imgTag = finalImgUrl
                     ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(itemInfo.title)}" class="modal-artwork-image">`
                     : '<span class="image-fallback">IMG</span>';
 
                 itemDiv.innerHTML = `
-                    <div class="modal-artwork-row">
-                        <div class="modal-artwork-thumb">${imgTag}</div>
-                        <span class="modal-artwork-copy">
-                            <strong>${escapeHTML(itemInfo.title)}</strong>
-                            <small>${escapeHTML(itemInfo.author)}</small>
-                        </span>
-                        <span class="modal-artwork-price">${escapeHTML(priceLabel)}</span>
-                    </div>
-                    <div class="modal-artwork-preview">
-                        <div class="modal-artwork-preview-frame">${imgTag}</div>
+                    ${imgTag}
+                    <div class="artwork-card-scrim"></div>
+                    <div class="artwork-card-info">
+                        <strong class="card-title">${escapeHTML(itemInfo.title)}</strong>
+                        <div class="card-meta-row">
+                            <span class="meta-pill meta-pill-author">${escapeHTML(itemInfo.author)}</span>
+                            <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
+                        </div>
                     </div>
                 `;
 
@@ -611,16 +610,14 @@ async function apriModaleOpere(itemToReplace = null) {
                     : '<span class="image-fallback">IMG</span>';
 
                 itemDiv.innerHTML = `
-                    <div class="modal-artwork-row">
-                        <div class="modal-artwork-thumb">${imgTag}</div>
-                        <span class="modal-artwork-copy">
-                            <strong>${escapeHTML(content.name || 'Opera')}</strong>
-                            <small>${escapeHTML(content.author || 'Autore Ignoto')}</small>
-                        </span>
-                        <span class="modal-artwork-price">Create Item</span>
-                    </div>
-                    <div class="modal-artwork-preview">
-                        <div class="modal-artwork-preview-frame">${imgTag}</div>
+                    ${imgTag}
+                    <div class="artwork-card-scrim"></div>
+                    <div class="artwork-card-info">
+                        <strong class="card-title">${escapeHTML(content.name || 'Opera')}</strong>
+                        <div class="card-meta-row">
+                            <span class="meta-pill meta-pill-author">${escapeHTML(content.author || 'Autore Ignoto')}</span>
+                            <span class="meta-pill meta-pill-create">Crea item</span>
+                        </div>
                     </div>
                 `;
 
@@ -661,19 +658,9 @@ document.getElementById('close-item-modal').addEventListener('click', () => {
 // --- DRAG & DROP INCROCIATO & CREAZIONE CARTA ---
 let draggedItem = null;
 let dragSourceList = null;
-const dragPreparedLists = new Set();
 const boundArtworkItems = new WeakSet();
 let placeholder = document.createElement('li');
 placeholder.classList.add('placeholder');
-let routeNodeCounter = 0;
-
-function ensureRouteNodeId(item) {
-    if (!item.dataset.routeNodeId) {
-        routeNodeCounter += 1;
-        item.dataset.routeNodeId = `route-${Date.now()}-${routeNodeCounter}`;
-    }
-    return item.dataset.routeNodeId;
-}
 
 function getArtworkItems(listElement) {
     return Array.from(listElement?.children || []).filter((node) =>
@@ -681,108 +668,99 @@ function getArtworkItems(listElement) {
     );
 }
 
-function importLegacyDirectionFields(listElement) {
-    getArtworkItems(listElement).forEach((item) => {
-        const previousField = item.querySelector('.item-prev-directions');
-        const nextField = item.querySelector('.item-next-directions');
-        if (previousField) item.dataset.prevDirections = previousField.value;
-        if (nextField) item.dataset.nextDirections = nextField.value;
-        item.querySelector('.route-fields')?.remove();
-    });
+// Ogni item porta con sé le proprie "indicazioni verso la tappa successiva":
+// il pannello a bordo carta viene ricalcolato ad ogni modifica dell'ordine,
+// mentre il riepilogo in cima alla sezione mostra l'intero percorso A → B → C.
+function ensureRoutePanel(item) {
+    // Il pannello vive dentro il corpo a comparsa della fisarmonica, accanto
+    // alla carta con l'immagine intera, non come figlio diretto dell'item.
+    const body = item.querySelector(':scope > .item-accordion-collapse > .item-accordion-body') || item;
+    let panel = body.querySelector(':scope > .item-route-panel');
+    if (!panel) {
+        panel = document.createElement('div');
+        panel.classList.add('item-route-panel');
+        body.appendChild(panel);
+    }
+    return panel;
 }
 
-function syncRouteConnectorValues(listElement) {
-    if (!listElement) return;
+function renderRoutePanel(item, nextItem) {
+    const panel = ensureRoutePanel(item);
 
-    listElement.querySelectorAll('.route-connector').forEach((connector) => {
-        const previousItem = connector.previousElementSibling;
-        const nextItem = connector.nextElementSibling;
-        const field = connector.querySelector('.direction-field');
-        if (
-            previousItem?.classList.contains('draggable-item') &&
-            nextItem?.classList.contains('draggable-item') &&
-            field
-        ) {
-            previousItem.dataset.nextDirections = field.value;
-            nextItem.dataset.prevDirections = field.value;
-        }
-    });
+    if (!nextItem) {
+        panel.classList.add('is-end');
+        panel.innerHTML = '<span class="item-route-end">Fine del capitolo</span>';
+        return;
+    }
+
+    panel.classList.remove('is-end');
+    const nextTitle = nextItem.dataset.title || 'la prossima opera';
+
+    let textarea = panel.querySelector('.direction-field');
+    if (!textarea) {
+        panel.innerHTML = `
+            <span class="item-route-label">Indicazioni verso</span>
+            <span class="item-route-target"></span>
+            <textarea class="direction-field" rows="3"></textarea>
+        `;
+        textarea = panel.querySelector('.direction-field');
+        textarea.value = item.dataset.nextDirections || '';
+    }
+
+    // Il campo può già esistere (es. dopo un ripristino dallo stato
+    // temporaneo): assicuriamoci comunque che l'ascoltatore sia agganciato.
+    if (textarea.dataset.bound !== 'true') {
+        textarea.dataset.bound = 'true';
+        textarea.addEventListener('input', () => {
+            item.dataset.nextDirections = textarea.value;
+            if (item.nextRouteItem) item.nextRouteItem.dataset.prevDirections = textarea.value;
+        });
+    }
+
+    panel.querySelector('.item-route-target').textContent = nextTitle;
+    textarea.placeholder = `Come raggiungere ${nextTitle}`;
+    textarea.setAttribute('aria-label', `Indicazioni per raggiungere ${nextTitle}`);
+
+    item.nextRouteItem = nextItem;
+    nextItem.dataset.prevDirections = item.dataset.nextDirections || textarea.value || '';
 }
 
-function createRouteConnector(previousItem, nextItem) {
-    const connector = document.createElement('li');
-    connector.classList.add('route-connector');
+function renderSectionRouteOverview(listElement, items) {
+    const block = listElement?.closest('.visit-block');
+    if (!block) return;
 
-    const inner = document.createElement('div');
-    inner.classList.add('route-connector-inner');
+    let overview = block.querySelector('.section-route-overview');
+    if (items.length === 0) {
+        overview?.remove();
+        return;
+    }
 
-    const label = document.createElement('label');
-    label.classList.add('route-connector-label');
+    if (!overview) {
+        overview = document.createElement('div');
+        overview.classList.add('section-route-overview');
+        block.insertBefore(overview, listElement);
+    }
 
-    const heading = document.createElement('span');
-    heading.classList.add('route-connector-heading');
-    heading.textContent = 'Indicazioni di percorso';
+    const stops = items.map((item, index) => `
+        <span class="route-overview-stop">
+            <span class="route-overview-index">${index + 1}</span>
+            <span class="route-overview-name">${escapeHTML(item.dataset.title || 'Opera')}</span>
+        </span>
+    `).join('<span class="route-overview-arrow" aria-hidden="true">&rarr;</span>');
 
-    const path = document.createElement('span');
-    path.classList.add('route-connector-path');
-    path.textContent = `${previousItem.dataset.title || 'Opera'} → ${nextItem.dataset.title || 'Opera'}`;
-
-    const previousNodeId = ensureRouteNodeId(previousItem);
-    const nextNodeId = ensureRouteNodeId(nextItem);
-    const hasPreviousPair = Boolean(
-        previousItem.dataset.nextRouteNodeId || nextItem.dataset.prevRouteNodeId
-    );
-    const isSamePair =
-        previousItem.dataset.nextRouteNodeId === nextNodeId &&
-        nextItem.dataset.prevRouteNodeId === previousNodeId;
-    const routeValue = hasPreviousPair && !isSamePair
-        ? ''
-        : previousItem.dataset.nextDirections || nextItem.dataset.prevDirections || '';
-
-    const field = document.createElement('textarea');
-    field.classList.add('direction-field');
-    field.rows = 2;
-    field.placeholder = `Come raggiungere ${nextItem.dataset.title || 'la prossima opera'}`;
-    field.setAttribute(
-        'aria-label',
-        `Indicazioni da ${previousItem.dataset.title || 'opera precedente'} a ${nextItem.dataset.title || 'opera successiva'}`
-    );
-    field.value = routeValue;
-
-    previousItem.dataset.nextDirections = field.value;
-    nextItem.dataset.prevDirections = field.value;
-    previousItem.dataset.nextRouteNodeId = nextNodeId;
-    nextItem.dataset.prevRouteNodeId = previousNodeId;
-    field.addEventListener('input', () => {
-        previousItem.dataset.nextDirections = field.value;
-        nextItem.dataset.prevDirections = field.value;
-    });
-
-    label.append(heading, path, field);
-    inner.appendChild(label);
-    connector.appendChild(inner);
-    return connector;
+    overview.innerHTML = `
+        <span class="route-overview-label">Percorso del capitolo</span>
+        <div class="route-overview-path">${stops}</div>
+    `;
 }
 
 function refreshRouteConnectors(listElement) {
     if (!listElement) return;
 
-    importLegacyDirectionFields(listElement);
-    syncRouteConnectorValues(listElement);
-    listElement.querySelectorAll('.route-connector').forEach((connector) => connector.remove());
-
     const items = getArtworkItems(listElement);
-    items.slice(0, -1).forEach((item, index) => {
-        item.after(createRouteConnector(item, items[index + 1]));
-    });
-}
-
-function prepareListForDrag(listElement) {
-    if (!listElement || dragPreparedLists.has(listElement)) return;
-    importLegacyDirectionFields(listElement);
-    syncRouteConnectorValues(listElement);
-    listElement.querySelectorAll('.route-connector').forEach((connector) => connector.remove());
-    dragPreparedLists.add(listElement);
+    if (items.length > 0) items[0].dataset.prevDirections = '';
+    items.forEach((item, index) => renderRoutePanel(item, items[index + 1] || null));
+    renderSectionRouteOverview(listElement, items);
 }
 
 function openItemEditor(item) {
@@ -805,27 +783,30 @@ function openItemEditor(item) {
 function bindArtworkItem(item) {
     if (boundArtworkItems.has(item)) return;
     boundArtworkItems.add(item);
-    ensureRouteNodeId(item);
 
     item.querySelectorAll('.draggable-item-image').forEach((image) => {
         image.addEventListener('error', () => image.classList.add('is-hidden'));
     });
 
-    item.addEventListener('click', (event) => {
+    // Cliccando sulla riga si apre l'editor testi dell'item (create_items.html);
+    // la "linguetta" con l'immagine intera e le indicazioni si abbassa invece
+    // solo al passaggio del mouse (o al focus da tastiera), via CSS :hover.
+    const header = item.querySelector('.item-accordion-header');
+
+    header.addEventListener('click', (event) => {
         if (event.target.closest('button, input, textarea, select, a')) return;
         openItemEditor(item);
     });
 
-    item.addEventListener('keydown', (event) => {
-        if ((event.key === 'Enter' || event.key === ' ') && event.target === item) {
+    header.addEventListener('keydown', (event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target === header) {
             event.preventDefault();
-            item.click();
+            openItemEditor(item);
         }
     });
 
     item.querySelector('.delete-btn').addEventListener('click', () => {
         const listElement = item.parentElement;
-        syncRouteConnectorValues(listElement);
         item.remove();
         refreshRouteConnectors(listElement);
         aggiornaContatoriBlocchi();
@@ -843,7 +824,6 @@ function bindArtworkItem(item) {
     item.addEventListener('dragstart', () => {
         draggedItem = item;
         dragSourceList = item.parentElement;
-        prepareListForDrag(dragSourceList);
         setTimeout(() => {
             item.classList.add('dragging');
             item.parentNode.insertBefore(placeholder, item.nextSibling);
@@ -858,10 +838,8 @@ function bindArtworkItem(item) {
             placeholder.remove();
         }
 
-        if (dragSourceList) dragPreparedLists.add(dragSourceList);
-        if (destinationList) dragPreparedLists.add(destinationList);
-        dragPreparedLists.forEach((listElement) => refreshRouteConnectors(listElement));
-        dragPreparedLists.clear();
+        refreshRouteConnectors(dragSourceList);
+        if (destinationList !== dragSourceList) refreshRouteConnectors(destinationList);
         dragSourceList = null;
         draggedItem = null;
         aggiornaContatoriBlocchi();
@@ -882,7 +860,6 @@ function creaEdAggiungiItem(
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
-    li.setAttribute('tabindex', '0');
     li.dataset.itemId = itemId;
     li.dataset.title = titoloOpera || "";
     li.dataset.author = author || "";
@@ -907,33 +884,40 @@ function creaEdAggiungiItem(
     const priceClass = priceValue > 0 ? 'is-paid' : 'is-free';
 
     li.innerHTML = `
-        <div class="card-header">
-            <div class="card-thumb">${imgTag}</div>
-            <div class="card-title-block">
+        <div class="item-accordion-header" role="button" tabindex="0" aria-label="Modifica testi opera">
+            <span class="item-toggle-thumb">${imgTag}</span>
+            <span class="item-toggle-info">
                 <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
                 <div class="card-meta-row">
                     <span class="meta-pill meta-pill-author">${escapeHTML(author)}</span>
                     <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
                 </div>
-            </div>
-        </div>
-        <div class="card-details">
-            <div class="card-image-placeholder">
-                ${imgTag}
-            </div>
-            <div class="card-copy">
-                <p class="card-author"><strong>${escapeHTML(author)}</strong></p>
-                <p class="card-note">Modifica i testi oppure cambia l'Item senza rimuovere la tappa.</p>
-            </div>
-            <div class="card-actions">
-                <button type="button" class="edit-item-btn">Modifica testi</button>
-                <button type="button" class="replace-item-btn">Cambia Item</button>
+            </span>
+            <span class="item-toggle-actions">
+                <button type="button" class="edit-item-btn" title="Modifica testi" aria-label="Modifica testi">&#9998;</button>
+                <button type="button" class="replace-item-btn" title="Cambia opera" aria-label="Cambia opera">&#8644;</button>
                 <button type="button" class="drag-handle" title="Trascina per riordinare" aria-label="Trascina per riordinare">
                     <span class="drag-handle-dots" aria-hidden="true">
                         <span></span><span></span><span></span><span></span><span></span><span></span>
                     </span>
                 </button>
                 <button type="button" class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
+            </span>
+            <span class="item-toggle-chevron" aria-hidden="true"></span>
+        </div>
+        <div class="item-accordion-collapse">
+            <div class="item-accordion-body">
+                <div class="artwork-card">
+                    ${imgTag}
+                    <div class="artwork-card-scrim"></div>
+                    <div class="artwork-card-info">
+                        <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
+                        <div class="card-meta-row">
+                            <span class="meta-pill meta-pill-author">${escapeHTML(author)}</span>
+                            <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     `;
@@ -952,7 +936,6 @@ function setupDragAndDropForList(listElement) {
     listElement.addEventListener('dragover', function(e) {
         e.preventDefault();
         if (!draggedItem) return;
-        prepareListForDrag(listElement);
 
         const afterElement = getDragAfterElement(listElement, e.clientY);
         if (afterElement == null) {
@@ -984,7 +967,6 @@ function salvaStatoTemporaneo() {
 
     const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
     blocksHtmlNodes.forEach((block) => {
-        syncRouteConnectorValues(block.querySelector('.block-list'));
         block.querySelectorAll('input, textarea, select').forEach((field) => {
             if (field.tagName === 'TEXTAREA') {
                 field.textContent = field.value;
@@ -1055,7 +1037,7 @@ function normalizeVisitBlocks(visit) {
     if (Array.isArray(savedBlocks) && savedBlocks.length > 0) {
         return savedBlocks.map((block, index) => ({
             type: block.type || 'artwork',
-            blockName: block.blockName || block.title || `Section ${index + 1}`,
+            blockName: block.blockName || block.title || `Tappa ${index + 1}`,
             items: (block.items || []).map(getItemIdFromValue).filter(Boolean),
             questions: (block.questions || []).map((question) => ({
                 prompt: question.prompt || '',
@@ -1075,7 +1057,7 @@ function normalizeVisitBlocks(visit) {
         .filter(Boolean);
 
     return sequenceItems.length > 0
-        ? [{ type: 'artwork', blockName: "Mainboard", items: sequenceItems, questions: [] }]
+        ? [{ type: 'artwork', blockName: "Prima tappa", items: sequenceItems, questions: [] }]
         : [];
 }
 
@@ -1169,7 +1151,7 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
         setGroupVisit(visit.type === 'synchronized');
 
         if (!structurData || structurData.length === 0) {
-            if(typeof createNewBlock === 'function') createNewBlock("Mainboard");
+            if(typeof createNewBlock === 'function') createNewBlock("Prima tappa");
             return;
         }
 
@@ -1221,7 +1203,7 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
 
     } catch(err) {
         console.error("ERRORE CRITICO in caricaVisitaEsistente:", err);
-        if(typeof createNewBlock === 'function') createNewBlock("Mainboard");
+        if(typeof createNewBlock === 'function') createNewBlock("Prima tappa");
     }
 }
 
@@ -1300,7 +1282,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             aggiornaContatoriBlocchi();
             sessionStorage.removeItem('temp_visit_state');
         } else {
-            createNewBlock("Mainboard");
+            createNewBlock("Prima tappa");
         }
     }
 
@@ -1378,7 +1360,6 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         }
 
         const itemsNodes = block.querySelectorAll('.draggable-item');
-        syncRouteConnectorValues(block.querySelector('.block-list'));
         const itemsIds = Array.from(itemsNodes).map(node => node.dataset.itemId);
 
         structurData.push({
@@ -1388,11 +1369,14 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             questions: []
         });
 
-        Array.from(itemsNodes).forEach(node => {
+        Array.from(itemsNodes).forEach((node, index, nodes) => {
+            const isLastInBlock = index === nodes.length - 1;
             sequenceObjects.push({
                 itemId: node.dataset.itemId,
                 order: globalOrder++,
-                nextDirections: (node.dataset.nextDirections || "").trim(),
+                // L'ultima tappa di un capitolo non ha una "prossima opera": non
+                // salviamo indicazioni residue che non corrisponderebbero più a nulla.
+                nextDirections: isLastInBlock ? "" : (node.dataset.nextDirections || "").trim(),
                 prevDirections: (node.dataset.prevDirections || "").trim()
             });
         });
