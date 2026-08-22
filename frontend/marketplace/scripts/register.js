@@ -19,8 +19,8 @@ if (registerForm) {
         const submitBtn = registerForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
 
-        setRegisterMessage("Creating account...", "info");
-        submitBtn.textContent = "Creazione...";
+        setRegisterMessage(marketplaceT("register.creating"), "info");
+        submitBtn.textContent = marketplaceT("register.submitting");
         submitBtn.classList.add("is-loading");
         submitBtn.disabled = true;
 
@@ -43,12 +43,35 @@ if (registerForm) {
 
             if (res.ok) {
                 localStorage.setItem("token", data.token);
+                const language = window.marketplaceI18n.getLanguage();
+                if (data.user?.language !== language) {
+                    try {
+                        const languageResponse = await fetch(`${myApi}/auth/language`, {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": `Bearer ${data.token}`
+                            },
+                            body: JSON.stringify({ language })
+                        });
+                        if (!languageResponse.ok) {
+                            await window.marketplaceI18n.changeLanguage(data.user?.language || "it");
+                        }
+                    } catch (error) {
+                        await window.marketplaceI18n.changeLanguage(data.user?.language || "it");
+                    }
+                }
                 window.location.href = "../pages/homepage.html";
             } else {
-                setRegisterMessage(data.error || "Registration failed", "error");
+                const errorKey = res.status === 409
+                    ? "register.alreadyExists"
+                    : res.status === 400
+                        ? "register.invalidFields"
+                        : "register.failed";
+                setRegisterMessage(marketplaceT(errorKey), "error");
             }
         } catch (err) {
-            setRegisterMessage("Server connection error", "error");
+            setRegisterMessage(marketplaceT("register.connectionError"), "error");
             console.error("Register fetch error: ", err);
         } finally {
             submitBtn.textContent = originalText;

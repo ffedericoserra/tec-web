@@ -5,8 +5,8 @@
  * both entry points: the spoken matcher below and the tappable list in
  * CommandSheet.jsx. Adding a command here makes it available in both at once.
  *
- * Recognition runs at it-IT to match the TTS voice and the Italian content, so
- * the phrases are Italian even though the UI labels are English.
+ * The command ids are stable across languages. Labels live in the i18n
+ * catalogues; this module owns only the phrases speech recognition must match.
  */
 
 const SR =
@@ -19,68 +19,100 @@ export const SPEECH_SUPPORTED = !!SR;
 export const COMMANDS = [
   {
     id: 'more',
-    label: 'Tell me more',
-    hint: 'dimmi di più',
-    phrases: ['dimmi di più', 'più dettagli', 'raccontami di più', 'approfondisci', 'continua'],
+    phrases: {
+      it: ['dimmi di più', 'più dettagli', 'raccontami di più', 'approfondisci', 'continua'],
+      en: ['tell me more', 'more details', 'go deeper', 'continue'],
+    },
   },
   {
     id: 'simpler',
-    label: 'Simpler',
-    hint: 'più semplice',
-    phrases: ['più semplice', 'semplifica', 'più breve', 'più corto', 'meno dettagli'],
+    phrases: {
+      it: ['più semplice', 'semplifica', 'più breve', 'più corto', 'meno dettagli'],
+      en: ['make it simpler', 'simplify', 'shorter', 'less detail'],
+    },
   },
   {
     id: 'next',
-    label: 'Next item',
-    hint: 'avanti',
-    phrases: ['prossima opera', 'vai avanti', 'prossimo', 'successivo', 'avanti'],
+    phrases: {
+      it: ['prossima opera', 'vai avanti', 'prossimo', 'successivo', 'avanti'],
+      en: ['next artwork', 'go forward', 'next', 'continue forward'],
+    },
   },
   {
     id: 'previous',
-    label: 'Previous item',
-    hint: 'indietro',
-    phrases: ['opera precedente', 'torna indietro', 'precedente', 'indietro'],
+    phrases: {
+      it: ['opera precedente', 'torna indietro', 'precedente', 'indietro'],
+      en: ['previous artwork', 'go back', 'previous', 'back'],
+    },
   },
   {
     id: 'author',
-    label: "Who's the author?",
-    hint: "chi è l'autore",
-    phrases: ["chi è l'autore", "chi l'ha dipinto", "chi l'ha fatto", 'autore'],
+    phrases: {
+      it: ["chi è l'autore", "chi l'ha dipinto", "chi l'ha fatto", 'autore'],
+      en: ['who is the author', 'who painted it', 'who made it', 'author'],
+    },
   },
   {
     id: 'year',
-    label: 'What year is it from?',
-    hint: 'di che anno è',
-    phrases: ['di che anno è', 'in che anno', "quand'è stato fatto", 'anno'],
+    phrases: {
+      it: ['di che anno è', 'in che anno', "quand'è stato fatto", 'anno'],
+      en: ['what year is it from', 'which year', 'when was it made', 'year'],
+    },
   },
   {
     id: 'exit',
-    label: 'Where is the exit?',
-    hint: "dov'è l'uscita",
-    phrases: ["dov'è l'uscita", 'dove si esce', 'come si esce', 'uscita'],
+    phrases: {
+      it: ["dov'è l'uscita", 'dove si esce', 'come si esce', 'uscita'],
+      en: ['where is the exit', 'how do I get out', 'how do I leave', 'exit'],
+    },
   },
   {
     id: 'map',
-    label: 'Show the map',
-    hint: 'mostra la mappa',
-    phrases: [
-      'fammi vedere la mappa',
-      'mostra la mappa',
-      'apri la mappa',
-      "dov'è la mappa",
-      'mappa',
-      'pianta',
-    ],
+    phrases: {
+      it: [
+        'fammi vedere la mappa',
+        'mostra la mappa',
+        'apri la mappa',
+        "dov'è la mappa",
+        'mappa',
+        'pianta',
+      ],
+      en: [
+        'show me the map',
+        'show the map',
+        'open the map',
+        'where is the map',
+        'map',
+        'floor plan',
+      ],
+    },
   },
 ];
 
-/* Flattened {phrase, id} pairs sorted longest-first, computed once at module
- * load. The order matters: "dimmi di più" contains "più", and `simpler` owns
- * "più breve" — matching shortest-first would route the wrong way. Longest-first
- * means the most specific phrase always wins. */
-const PHRASE_INDEX = COMMANDS.flatMap((c) =>
-  c.phrases.map((phrase) => ({ phrase: normalize(phrase), id: c.id }))
-).sort((a, b) => b.phrase.length - a.phrase.length);
+/* Flattened {phrase, id} pairs sorted longest-first, computed per language and
+ * cached. The order matters: longer, specific phrases must win over fragments;
+ * matching shortest-first can route overlapping phrases to the wrong command. */
+const PHRASE_INDEXES = new Map();
+
+function languageCode(language) {
+  return String(language || '').toLowerCase().startsWith('en') ? 'en' : 'it';
+}
+
+function phraseIndex(language) {
+  const code = languageCode(language);
+  if (!PHRASE_INDEXES.has(code)) {
+    PHRASE_INDEXES.set(
+      code,
+      COMMANDS.flatMap((command) =>
+        command.phrases[code].map((phrase) => ({
+          phrase: normalize(phrase),
+          id: command.id,
+        }))
+      ).sort((a, b) => b.phrase.length - a.phrase.length)
+    );
+  }
+  return PHRASE_INDEXES.get(code);
+}
 
 /* Accents are folded (più → piu, è → e) because recognizers are inconsistent
  * about emitting them, and a missing accent shouldn't lose a command. Apostrophe
@@ -91,17 +123,30 @@ function normalize(s) {
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/[’`´]/g, "'")
-    .replace(/[.,!?;:"]/g, ' ')
+    .replace(/[.,!?¡¿;:"]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
+function containsPhrase(text, phrase) {
+  let start = 0;
+  while (start <= text.length - phrase.length) {
+    const index = text.indexOf(phrase, start);
+    if (index === -1) return false;
+    const before = text[index - 1];
+    const after = text[index + phrase.length];
+    if ((!before || before === ' ') && (!after || after === ' ')) return true;
+    start = index + 1;
+  }
+  return false;
+}
+
 /** Match a spoken transcript against the vocabulary. Returns a command id or null. */
-export function matchCommand(transcript) {
+export function matchCommand(transcript, language = 'it') {
   const text = normalize(transcript);
   if (!text) return null;
-  for (const { phrase, id } of PHRASE_INDEX) {
-    if (text.includes(phrase)) return id;
+  for (const { phrase, id } of phraseIndex(language)) {
+    if (containsPhrase(text, phrase)) return id;
   }
   return null;
 }
@@ -115,7 +160,7 @@ export function matchCommand(transcript) {
  *
  * Returns an abort() function.
  */
-export function listenOnce({ onResult, onError, onEnd }) {
+export function listenOnce({ language = 'it', onResult, onError, onEnd }) {
   if (!SR) {
     onError?.('unsupported');
     onEnd?.();
@@ -128,7 +173,8 @@ export function listenOnce({ onResult, onError, onEnd }) {
   }
 
   const recognition = new SR();
-  recognition.lang = 'it-IT';
+  const code = languageCode(language);
+  recognition.lang = code === 'en' ? 'en-US' : 'it-IT';
   recognition.continuous = false;
   recognition.interimResults = false;
   // The vocabulary is small and fixed, so testing every alternative costs
@@ -141,7 +187,7 @@ export function listenOnce({ onResult, onError, onEnd }) {
     let heard = '';
     for (const alt of alternatives) {
       if (!heard) heard = alt.transcript || '';
-      const id = matchCommand(alt.transcript);
+      const id = matchCommand(alt.transcript, code);
       if (id) {
         matched = id;
         heard = alt.transcript;

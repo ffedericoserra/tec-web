@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { COMMANDS, SPEECH_SUPPORTED, listenOnce } from '../voice.js';
+import { normalizeLanguage } from '../i18n.js';
 
 function MicIcon() {
   return (
@@ -28,6 +30,8 @@ function MicIcon() {
  * hidden and the list is the whole interface, not a degraded one.
  */
 export default function CommandSheet({ disabled, onCommand, onClose }) {
+  const { t, i18n } = useTranslation();
+  const language = normalizeLanguage(i18n.resolvedLanguage) || 'it';
   const [listening, setListening] = useState(false);
   const [status, setStatus] = useState(null);
   const abortRef = useRef(null);
@@ -68,6 +72,7 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
     setStatus(null);
     setListening(true);
     abortRef.current = listenOnce({
+      language,
       onResult: ({ commandId, transcript }) => {
         if (commandId) {
           onCommand(commandId);
@@ -75,18 +80,18 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
         } else {
           setStatus(
             transcript
-              ? `Non ho capito: “${transcript}”`
-              : 'Non ho capito. Riprova.'
+              ? { key: 'voice.notUnderstoodTranscript', values: { transcript } }
+              : { key: 'voice.notUnderstood' }
           );
         }
       },
       onError: (err) => {
         setStatus(
           err === 'not-allowed'
-            ? 'Microfono non autorizzato.'
+            ? { key: 'voice.microphoneDenied' }
             : err === 'no-speech'
-              ? 'Non ho sentito nulla. Riprova.'
-              : 'Errore del microfono.'
+              ? { key: 'voice.noSpeech' }
+              : { key: 'voice.microphoneError' }
         );
       },
       onEnd: () => {
@@ -112,7 +117,7 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
         aria-labelledby="cmd-title"
       >
         <header className="cmd-head">
-          <h2 id="cmd-title">Comandi</h2>
+          <h2 id="cmd-title">{t('voice.title')}</h2>
           <button
             type="button"
             className="cmd-close"
@@ -120,7 +125,7 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
               stopListening();
               onClose();
             }}
-            aria-label="Chiudi"
+            aria-label={t('common.close')}
           >
             ×
           </button>
@@ -134,14 +139,16 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
                 className={`cmd-mic${listening ? ' is-listening' : ''}`}
                 onClick={toggleMic}
                 aria-pressed={listening}
-                aria-label={listening ? 'Interrompi ascolto' : 'Parla'}
+                aria-label={listening ? t('voice.stopListening') : t('voice.speak')}
               >
                 <MicIcon />
               </button>
               <p className="cmd-mic-label">
-                {listening ? 'Sto ascoltando…' : 'Tocca e parla'}
+                {listening ? t('voice.listening') : t('voice.tapAndSpeak')}
               </p>
-              {status && <p className="cmd-mic-status">{status}</p>}
+              {status && (
+                <p className="cmd-mic-status">{t(status.key, status.values)}</p>
+              )}
             </div>
           )}
 
@@ -154,8 +161,12 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
                   onClick={() => pick(c.id)}
                   disabled={!!disabled?.[c.id]}
                 >
-                  <span className="cmd-item-label">{c.label}</span>
-                  <span className="cmd-item-hint">“{c.hint}”</span>
+                  <span className="cmd-item-label">
+                    {t(`voice.commands.${c.id}.label`)}
+                  </span>
+                  <span className="cmd-item-hint">
+                    “{t(`voice.commands.${c.id}.hint`)}”
+                  </span>
                 </button>
               </li>
             ))}

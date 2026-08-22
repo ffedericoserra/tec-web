@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Register</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="register.title">ArtAround - Registrazione</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/register.css" />
   </head>
@@ -23,12 +24,12 @@
 
         <div class="register-layout">
           <section class="register-heading-block">
-            <span class="register-kicker">Nuovo account</span>
+            <span class="register-kicker" data-i18n="register.kicker">Nuovo account</span>
             <h1 class="register-title">
-              <span class="font-light">JOIN</span><br />
-              <span class="burgundy-text">ARTAROUND.</span>
+              <span class="font-light" data-i18n="register.heroWord">UNISCITI AD</span><br />
+              <span class="burgundy-text">ARTAROUND</span>
             </h1>
-            <p class="register-copy">
+            <p class="register-copy" data-i18n="register.copy">
               Crea il tuo profilo per costruire tour, salvare percorsi e
               organizzare nuove visite.
             </p>
@@ -39,13 +40,13 @@
             aria-labelledby="register-panel-title"
           >
             <div class="register-panel-header">
-              <span class="text-label">Account</span>
-              <h2 id="register-panel-title">Sign up</h2>
+              <span class="text-label" data-i18n="common.account">Account</span>
+              <h2 id="register-panel-title" data-i18n="register.heading">Registrati</h2>
             </div>
 
             <form id="register-form" class="register-form">
               <div class="input-group">
-                <label for="reg-username" class="text-label">Username</label>
+                <label for="reg-username" class="text-label" data-i18n="common.username">Username</label>
                 <input
                   class="input-slot"
                   id="reg-username"
@@ -56,7 +57,7 @@
               </div>
 
               <div class="input-group">
-                <label for="reg-email" class="text-label">Email</label>
+                <label for="reg-email" class="text-label" data-i18n="common.email">Email</label>
                 <input
                   class="input-slot"
                   id="reg-email"
@@ -67,7 +68,7 @@
               </div>
 
               <div class="input-group">
-                <label for="reg-pwd" class="text-label">Password</label>
+                <label for="reg-pwd" class="text-label" data-i18n="common.password">Password</label>
                 <input
                   class="input-slot"
                   id="reg-pwd"
@@ -77,7 +78,7 @@
                 />
               </div>
 
-              <button class="main-btn" type="submit">Sign up</button>
+              <button class="main-btn" type="submit" data-i18n="register.submit">Registrati</button>
 
               <div
                 id="error-msg"
@@ -87,14 +88,16 @@
             </form>
 
             <p class="login-prompt">
-              <span>Already have an account?</span>
-              <a href="login.html">Log in</a>
+              <span data-i18n="register.hasAccount">Hai già un account?</span>
+              <a href="login.html" data-i18n="register.login">Accedi</a>
             </p>
           </section>
         </div>
       </section>
     </main>
 
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/register.js"></script>
   </body>

@@ -13,6 +13,7 @@
 | POST | /api/auth/register | - | Create user |
 | POST | /api/auth/login | - | Get JWT |
 | GET | /api/auth/me | yes | Current user |
+| PATCH | /api/auth/language | yes | Update the preferred interface language |
 | PATCH | /api/auth/wallet | yes | Recharge wallet balance |
 | POST | /api/auth/favorites/visits/:visitId | yes | Toggle a visit favourite |
 | GET | /api/museums | - | List museums |
@@ -58,6 +59,7 @@
 | POST | `/auth/register` | Create new user | No |
 | POST | `/auth/login` | Login, get JWT token | No |
 | GET | `/auth/me` | Get current user profile | Yes |
+| PATCH | `/auth/language` | Update the preferred interface language | Yes |
 | PATCH | `/auth/wallet` | Recharge wallet balance | Yes |
 | POST | `/auth/favorites/visits/:visitId` | Toggle a visit favourite | Yes |
 
@@ -72,8 +74,19 @@
 **Response:**
 ```json
 {
-  "user": { "username": "...", "walletBalance": 100, ... },
+  "user": { "username": "...", "language": "it", "walletBalance": 100, ... },
   "token": "eyJhbGc..."
+}
+```
+
+**Update language** — `PATCH /auth/language`, body `{ "language": "it" }` or
+`{ "language": "en" }`. The preference is stored on the user and is returned by
+registration, login and `GET /auth/me`. The response is:
+
+```json
+{
+  "language": "en",
+  "user": { "username": "...", "language": "en", "walletBalance": 100, "...": "..." }
 }
 ```
 

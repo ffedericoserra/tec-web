@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { api, getCachedUser, setCachedUser } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
 import PageHeader from '../components/PageHeader.jsx';
 import ProfileMenu from '../components/ProfileMenu.jsx';
+import {
+  changeLanguage,
+  localeForLanguage,
+  normalizeLanguage,
+} from '../i18n.js';
 import '../styles/account.css';
 
 const DEFAULT_AVATAR = '/uploads/profiles/default-avatar.jpeg';
 
-function formatAmount(value) {
+function formatAmount(value, language) {
   const amount = Number(value) || 0;
-  return Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
+  return new Intl.NumberFormat(localeForLanguage(language), {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
-function museumName(visit) {
+function museumName(visit, t) {
   return typeof visit?.museumId === 'object'
-    ? visit.museumId?.name || 'Museo'
-    : 'Museo';
+    ? visit.museumId?.name || t('common.museum')
+    : t('common.museum');
 }
 
 function visitPath(visit) {
@@ -30,7 +39,7 @@ function visitPath(visit) {
   return `/${encodeURIComponent(museum)}/${encodeURIComponent(visitRef)}`;
 }
 
-function VisitList({ visits, emptyMessage, onStart }) {
+function VisitList({ visits, emptyMessage, onStart, t }) {
   if (!visits.length) {
     return <p className="account-empty">{emptyMessage}</p>;
   }
@@ -40,17 +49,25 @@ function VisitList({ visits, emptyMessage, onStart }) {
       {visits.map((visit) => {
         const path = visitPath(visit);
         const metadata = [
-          museumName(visit),
-          visit.type || 'standard',
-          visit.length || 'normal',
-          visit.isPublic === false ? 'privata' : 'pubblica',
+          museumName(visit, t),
+          t(`visitMeta.type.${visit.type || 'standard'}`, {
+            defaultValue: visit.type || 'standard',
+          }),
+          t(`visitMeta.length.${visit.length || 'normal'}`, {
+            defaultValue: visit.length || 'normal',
+          }),
+          t(
+            `visitMeta.visibility.${
+              visit.isPublic === false ? 'private' : 'public'
+            }`
+          ),
         ];
 
         return (
           <article className="account-list-row" key={visit._id || visit.slug}>
             <div className="account-list-info">
               <span>{metadata.join(' / ')}</span>
-              <h3>{visit.title || 'Visita senza titolo'}</h3>
+              <h3>{visit.title || t('account.untitledVisit')}</h3>
             </div>
             <button
               type="button"
@@ -58,7 +75,7 @@ function VisitList({ visits, emptyMessage, onStart }) {
               disabled={!path}
               onClick={() => path && onStart(path)}
             >
-              Avvia
+              {t('account.start')}
             </button>
           </article>
         );
@@ -68,6 +85,7 @@ function VisitList({ visits, emptyMessage, onStart }) {
 }
 
 export default function Account() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(getCachedUser());
   const [visits, setVisits] = useState([]);
@@ -78,7 +96,11 @@ export default function Account() {
   const [rechargeAmount, setRechargeAmount] = useState(10);
   const [recharging, setRecharging] = useState(false);
   const [rechargeError, setRechargeError] = useState(null);
-  const [walletNotice, setWalletNotice] = useState(null);
+  const [walletNoticeAmount, setWalletNoticeAmount] = useState(null);
+  const [languageSaving, setLanguageSaving] = useState(false);
+  const [languageError, setLanguageError] = useState(null);
+
+  const selectedLanguage = normalizeLanguage(i18n.resolvedLanguage) || 'it';
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -102,7 +124,7 @@ export default function Account() {
           logout();
           return;
         }
-        setError(err.message || 'Impossibile caricare il profilo');
+        setError('account.loadError');
         setLoading(false);
       });
 
@@ -127,7 +149,7 @@ export default function Account() {
     const amount = Number(rechargeAmount);
 
     if (!Number.isFinite(amount) || amount <= 0 || amount > 10000) {
-      setRechargeError('Inserisci un importo compreso tra 1 e 10000.');
+      setRechargeError('account.rechargeInvalid');
       return;
     }
 
@@ -141,21 +163,52 @@ export default function Account() {
       });
       const updatedUser = {
         ...user,
-        ...(response.user || {}),
         walletBalance: response.walletBalance,
       };
       setUser(updatedUser);
       setCachedUser(updatedUser);
-      setWalletNotice(`Ricarica completata: +${formatAmount(amount)} Aα.`);
+      setWalletNoticeAmount(amount);
       setRechargeOpen(false);
     } catch (err) {
       if (err.status === 401) {
         logout();
         return;
       }
-      setRechargeError(err.message || 'Impossibile ricaricare il wallet');
+      setRechargeError('account.rechargeError');
     } finally {
       setRecharging(false);
+    }
+  }
+
+  async function updateLanguage(nextLanguage) {
+    if (languageSaving) return;
+    if (nextLanguage === selectedLanguage) {
+      setLanguageError(null);
+      return;
+    }
+
+    setLanguageSaving(true);
+    setLanguageError(null);
+    try {
+      const response = await api('/auth/language', {
+        method: 'PATCH',
+        body: { language: nextLanguage },
+      });
+      const updatedUser = {
+        ...user,
+        language: response.user?.language || response.language || nextLanguage,
+      };
+      setUser(updatedUser);
+      setCachedUser(updatedUser);
+      await changeLanguage(updatedUser.language);
+    } catch (err) {
+      if (err.status === 401) {
+        logout();
+        return;
+      }
+      setLanguageError('account.languageError');
+    } finally {
+      setLanguageSaving(false);
     }
   }
 
@@ -165,40 +218,50 @@ export default function Account() {
   return (
     <div className="page-account">
       <PageHeader
-        subtitle="Account"
+        subtitle={t('account.subtitle')}
         right={<ProfileMenu user={user} />}
       />
 
       <main className="account-main">
         <section className="account-heading">
-          <span className="kicker">Area personale</span>
-          <h1>Il tuo profilo</h1>
-          <p>Gestisci visite, preferiti e saldo del tuo account.</p>
+          <span className="kicker">{t('account.kicker')}</span>
+          <h1>{t('account.title')}</h1>
+          <p>{t('account.intro')}</p>
         </section>
 
-        {loading && <p className="account-status">Caricamento…</p>}
-        {error && !loading && <p className="account-status error">{error}</p>}
+        {loading && <p className="account-status">{t('common.loading')}</p>}
+        {error && !loading && <p className="account-status error">{t(error)}</p>}
 
         {!loading && !error && (
           <section className="account-dashboard">
-            <aside className="account-summary" aria-label="Riepilogo account">
+            <aside className="account-summary" aria-label={t('account.summaryAria')}>
               <img
                 className="account-avatar"
                 src={avatarUrl}
-                alt={`Profilo di ${user?.username || 'utente'}`}
+                alt={t('header.profileAlt', {
+                  username: user?.username || t('common.user').toLowerCase(),
+                })}
                 onError={(event) => {
                   if (!event.currentTarget.src.endsWith(DEFAULT_AVATAR)) {
                     event.currentTarget.src = DEFAULT_AVATAR;
                   }
                 }}
               />
-              <h2>{user?.username || 'Utente'}</h2>
-              <p className="account-email">{user?.email || 'Email non disponibile'}</p>
+              <h2>{user?.username || t('common.user')}</h2>
+              <p className="account-email">
+                {user?.email || t('account.emailUnavailable')}
+              </p>
 
               <div className="account-wallet">
-                <span>Saldo account</span>
-                <strong>{formatAmount(user?.walletBalance)} Aα</strong>
-                {walletNotice && <p>{walletNotice}</p>}
+                <span>{t('account.balance')}</span>
+                <strong>{formatAmount(user?.walletBalance, selectedLanguage)} Aα</strong>
+                {walletNoticeAmount !== null && (
+                  <p>
+                    {t('account.rechargeDone', {
+                      amount: formatAmount(walletNoticeAmount, selectedLanguage),
+                    })}
+                  </p>
+                )}
                 <button
                   type="button"
                   className="account-secondary-action"
@@ -207,7 +270,7 @@ export default function Account() {
                     setRechargeOpen(true);
                   }}
                 >
-                  Ricarica saldo
+                  {t('account.recharge')}
                 </button>
               </div>
 
@@ -216,12 +279,12 @@ export default function Account() {
                 className="account-logout"
                 onClick={logout}
               >
-                Logout
+                {t('common.logout')}
               </button>
             </aside>
 
             <section className="account-content">
-              <div className="account-tabs" role="tablist" aria-label="Sezioni account">
+              <div className="account-tabs" role="tablist" aria-label={t('account.tabsAria')}>
                 <button
                   type="button"
                   role="tab"
@@ -229,7 +292,7 @@ export default function Account() {
                   className={activeTab === 'visits' ? 'is-active' : ''}
                   onClick={() => setActiveTab('visits')}
                 >
-                  Le mie visite
+                  {t('account.tabs.visits')}
                 </button>
                 <button
                   type="button"
@@ -238,7 +301,7 @@ export default function Account() {
                   className={activeTab === 'saved' ? 'is-active' : ''}
                   onClick={() => setActiveTab('saved')}
                 >
-                  Salvati
+                  {t('account.tabs.saved')}
                 </button>
                 <button
                   type="button"
@@ -247,44 +310,84 @@ export default function Account() {
                   className={activeTab === 'settings' ? 'is-active' : ''}
                   onClick={() => setActiveTab('settings')}
                 >
-                  Impostazioni
+                  {t('account.tabs.settings')}
                 </button>
               </div>
 
               <div className="account-panel" role="tabpanel">
                 {activeTab === 'visits' && (
                   <>
-                    <h2>Visite create</h2>
+                    <h2>{t('account.createdVisits')}</h2>
                     <VisitList
                       visits={visits}
-                      emptyMessage="Non hai ancora creato nessuna visita."
+                      emptyMessage={t('account.noCreatedVisits')}
                       onStart={navigate}
+                      t={t}
                     />
                   </>
                 )}
                 {activeTab === 'saved' && (
                   <>
-                    <h2>Visite salvate</h2>
+                    <h2>{t('account.savedVisits')}</h2>
                     <VisitList
                       visits={savedVisits}
-                      emptyMessage="Non hai ancora salvato nessuna visita."
+                      emptyMessage={t('account.noSavedVisits')}
                       onStart={navigate}
+                      t={t}
                     />
                   </>
                 )}
                 {activeTab === 'settings' && (
                   <>
-                    <h2>Dati account</h2>
+                    <h2>{t('account.details')}</h2>
                     <dl className="account-details">
                       <div>
-                        <dt>Username</dt>
+                        <dt>{t('account.username')}</dt>
                         <dd>{user?.username || '—'}</dd>
                       </div>
                       <div>
-                        <dt>Email</dt>
+                        <dt>{t('account.email')}</dt>
                         <dd>{user?.email || '—'}</dd>
                       </div>
                     </dl>
+                    <section className="account-language" aria-labelledby="account-language-title">
+                      <div>
+                        <h3 id="account-language-title">{t('account.language')}</h3>
+                        <p>{t('account.languageHint')}</p>
+                      </div>
+                      <div
+                        className="account-language-options"
+                        role="group"
+                        aria-label={t('account.languageOptionsAria')}
+                      >
+                        <button
+                          type="button"
+                          className={selectedLanguage === 'it' ? 'is-active' : ''}
+                          aria-pressed={selectedLanguage === 'it'}
+                          disabled={languageSaving}
+                          onClick={() => updateLanguage('it')}
+                        >
+                          {t('account.italian')}
+                        </button>
+                        <button
+                          type="button"
+                          className={selectedLanguage === 'en' ? 'is-active' : ''}
+                          aria-pressed={selectedLanguage === 'en'}
+                          disabled={languageSaving}
+                          onClick={() => updateLanguage('en')}
+                        >
+                          {t('account.english')}
+                        </button>
+                      </div>
+                      {languageSaving && (
+                        <p className="account-language-status">{t('account.savingLanguage')}</p>
+                      )}
+                      {languageError && (
+                        <p className="account-language-status error" role="alert">
+                          {t(languageError)}
+                        </p>
+                      )}
+                    </section>
                   </>
                 )}
               </div>
@@ -308,8 +411,12 @@ export default function Account() {
             aria-modal="true"
             aria-labelledby="recharge-title"
           >
-            <h2 id="recharge-title">Ricarica wallet</h2>
-            <p>Saldo attuale: {formatAmount(user?.walletBalance)} Aα</p>
+            <h2 id="recharge-title">{t('account.rechargeTitle')}</h2>
+            <p>
+              {t('account.currentBalance', {
+                amount: formatAmount(user?.walletBalance, selectedLanguage),
+              })}
+            </p>
             <div className="account-quick-amounts">
               {[10, 25, 50].map((amount) => (
                 <button
@@ -323,7 +430,7 @@ export default function Account() {
               ))}
             </div>
             <form onSubmit={rechargeWallet}>
-              <label htmlFor="recharge-amount">Importo</label>
+              <label htmlFor="recharge-amount">{t('account.amount')}</label>
               <input
                 id="recharge-amount"
                 type="number"
@@ -334,17 +441,19 @@ export default function Account() {
                 onChange={(event) => setRechargeAmount(event.target.value)}
                 autoFocus
               />
-              {rechargeError && <p className="account-modal-error" role="alert">{rechargeError}</p>}
+              {rechargeError && (
+                <p className="account-modal-error" role="alert">{t(rechargeError)}</p>
+              )}
               <div className="account-modal-actions">
                 <button
                   type="button"
                   onClick={() => setRechargeOpen(false)}
                   disabled={recharging}
                 >
-                  Annulla
+                  {t('common.cancel')}
                 </button>
                 <button type="submit" disabled={recharging}>
-                  {recharging ? 'Ricarica…' : 'Conferma'}
+                  {recharging ? t('account.recharging') : t('common.confirm')}
                 </button>
               </div>
             </form>

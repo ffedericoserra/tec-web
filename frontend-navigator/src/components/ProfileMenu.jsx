@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { logout } from "../auth.js"
+import { localeForLanguage } from "../i18n.js"
 
 export default function ProfileMenu({ user }) {
     const navigate = useNavigate()
+    const { t, i18n } = useTranslation()
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
 
@@ -34,12 +37,14 @@ export default function ProfileMenu({ user }) {
                 onClick={() => setOpen((o) => !o)}
                 aria-haspopup="menu"
                 aria-expanded={open}
-                aria-label="Apri menu profilo"
+                aria-label={t("header.openProfile")}
             >
                 <img
                     className="profile-avatar"
                     src={avatarUrl}
-                    alt={`Profilo di ${user?.username || "utente"}`}
+                    alt={t("header.profileAlt", {
+                        username: user?.username || t("common.user").toLowerCase(),
+                    })}
                     onError={(event) => {
                         if (event.currentTarget.src.endsWith(defaultAvatarUrl))
                             return
@@ -50,11 +55,16 @@ export default function ProfileMenu({ user }) {
             {open && (
                 <div className="profile-menu" role="menu">
                     <p className="profile-username">
-                        {user?.username || "Utente"}
+                        {user?.username || t("common.user")}
                     </p>
                     {typeof user?.walletBalance === "number" && (
                         <p className="profile-wallet">
-                            Saldo: Aα {user.walletBalance}
+                            {t("header.balance", {
+                                amount: new Intl.NumberFormat(
+                                    localeForLanguage(i18n.resolvedLanguage),
+                                    { maximumFractionDigits: 2 }
+                                ).format(user.walletBalance),
+                            })}
                         </p>
                     )}
                     <button
@@ -66,7 +76,7 @@ export default function ProfileMenu({ user }) {
                             navigate("/account")
                         }}
                     >
-                        Visualizza account
+                        {t("header.viewAccount")}
                     </button>
                     <button
                         type="button"
@@ -74,7 +84,7 @@ export default function ProfileMenu({ user }) {
                         role="menuitem"
                         onClick={logout}
                     >
-                        Logout
+                        {t("common.logout")}
                     </button>
                 </div>
             )}

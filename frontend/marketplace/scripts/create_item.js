@@ -5,7 +5,7 @@ const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token") || localStorage.getItem("artaround_token");
 const CONTENT_PLACEHOLDER = "/uploads/placeholders/template-no-image.jpg";
 
-const loggedInUsername = localStorage.getItem("username") || "Tu"; 
+const loggedInUsername = localStorage.getItem("username") || marketplaceT("common.you");
 
 if (!token) window.location.href = "login.html";
 
@@ -15,18 +15,24 @@ let activeItemId = urlParams.get('itemId');
 let viewedItemId = activeItemId;
 const sourcePage = urlParams.get('source') || 'my-items';
 const museumId = urlParams.get('museumId');
-const museumName = urlParams.get('museumName') || 'Sconosciuto';
+const museumName = urlParams.get('museumName') || marketplaceT('itemEditor.unknownMuseum');
 const visitId = urlParams.get('visitId');
-const urlTitle = urlParams.get('title') || 'Titolo Sconosciuto';
-const urlAuthor = urlParams.get('author') || 'Autore Ignoto';
+const urlTitle = urlParams.get('title') || marketplaceT('itemEditor.unknownTitle');
+const urlAuthor = urlParams.get('author') || marketplaceT('common.authorUnknown');
 const urlImage = urlParams.get('image');
 
-const urlYear = urlParams.get('year') || 'N/D';
+const urlYear = urlParams.get('year') || marketplaceT('common.notAvailable');
 const urlContentId = urlParams.get('contentId'); 
 
 // VARIABILI GLOBALI
 let originalContentId = urlContentId || null;
 let museumContentsCache = [];
+let dropdownTranslation = { key: 'itemEditor.chooseIntro', options: {} };
+
+function setDropdownTranslation(key, options = {}) {
+    dropdownTranslation = { key, options };
+    document.getElementById('dropdown-selected-text').textContent = marketplaceT(key, options);
+}
 
 function resolveAssetUrl(path) {
     if (!path) return "";
@@ -60,7 +66,9 @@ function showToast(message, type = "success") {
     }
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<span>${message}</span>`;
+    const copy = document.createElement('span');
+    copy.textContent = message;
+    toast.appendChild(copy);
     
     container.appendChild(toast);
     setTimeout(() => toast.classList.add('show'), 10);
@@ -72,9 +80,9 @@ function showToast(message, type = "success") {
 
 // --- MAPPATURA UI <-> DATABASE ---
 const audienceMap = [
-    { id: 'children', tone: 'easy', label: 'bimbi' },
-    { id: 'standard', tone: 'medium', label: 'standard' },
-    { id: 'expert', tone: 'complex', label: 'esperti' }
+    { id: 'children', tone: 'easy', labelKey: 'itemEditor.tagChildren' },
+    { id: 'standard', tone: 'medium', labelKey: 'itemEditor.tagStandard' },
+    { id: 'expert', tone: 'complex', labelKey: 'itemEditor.tagExperts' }
 ];
 
 const durationMap = ['3s', '15s', '45s'];
@@ -101,6 +109,7 @@ function setActiveDuration(audienceId, duration) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     // Popoliamo la grafica fissa dell'opera
+    setDropdownTranslation('itemEditor.chooseIntro');
     document.getElementById('artwork-title-display').textContent = `${urlTitle} - ${urlAuthor}`;
     document.getElementById('museum-name-display').textContent = museumName;
     document.getElementById('item-anno').value = urlYear;
@@ -173,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (originalContentId) {
         loadCommunityItems();
     } else {
-        document.getElementById('existing-items-list').innerHTML = '<li class="muted-list-message">Salva l\'item per vedere le versioni degli altri utenti.</li>';
+        document.getElementById('existing-items-list').innerHTML = `<li class="muted-list-message">${marketplaceT('itemEditor.saveForVersions')}</li>`;
     }
 
     document.getElementById('btn-cancel-exit').addEventListener('click', () => {
@@ -205,7 +214,7 @@ async function loadCommunityItems() {
         existingItemsList.innerHTML = '';
 
         if (!Array.isArray(communityItems) || communityItems.length === 0) {
-            existingItemsList.innerHTML = '<li class="muted-list-message">Nessuna variante creata per questa opera.</li>';
+            existingItemsList.innerHTML = `<li class="muted-list-message">${marketplaceT('itemEditor.noVariants')}</li>`;
             return;
         }
 
@@ -214,42 +223,51 @@ async function loadCommunityItems() {
         communityItems.forEach(item => {
             const li = document.createElement('li');
             
-            let creatorName = 'Utente Anonimo';
+            let creatorName = marketplaceT('itemEditor.anonymousUser');
             if (item.creatorId && item.creatorId.username) creatorName = item.creatorId.username;
-            else if (typeof item.creatorId === 'string') creatorName = `Utente ${item.creatorId.substring(0, 5)}...`;
+            else if (typeof item.creatorId === 'string') creatorName = marketplaceT('itemEditor.user', {
+                id: `${item.creatorId.substring(0, 5)}...`
+            });
 
             if (!authorCounts[creatorName]) authorCounts[creatorName] = 0;
             authorCounts[creatorName]++;
-            let displayCreatorName = authorCounts[creatorName] > 1 ? `${creatorName} (Variante ${authorCounts[creatorName]})` : creatorName;
+            let displayCreatorName = authorCounts[creatorName] > 1
+                ? marketplaceT('itemEditor.variant', {
+                    creator: creatorName,
+                    count: authorCounts[creatorName]
+                })
+                : creatorName;
 
             let tags = [];
             if (item.descriptions && Array.isArray(item.descriptions)) {
                 item.descriptions.forEach(desc => {
                     const mappedAudience = audienceMap.find(a => a.tone === desc.tone);
-                    if (mappedAudience) tags.push(mappedAudience.label);
+                    if (mappedAudience) tags.push(marketplaceT(mappedAudience.labelKey));
                 });
             }
-            const tagsText = tags.length > 0 ? tags.join(', ') : 'nessun testo';
+            const tagsText = tags.length > 0 ? tags.join(', ') : marketplaceT('itemEditor.noTexts');
             const priceText = item.isOwned
-                ? 'tuo'
+                ? marketplaceT('itemEditor.owned')
                 : item.isPurchased
-                    ? 'acquisito'
-                    : `${Number(item.price) || 0} crediti`;
+                    ? marketplaceT('itemEditor.acquired')
+                    : `${Number(item.price) || 0} ${marketplaceT('common.credits')}`;
             const itemDetails = `${tagsText} · ${item.license || 'CC-BY'} · ${priceText}`;
 
             const authorLine = document.createElement('span');
             const authorName = document.createElement('strong');
             authorName.textContent = displayCreatorName;
-            authorLine.append(document.createTextNode('Item di '), authorName);
+            authorLine.append(document.createTextNode(marketplaceT('itemEditor.itemByPrefix')), authorName);
 
             const detailsLine = document.createElement('span');
             detailsLine.classList.add('community-item-tags');
             detailsLine.textContent = itemDetails;
             li.append(authorLine, detailsLine);
             
-            li.addEventListener('click', () => {
-                caricaTestiDaDB(item._id);
-                document.getElementById('dropdown-selected-text').textContent = `Visualizzando l'Item di: ${displayCreatorName}`;
+            li.addEventListener('click', async () => {
+                await caricaTestiDaDB(item._id);
+                setDropdownTranslation('itemEditor.viewingBy', {
+                    creator: displayCreatorName
+                });
                 dropdownMenu.classList.add('hidden');
             });
             existingItemsList.appendChild(li);
@@ -263,7 +281,7 @@ document.getElementById('btn-create-new').addEventListener('click', () => {
     clearUI();
     activeItemId = null; 
     viewedItemId = null;
-    document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
+    setDropdownTranslation('itemEditor.createOwn');
     document.getElementById('btn-delete-item').classList.add('hidden'); 
     document.getElementById('btn-save-exit').classList.remove('hidden');
     dropdownMenu.classList.add('hidden');
@@ -298,7 +316,7 @@ function resetCommercialFields() {
     document.getElementById('item-license').value = 'CC-BY';
     document.getElementById('item-is-public').checked = false;
     document.getElementById('item-sales-count').value = '0';
-    document.getElementById('item-revenue').value = '0 crediti';
+    document.getElementById('item-revenue').value = `0 ${marketplaceT('common.credits')}`;
     document.getElementById('item-language').value = 'it';
     document.getElementById('item-target-audience').value = 'general';
 }
@@ -312,7 +330,7 @@ async function loadAssociatedContentOptions(selectedIds = []) {
             const res = await fetch(`${myApi}/museums/${museumId}/contents`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error('Content request failed');
+            if (!res.ok) throw new Error(marketplaceT('itemEditor.loadContentError'));
             const data = await res.json();
             museumContentsCache = data.contents || [];
         }
@@ -322,7 +340,7 @@ async function loadAssociatedContentOptions(selectedIds = []) {
         container.innerHTML = '';
         const message = document.createElement('p');
         message.classList.add('associated-empty-message');
-        message.textContent = 'Contenuti non disponibili';
+        message.textContent = marketplaceT('itemEditor.contentsUnavailable');
         container.appendChild(message);
     }
 }
@@ -338,7 +356,7 @@ function renderAssociatedContentOptions(selectedIds = []) {
     if (candidates.length === 0) {
         const message = document.createElement('p');
         message.classList.add('associated-empty-message');
-        message.textContent = 'Nessun contenuto opzionale disponibile';
+        message.textContent = marketplaceT('itemEditor.noOptionalContents');
         container.appendChild(message);
         return;
     }
@@ -355,7 +373,7 @@ function renderAssociatedContentOptions(selectedIds = []) {
 
         const name = document.createElement('span');
         name.classList.add('associated-content-name');
-        name.textContent = content.name || 'Contenuto';
+        name.textContent = content.name || marketplaceT('common.content');
 
         const type = document.createElement('span');
         type.classList.add('associated-content-type');
@@ -372,7 +390,7 @@ async function caricaTestiDaDB(idToLoad) {
             headers: { 'Authorization': `Bearer ${token}` } 
         });
         
-        if (!res.ok) throw new Error("Errore nel recupero testi");
+        if (!res.ok) throw new Error(marketplaceT('itemEditor.loadTextsError'));
         const data = await res.json();
         const currentItem = data.item || data; 
 
@@ -387,8 +405,8 @@ async function caricaTestiDaDB(idToLoad) {
         document.getElementById('item-is-public').checked = Boolean(currentItem.isPublic);
         document.getElementById('item-sales-count').value = String(currentItem.salesCount ?? 0);
         document.getElementById('item-revenue').value = currentItem.revenue === undefined
-            ? 'Riservato all’autore'
-            : `${currentItem.revenue} crediti`;
+            ? marketplaceT('itemEditor.reservedRevenue')
+            : `${currentItem.revenue} ${marketplaceT('common.credits')}`;
         document.getElementById('item-target-audience').value = currentItem.targetAudience || 'general';
         const firstText = currentItem.descriptions
             ?.flatMap((description) => description.texts || [])
@@ -405,15 +423,19 @@ async function caricaTestiDaDB(idToLoad) {
             'hidden',
             currentItem.isOwned || currentItem.isPurchased || !currentItem.isPublic
         );
-        document.getElementById('dropdown-selected-text').textContent = currentItem.isOwned
-            ? 'Modificando il tuo Item selezionato'
-            : currentItem.isPurchased
-                ? 'Visualizzando un Item acquistato'
-                : 'Visualizzando un Item disponibile';
+        setDropdownTranslation(
+            currentItem.isOwned
+                ? 'itemEditor.editingOwned'
+                : currentItem.isPurchased
+                    ? 'itemEditor.viewingPurchased'
+                    : 'itemEditor.viewingAvailable'
+        );
         
-        let creatorName = "Utente Ignoto";
+        let creatorName = marketplaceT('itemEditor.unknownUser');
         if (currentItem.creatorId && currentItem.creatorId.username) creatorName = currentItem.creatorId.username;
-        else if (typeof currentItem.creatorId === 'string') creatorName = `Utente ${currentItem.creatorId.substring(0, 5)}`;
+        else if (typeof currentItem.creatorId === 'string') creatorName = marketplaceT('itemEditor.user', {
+            id: currentItem.creatorId.substring(0, 5)
+        });
         
         document.getElementById('item-creatore').value = creatorName;
 
@@ -458,7 +480,7 @@ async function caricaTestiDaDB(idToLoad) {
 document.getElementById('btn-save-exit').addEventListener('click', async () => {
     
     if (!activeItemId && !originalContentId) {
-        showToast("Impossibile salvare: Manca il riferimento all'opera originale.", "error");
+        showToast(marketplaceT('itemEditor.missingContent'), "error");
         return;
     }
 
@@ -486,7 +508,7 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
     });
 
     if (finalDescriptions.length === 0) {
-        showToast("Scrivi almeno una descrizione per salvare l'Item!", "error");
+        showToast(marketplaceT('itemEditor.needDescription'), "error");
         return;
     }
 
@@ -504,7 +526,7 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
     };
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
-        showToast("Inserisci un prezzo valido, maggiore o uguale a zero.", "error");
+        showToast(marketplaceT('itemEditor.invalidPrice'), "error");
         return;
     }
 
@@ -522,16 +544,16 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
         });
 
         if (res.ok) {
-            showToast("Item salvato con successo!", "success");
+            showToast(marketplaceT('itemEditor.saved'), "success");
             setTimeout(() => {
                 window.location.href = getVisitBuilderUrl();
             }, 1200);
         } else {
             const errorData = await res.json().catch(() => ({}));
-            showToast(errorData.error || "Errore di validazione dal server.", "error");
+            showToast(marketplaceT('itemEditor.validationError'), "error");
         }
     } catch (error) {
-        showToast("Errore di rete o connessione.", "error");
+        showToast(marketplaceT('itemEditor.networkError'), "error");
     }
 });
 
@@ -545,19 +567,23 @@ document.getElementById('btn-purchase-item').addEventListener('click', async () 
         });
         const responseData = await res.json().catch(() => ({}));
         if (!res.ok) {
-            showToast(responseData.error || "Acquisto non riuscito.", "error");
+            showToast(marketplaceT(
+                responseData.error === 'Insufficient balance'
+                    ? 'itemEditor.insufficientBalance'
+                    : 'itemEditor.purchaseFailed'
+            ), "error");
             return;
         }
 
         document.getElementById('btn-purchase-item').classList.add('hidden');
         showToast(
-            `Item acquisito. Saldo disponibile: ${responseData.walletBalance} crediti.`,
+            marketplaceT('itemEditor.purchaseSuccess', { balance: responseData.walletBalance }),
             "success"
         );
         await caricaTestiDaDB(viewedItemId);
         await loadCommunityItems();
     } catch (error) {
-        showToast("Errore di connessione durante l'acquisto.", "error");
+        showToast(marketplaceT('itemEditor.purchaseConnectionError'), "error");
     }
 });
 
@@ -565,7 +591,7 @@ document.getElementById('btn-purchase-item').addEventListener('click', async () 
 document.getElementById('btn-delete-item').addEventListener('click', async () => {
     if (!activeItemId) return;
 
-    if (!confirm("Sei sicuro di voler eliminare definitivamente questo item? L'azione è irreversibile.")) {
+    if (!confirm(marketplaceT('itemEditor.deleteConfirm'))) {
         return;
     }
 
@@ -576,17 +602,26 @@ document.getElementById('btn-delete-item').addEventListener('click', async () =>
         });
 
         if (res.ok) {
-            showToast("Item eliminato con successo!", "success");
+            showToast(marketplaceT('itemEditor.deleted'), "success");
             activeItemId = null; 
             document.getElementById('btn-delete-item').classList.add('hidden'); 
             clearUI(); 
             loadCommunityItems(); 
-            document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
+            setDropdownTranslation('itemEditor.createOwn');
         } else {
             const errorData = await res.json();
-            showToast(errorData.error || "Non sei autorizzato a eliminare questo item.", "error");
+            showToast(marketplaceT(
+                errorData.error === 'Items used by a visit cannot be deleted'
+                    ? 'itemEditor.deleteInUse'
+                    : 'itemEditor.deleteUnauthorized'
+            ), "error");
         }
     } catch (error) {
-        showToast("Errore di connessione durante l'eliminazione.", "error");
+        showToast(marketplaceT('itemEditor.deleteConnectionError'), "error");
     }
+});
+
+window.addEventListener('marketplace:language-changed', () => {
+    setDropdownTranslation(dropdownTranslation.key, dropdownTranslation.options);
+    if (originalContentId) loadCommunityItems();
 });

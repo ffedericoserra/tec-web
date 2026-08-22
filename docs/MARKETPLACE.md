@@ -184,6 +184,16 @@ Differences that matter if you work on it:
 - `user_profile` combines identity and wallet recharge with read-only collections for created visits and saved/favourite visits. Visit authoring still lives in **Le mie visite**; Item authoring still lives in **I miei item**.
 - It writes only `localStorage.token` + `user`, so a login there is picked up by the active marketplace (which reads both keys) but not vice-versa in the `user` cache — harmless, since both re-fetch `/auth/me`.
 
+### Interface language (Italian / English)
+
+- The active marketplace uses the root `i18next` dependency without adding a build step. Its browser UMD build and MIT licence are vendored in `frontend/marketplace/vendor/`; every page loads `../vendor/i18next.min.js` before `scripts/i18n.js`, `navbar.js` and its page script. The relative URL works both through Express (`/marketplace/pages/...`) and when the repository is opened with Live Server (`/frontend/marketplace/pages/...`). Update the vendored build whenever the root dependency version changes.
+- `scripts/i18n.js` owns the Italian and English UI catalogues, translates the static `data-i18n*` attributes, and exposes `marketplaceT()` for text created at runtime. New user-facing text, including placeholders, confirmation dialogs, errors, tooltips and accessible labels, must be added to both catalogues rather than hard-coded.
+- The shared preference key is `localStorage.artaround_language` (`it` or `en`, falling back to `it`). The script updates `<html lang>` and listens for storage changes, so the Navigator and Marketplace stay aligned across pages and open tabs. Logout deliberately leaves this preference intact.
+- A former locally stored `es` preference is normalized to `en`; Spanish remains available only as authored Item-text metadata.
+- The language buttons live under **Account → Impostazioni → Lingua**. Login and the authenticated account apply `user.language` as the canonical value for that account; registration saves the language in which the form was completed to the new account. Selecting a language updates the interface immediately and persists it with `PATCH /auth/language`; a failed save restores the previous language.
+- Interface language and authored-content language are separate. The `item-language` field still writes `Item.descriptions[].texts[].language` and is not changed automatically when the interface switches language. Museum, Content and Visit data are likewise displayed as authored rather than machine-translated.
+- This localization applies only to the active `frontend/marketplace/`. The retained `/marketplace-fede-old` implementation is intentionally unchanged.
+
 The previous implementation is retained for comparison, but new marketplace work belongs in `frontend/marketplace/` unless a task explicitly targets `/marketplace-fede-old`.
 
 The colleague-facing Italian summary of this first draft is in [MARKETPLACE_DRAFT_RECAP_IT.md](MARKETPLACE_DRAFT_RECAP_IT.md).

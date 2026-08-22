@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (!token) {
-        alert("You must be logged in to access this page.");
+        alert(marketplaceT("errors.authRequired"));
         window.location.href = "../pages/login.html";
         return;
     }
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalBtnText = submitBtn.innerText;
-        submitBtn.innerText = "Salvataggio in corso...";
+        submitBtn.innerText = marketplaceT("addMuseum.saving");
         submitBtn.classList.add("is-loading");
         submitBtn.disabled = true;
 
@@ -70,14 +70,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (response.ok) {
-                alert("Museo aggiunto con successo!");
+                alert(marketplaceT("addMuseum.success"));
                 window.location.href = "../pages/homepage.html";
             } else {
-                alert("Errore durante il salvataggio: " + (data.error || "Controlla i campi inseriti."));
+                alert(marketplaceT("addMuseum.saveError", {
+                    message: marketplaceT("addMuseum.checkFields")
+                }));
             }
         } catch (error) {
             console.error("Errore fetch:", error);
-            alert("Si e' verificato un errore di connessione al server.");
+            alert(marketplaceT("addMuseum.connectionError"));
         } finally {
             submitBtn.innerText = originalBtnText;
             submitBtn.classList.remove("is-loading");

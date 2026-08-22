@@ -1,12 +1,17 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import SessionPanel from './SessionPanel.jsx';
 import { ACTIVITY_LABELS } from '../session.js';
+import { localeForLanguage } from '../i18n.js';
 
-function formatTime(ts) {
+function formatTime(ts, language) {
   if (!ts) return '';
   const d = new Date(ts);
   if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+  return d.toLocaleTimeString(localeForLanguage(language), {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function questionSections(visit) {
@@ -15,12 +20,12 @@ function questionSections(visit) {
   );
 }
 
-function participantList(participants, responses) {
+function participantList(participants, responses, t, language) {
   const people = new Map();
   participants.forEach((participant) => {
     people.set(String(participant.userId), {
       userId: String(participant.userId),
-      username: participant.username || 'Partecipante',
+      username: participant.username || t('common.participant'),
     });
   });
   responses.forEach((response) => {
@@ -28,12 +33,12 @@ function participantList(participants, responses) {
     if (!people.has(userId)) {
       people.set(userId, {
         userId,
-        username: response.username || 'Partecipante',
+        username: response.username || t('common.participant'),
       });
     }
   });
   return [...people.values()].sort((a, b) =>
-    a.username.localeCompare(b.username, 'it')
+    a.username.localeCompare(b.username, localeForLanguage(language))
   );
 }
 
@@ -46,12 +51,12 @@ function findResponse(responses, participantId, sectionId, questionId) {
   );
 }
 
-function answerText(question, response) {
-  if (!response) return 'Nessuna risposta';
+function answerText(question, response, t) {
+  if (!response) return t('activities.noAnswer');
   if (question.answerType === 'multiple-choice') {
-    return question.options?.[response.selectedIndex] || 'Opzione non disponibile';
+    return question.options?.[response.selectedIndex] || t('activities.optionUnavailable');
   }
-  return response.text || 'Nessuna risposta';
+  return response.text || t('activities.noAnswer');
 }
 
 function correctAnswerText(question) {
@@ -66,25 +71,34 @@ function correctAnswerText(question) {
 
 function responseOutcome(question, response) {
   if (!response || question.answerType !== 'multiple-choice') return null;
-  if (!Number.isInteger(question.correctIndex)) return 'Soluzione non impostata';
-  return response.selectedIndex === question.correctIndex ? 'Corretta' : 'Errata';
+  if (!Number.isInteger(question.correctIndex)) return 'unset';
+  return response.selectedIndex === question.correctIndex ? 'correct' : 'wrong';
 }
 
-function buildAnswersReport({ visit, code, participants, responses }) {
+function buildAnswersReport({ visit, code, participants, responses, t, language }) {
   const sections = questionSections(visit);
-  const people = participantList(participants, responses);
+  const people = participantList(participants, responses, t, language);
   const lines = [
-    'ArtAround - Risposte visita condivisa',
-    `Visita: ${visit?.title || 'Senza titolo'}`,
-    `Sessione: ${code || '-'}`,
-    `Esportato il: ${new Date().toLocaleString('it-IT')}`,
+    t('activities.report.title'),
+    t('activities.report.visit', {
+      title: visit?.title || t('activities.report.untitled'),
+    }),
+    t('activities.report.session', { code: code || '-' }),
+    t('activities.report.exported', {
+      date: new Date().toLocaleString(localeForLanguage(language)),
+    }),
     '',
   ];
 
   people.forEach((person, participantIndex) => {
-    lines.push(`PARTECIPANTE: ${person.username}`);
+    lines.push(t('activities.report.participant', { username: person.username }));
     sections.forEach((section, sectionIndex) => {
-      lines.push(`Sezione ${sectionIndex + 1}: ${section.blockName || 'Domande'}`);
+      lines.push(
+        t('activities.report.section', {
+          number: sectionIndex + 1,
+          title: section.blockName || t('activities.questionsFallback'),
+        })
+      );
       section.questions.forEach((question, questionIndex) => {
         const response = findResponse(
           responses,
@@ -93,12 +107,27 @@ function buildAnswersReport({ visit, code, participants, responses }) {
           String(question._id)
         );
         lines.push(`${questionIndex + 1}. ${question.prompt}`);
-        lines.push(`   Risposta: ${answerText(question, response)}`);
+        lines.push(
+          t('activities.report.answer', {
+            answer: answerText(question, response, t),
+          })
+        );
 
         const correctAnswer = correctAnswerText(question);
         if (question.answerType === 'multiple-choice') {
-          lines.push(`   Risposta corretta: ${correctAnswer || 'Non impostata'}`);
-          lines.push(`   Esito: ${responseOutcome(question, response) || 'Non risposta'}`);
+          lines.push(
+            t('activities.report.correctAnswer', {
+              answer: correctAnswer || t('activities.report.unset'),
+            })
+          );
+          const outcome = responseOutcome(question, response);
+          lines.push(
+            t('activities.report.outcome', {
+              outcome: outcome
+                ? t(`activities.${outcome === 'unset' ? 'solutionUnset' : outcome}`)
+                : t('activities.notAnswered'),
+            })
+          );
         }
       });
       lines.push('');
@@ -106,7 +135,7 @@ function buildAnswersReport({ visit, code, participants, responses }) {
     if (participantIndex < people.length - 1) lines.push('');
   });
 
-  if (people.length === 0) lines.push('Nessun partecipante nella sessione.');
+  if (people.length === 0) lines.push(t('activities.noParticipants'));
   return lines.join('\r\n');
 }
 
@@ -118,12 +147,14 @@ export default function ActivitiesPanel({
   sessionCode,
   onClose,
 }) {
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage;
   const [view, setView] = useState('activities');
   const newestFirst = [...activities].reverse();
   const sections = useMemo(() => questionSections(visit), [visit]);
   const people = useMemo(
-    () => participantList(participants, responses),
-    [participants, responses]
+    () => participantList(participants, responses, t, language),
+    [participants, responses, t, language]
   );
   const totalQuestions = sections.reduce(
     (total, section) => total + section.questions.length,
@@ -136,13 +167,15 @@ export default function ActivitiesPanel({
       code: sessionCode,
       participants,
       responses,
+      t,
+      language,
     });
     const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    const safeCode = String(sessionCode || 'sessione').replace(/[^a-z0-9_-]/gi, '-');
+    const safeCode = String(sessionCode || 'session').replace(/[^a-z0-9_-]/gi, '-');
     link.href = url;
-    link.download = `risposte-${safeCode}.txt`;
+    link.download = t('activities.downloadFilename', { code: safeCode });
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -156,14 +189,14 @@ export default function ActivitiesPanel({
         className="activity-export-btn"
         onClick={downloadAnswers}
       >
-        Scarica risposte .txt
+        {t('activities.download')}
       </button>
     </div>
   );
 
   return (
-    <SessionPanel title="Activities" onClose={onClose} footer={footer}>
-      <div className="activity-tabs" role="tablist" aria-label="Contenuto attività">
+    <SessionPanel title={t('activities.title')} onClose={onClose} footer={footer}>
+      <div className="activity-tabs" role="tablist" aria-label={t('activities.tabsAria')}>
         <button
           type="button"
           role="tab"
@@ -171,7 +204,7 @@ export default function ActivitiesPanel({
           className={view === 'activities' ? 'is-active' : ''}
           onClick={() => setView('activities')}
         >
-          Attività
+          {t('activities.tabActivities')}
         </button>
         <button
           type="button"
@@ -180,7 +213,7 @@ export default function ActivitiesPanel({
           className={view === 'answers' ? 'is-active' : ''}
           onClick={() => setView('answers')}
         >
-          Risposte
+          {t('activities.tabAnswers')}
           {responses.length > 0 && (
             <span className="activity-tab-count">{responses.length}</span>
           )}
@@ -189,7 +222,7 @@ export default function ActivitiesPanel({
 
       {view === 'activities' ? (
         newestFirst.length === 0 ? (
-          <p className="panel-empty">Nothing yet.</p>
+          <p className="panel-empty">{t('activities.empty')}</p>
         ) : (
           <ul className="panel-list">
             {newestFirst.map((activity, index) => (
@@ -198,16 +231,20 @@ export default function ActivitiesPanel({
                 className="activity-row"
               >
                 <span className="activity-user">{activity.username}</span>{' '}
-                {ACTIVITY_LABELS[activity.action] || activity.action}
-                <span className="activity-time">{formatTime(activity.timestamp)}</span>
+                {ACTIVITY_LABELS[activity.action]
+                  ? t(ACTIVITY_LABELS[activity.action])
+                  : activity.action}
+                <span className="activity-time">
+                  {formatTime(activity.timestamp, language)}
+                </span>
               </li>
             ))}
           </ul>
         )
       ) : sections.length === 0 ? (
-        <p className="panel-empty">Questa visita non contiene domande.</p>
+        <p className="panel-empty">{t('activities.noQuestions')}</p>
       ) : people.length === 0 ? (
-        <p className="panel-empty">Nessun partecipante nella sessione.</p>
+        <p className="panel-empty">{t('activities.noParticipants')}</p>
       ) : (
         <div className="activity-answer-summary" aria-live="polite">
           {people.map((person) => {
@@ -223,7 +260,7 @@ export default function ActivitiesPanel({
 
                 {sections.map((section) => (
                   <div className="activity-section-summary" key={String(section._id)}>
-                    <h4>{section.blockName || 'Domande'}</h4>
+                    <h4>{section.blockName || t('activities.questionsFallback')}</h4>
                     {section.questions.map((question, questionIndex) => {
                       const response = findResponse(
                         responses,
@@ -238,16 +275,20 @@ export default function ActivitiesPanel({
                             {questionIndex + 1}. {question.prompt}
                           </p>
                           <p className={response ? 'activity-answer-text' : 'activity-answer-text is-empty'}>
-                            {answerText(question, response)}
+                            {answerText(question, response, t)}
                           </p>
                           {outcome && (
                             <span
                               className={`activity-answer-outcome${
-                                outcome === 'Corretta' ? ' is-correct' :
-                                outcome === 'Errata' ? ' is-wrong' : ''
+                                outcome === 'correct' ? ' is-correct' :
+                                outcome === 'wrong' ? ' is-wrong' : ''
                               }`}
                             >
-                              {outcome}
+                              {t(
+                                `activities.${
+                                  outcome === 'unset' ? 'solutionUnset' : outcome
+                                }`
+                              )}
                             </span>
                           )}
                         </div>

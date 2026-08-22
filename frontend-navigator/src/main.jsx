@@ -6,6 +6,7 @@ import Museums from './pages/Museums.jsx';
 import Account from './pages/Account.jsx';
 import VisitSelect from './pages/VisitSelect.jsx';
 import VisitRun from './pages/VisitRun.jsx';
+import './i18n.js';
 import './styles/base.css';
 
 createRoot(document.getElementById('root')).render(

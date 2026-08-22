@@ -118,6 +118,33 @@ exports.getMe = async (req, res, next) => {
 };
 
 /**
+ * Update the current user's language preference
+ * PATCH /api/auth/language
+ */
+exports.updateLanguage = async (req, res, next) => {
+  try {
+    const { language } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { language } },
+      { new: true, runValidators: true }
+    ).select('-passwordHash');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({
+      language: user.language,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Recharge user wallet
  * PATCH /api/auth/wallet
  */

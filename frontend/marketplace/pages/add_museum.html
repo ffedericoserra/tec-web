@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Configurazione Museo</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="addMuseum.title">ArtAround - Configurazione museo</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/add_museum.css" />
   </head>
@@ -20,14 +21,14 @@
 
         <div class="add-museum-hero-layout">
           <div class="add-museum-heading-block">
-            <a href="homepage.html#destinazioni" class="header-back-link">Back to museums</a>
-            <span class="add-museum-kicker">Gestione istituzione</span>
-            <h1 class="add-museum-title">Configura il tuo museo</h1>
+            <a href="homepage.html#destinazioni" class="header-back-link" data-i18n="common.backToMuseums">Torna ai musei</a>
+            <span class="add-museum-kicker" data-i18n="addMuseum.kicker">Gestione istituzione</span>
+            <h1 class="add-museum-title" data-i18n="addMuseum.heading">Configura il tuo museo</h1>
           </div>
 
-          <aside class="add-museum-meta-panel" aria-label="Museum configuration">
-            <strong>Scheda museo</strong>
-            <p>Inserisci identita, orari, contatti e materiali digitali per pubblicare una nuova destinazione.</p>
+          <aside class="add-museum-meta-panel" aria-label="Configurazione del museo" data-i18n-aria-label="addMuseum.contextAria">
+            <strong data-i18n="addMuseum.sheet">Scheda museo</strong>
+            <p data-i18n="addMuseum.intro">Inserisci identità, orari, contatti e materiali digitali per pubblicare una nuova destinazione.</p>
           </aside>
         </div>
       </section>
@@ -35,28 +36,30 @@
       <form id="add-museum-form" class="add-museum-form">
         <section class="form-band identity-band">
           <div class="form-section-heading">
-            <span class="text-label">Identita</span>
-            <h2>Dati principali</h2>
+            <span class="text-label" data-i18n="addMuseum.identity">Identità</span>
+            <h2 data-i18n="addMuseum.mainData">Dati principali</h2>
           </div>
 
           <div class="input-group full-width">
-            <label for="m-name" class="text-label">Nome ufficiale *</label>
+            <label for="m-name" class="text-label" data-i18n="addMuseum.officialName">Nome ufficiale *</label>
             <input
               type="text"
               id="m-name"
               class="input-minimal input-display"
               placeholder="Es: Museo del Novecento"
+              data-i18n-placeholder="addMuseum.namePlaceholder"
               required
             />
           </div>
 
           <div class="input-group full-width">
-            <label for="m-address" class="text-label">Indirizzo fisico</label>
+            <label for="m-address" class="text-label" data-i18n="addMuseum.address">Indirizzo fisico</label>
             <input
               type="text"
               id="m-address"
               class="input-minimal"
-              placeholder="Via, Citta, CAP"
+              placeholder="Via, città, CAP"
+              data-i18n-placeholder="addMuseum.addressPlaceholder"
             />
           </div>
         </section>
@@ -64,37 +67,37 @@
         <section class="form-grid-layout">
           <div class="opening-hours-section">
             <div class="form-section-heading compact">
-              <span class="text-label">Orari</span>
-              <h2>Apertura</h2>
+              <span class="text-label" data-i18n="addMuseum.hours">Orari</span>
+              <h2 data-i18n="addMuseum.opening">Apertura</h2>
             </div>
 
             <div class="hours-grid">
               <div class="hours-row">
-                <label>Mon</label>
+                <label data-i18n="addMuseum.monday">Lun</label>
                 <input type="text" placeholder="09:00 - 18:00" />
               </div>
               <div class="hours-row">
-                <label>Tue</label>
-                <input type="text" placeholder="Chiuso" />
+                <label data-i18n="addMuseum.tuesday">Mar</label>
+                <input type="text" placeholder="Chiuso" data-i18n-placeholder="addMuseum.closed" />
               </div>
               <div class="hours-row">
-                <label>Wed</label>
+                <label data-i18n="addMuseum.wednesday">Mer</label>
                 <input type="text" placeholder="09:00 - 18:00" />
               </div>
               <div class="hours-row">
-                <label>Thu</label>
+                <label data-i18n="addMuseum.thursday">Gio</label>
                 <input type="text" placeholder="09:00 - 18:00" />
               </div>
               <div class="hours-row">
-                <label>Fri</label>
+                <label data-i18n="addMuseum.friday">Ven</label>
                 <input type="text" placeholder="09:00 - 18:00" />
               </div>
               <div class="hours-row">
-                <label>Sat</label>
+                <label data-i18n="addMuseum.saturday">Sab</label>
                 <input type="text" placeholder="10:00 - 20:00" />
               </div>
               <div class="hours-row">
-                <label>Sun</label>
+                <label data-i18n="addMuseum.sunday">Dom</label>
                 <input type="text" placeholder="10:00 - 20:00" />
               </div>
             </div>
@@ -102,42 +105,45 @@
 
           <div class="details-section">
             <div class="form-section-heading compact">
-              <span class="text-label">Contenuti</span>
-              <h2>Dettagli</h2>
+              <span class="text-label" data-i18n="addMuseum.contents">Contenuti</span>
+              <h2 data-i18n="common.details">Dettagli</h2>
             </div>
 
             <div class="input-group">
-              <label for="m-description" class="text-label">Descrizione del museo</label>
+              <label for="m-description" class="text-label" data-i18n="addMuseum.museumDescription">Descrizione del museo</label>
               <textarea
                 id="m-description"
                 class="matrix-input"
                 placeholder="Una breve introduzione per i visitatori..."
+                data-i18n-placeholder="addMuseum.descriptionPlaceholder"
               ></textarea>
             </div>
 
             <div class="input-group">
-              <label for="m-image" class="text-label">URL immagine di copertina</label>
+              <label for="m-image" class="text-label" data-i18n="addMuseum.coverUrl">URL immagine di copertina</label>
               <input
                 type="url"
                 id="m-image"
                 class="input-minimal"
                 placeholder="https://link-immagine-copertina.jpg"
+                data-i18n-placeholder="addMuseum.coverPlaceholder"
               />
             </div>
 
             <div class="input-group">
-              <label for="m-map-image" class="text-label">URL mappa digitale (SVG consigliato)</label>
+              <label for="m-map-image" class="text-label" data-i18n="addMuseum.mapUrl">URL mappa digitale (SVG consigliato)</label>
               <input
                 type="url"
                 id="m-map-image"
                 class="input-minimal"
                 placeholder="https://link-mappa-museo.svg"
+                data-i18n-placeholder="addMuseum.mapPlaceholder"
               />
             </div>
 
             <div class="contacts-box">
               <div class="form-section-heading compact">
-                <span class="text-label">Contatti</span>
+                <span class="text-label" data-i18n="addMuseum.contacts">Contatti</span>
                 <h2>Web</h2>
               </div>
 
@@ -145,19 +151,22 @@
                 type="url"
                 id="m-website"
                 class="input-minimal"
-                placeholder="Sito Web Ufficiale"
+                placeholder="Sito web ufficiale"
+                data-i18n-placeholder="addMuseum.officialWebsite"
               />
               <input
                 type="email"
                 id="m-email"
                 class="input-minimal"
                 placeholder="Email per informazioni"
+                data-i18n-placeholder="addMuseum.infoEmail"
               />
               <input
                 type="tel"
                 id="m-phone"
                 class="input-minimal"
-                placeholder="Telefono Biglietteria"
+                placeholder="Telefono biglietteria"
+                data-i18n-placeholder="addMuseum.ticketPhone"
               />
             </div>
           </div>
@@ -165,15 +174,17 @@
 
         <div class="form-actions-fixed">
           <button id="cancel-add-museum" type="button" class="btn-ghost cancel-btn">
-            Annulla
+            <span data-i18n="common.cancel">Annulla</span>
           </button>
           <button type="submit" class="btn-primary">
-            Salva configurazione
+            <span data-i18n="addMuseum.saveConfiguration">Salva configurazione</span>
           </button>
         </div>
       </form>
     </main>
 
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/add_museum.js"></script>
   </body>

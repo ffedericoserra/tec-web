@@ -60,5 +60,12 @@ React
 #### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimengo delle domande e trasmissione dei dati in tempo reale allhost. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. 
 #### Federico Serra: xxxxxx
 #### Andrea Ziccone: xxxxxx
-#### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en) del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
+
+
+
+
+
+
+
+#### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en)??????????? del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
 

@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api, setToken, setCachedUser } from '../api.js';
+import { currentLanguage } from '../i18n.js';
 
 export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }) {
+  const { t } = useTranslation();
   const [mode, setMode] = useState(initialMode);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -28,6 +31,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
     setError(null);
     setSubmitting(true);
     try {
+      const registrationLanguage = currentLanguage();
       const body = {
         username: username.trim(),
         password,
@@ -42,11 +46,37 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
         body,
       });
       setToken(data.token);
-      setCachedUser(data.user);
-      onSuccess(data.user);
+      let authenticatedUser = data.user;
+
+      if (mode === 'register' && data.user?.language !== registrationLanguage) {
+        try {
+          const languageResponse = await api('/auth/language', {
+            method: 'PATCH',
+            body: { language: registrationLanguage },
+          });
+          authenticatedUser = {
+            ...data.user,
+            language:
+              languageResponse.user?.language ||
+              languageResponse.language ||
+              registrationLanguage,
+          };
+        } catch {
+          // Registration succeeded; keep the server's default language if this
+          // secondary preference update fails.
+        }
+      }
+
+      setCachedUser(authenticatedUser);
+      onSuccess(authenticatedUser);
     } catch (err) {
-      const detail = err.data?.details?.[0]?.message;
-      setError(detail || err.data?.message || err.message || 'Something went wrong');
+      setError(
+        err.status === 401
+          ? 'auth.invalidCredentials'
+          : err.status === 409
+            ? 'auth.accountExists'
+            : 'auth.genericError'
+      );
       setSubmitting(false);
     }
   }
@@ -55,8 +85,8 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
     if (e.target === e.currentTarget) onClose();
   }
 
-  const heading = mode === 'register' ? 'Crea il tuo account' : 'Bentornato';
-  const submitLabel = mode === 'register' ? 'Registrati' : 'Accedi';
+  const heading = mode === 'register' ? t('auth.registerTitle') : t('auth.loginTitle');
+  const submitLabel = mode === 'register' ? t('auth.submitRegister') : t('auth.submitLogin');
 
   return (
     <div className="auth-overlay" onMouseDown={backdropClick}>
@@ -64,7 +94,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
         <h2 id="auth-title">{heading}</h2>
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
           <label>
-            Nome utente
+            {t('auth.username')}
             <input
               ref={usernameRef}
               type="text"
@@ -77,7 +107,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
           </label>
           {mode === 'register' && (
             <label>
-              Email
+              {t('auth.email')}
               <input
                 type="email"
                 autoComplete="email"
@@ -88,7 +118,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
             </label>
           )}
           <label>
-            Password
+            {t('auth.password')}
             <input
               type="password"
               autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
@@ -100,12 +130,12 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
           </label>
           {error && (
             <p className="auth-error" role="alert">
-              {error}
+              {t(error)}
             </p>
           )}
           <div className="auth-actions">
             <button type="button" className="auth-cancel" onClick={onClose}>
-              Annulla
+              {t('common.cancel')}
             </button>
             <button type="submit" className="auth-submit" disabled={submitting}>
               {submitting ? '…' : submitLabel}
@@ -113,7 +143,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
           </div>
         </form>
         <p className="auth-switch">
-          {mode === 'register' ? 'Hai già un account?' : 'Non hai un account?'}{' '}
+          {mode === 'register' ? t('auth.hasAccount') : t('auth.noAccount')}{' '}
           <button
             type="button"
             onClick={() => {
@@ -121,7 +151,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
               setMode(mode === 'register' ? 'login' : 'register');
             }}
           >
-            {mode === 'register' ? 'Accedi' : 'Registrati'}
+            {mode === 'register' ? t('auth.submitLogin') : t('auth.submitRegister')}
           </button>
         </p>
       </div>

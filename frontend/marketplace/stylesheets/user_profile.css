@@ -6,7 +6,7 @@
 .account-heading h1 { margin:10px 0 18px; font-size:clamp(3rem,7vw,5.8rem); line-height:.95; }
 .account-heading p { max-width:650px; margin:0; color:rgba(22,22,22,.65); line-height:1.6; }
 .account-workspace { display:grid; grid-template-columns:minmax(260px,.75fr) minmax(320px,1.25fr); gap:25px; padding:55px 10vw 90px; }
-.profile-card,.wallet-card,.account-library { padding:35px; border:1px solid var(--line); background:rgba(255,255,255,.25); }
+.profile-card,.wallet-card,.settings-card,.account-library { padding:35px; border:1px solid var(--line); background:rgba(255,255,255,.25); }
 .profile-card { display:grid; gap:28px; align-content:start; }
 .profile-card img { width:110px; height:110px; border-radius:50%; object-fit:cover; filter:grayscale(1); }
 .profile-card h2,.profile-card p { margin:8px 0 0; }
@@ -19,6 +19,13 @@
 .primary-btn { border:1px solid var(--ink); padding:13px 20px; background:var(--ink); color:var(--cream); font-weight:800; text-transform:uppercase; cursor:pointer; }
 .primary-btn:hover { background:var(--burgundy); border-color:var(--burgundy); }
 .feedback { min-height:40px; padding-top:18px; color:var(--burgundy); font-weight:700; }
+.settings-card { grid-column:1/-1; }
+.settings-card h2 { margin:10px 0 8px; font-size:2rem; }
+.settings-card > p { margin:0 0 24px; color:rgba(22,22,22,.65); }
+.language-switcher { display:flex; flex-wrap:wrap; gap:10px; }
+.language-btn { min-width:135px; padding:12px 18px; border:1px solid var(--ink); background:transparent; color:var(--ink); font:inherit; font-size:.75rem; font-weight:800; text-transform:uppercase; cursor:pointer; }
+.language-btn:hover,.language-btn:focus-visible,.language-btn.is-active { border-color:var(--burgundy); background:var(--burgundy); color:var(--cream); outline:none; }
+.language-btn:disabled { cursor:wait; opacity:.62; }
 .account-library { grid-column:1/-1; margin-top:10px; }
 .account-library-heading { display:flex; justify-content:space-between; align-items:end; gap:25px; padding-bottom:24px; border-bottom:2px solid var(--ink); }
 .account-library-heading h2 { margin:8px 0 0; font-size:2rem; }

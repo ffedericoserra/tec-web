@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api.js';
 import { logout } from '../auth.js';
 
@@ -15,6 +16,7 @@ import { logout } from '../auth.js';
  * one can't read the key out of the network tab.
  */
 export default function QuizScreen({ quiz, code, isOwner, results }) {
+  const { t } = useTranslation();
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -25,12 +27,12 @@ export default function QuizScreen({ quiz, code, isOwner, results }) {
       <div className="quiz-screen">
         <p className="quiz-intro">
           {results.length === 0
-            ? 'Waiting for the first answers…'
-            : `${results.length} submitted`}
+            ? t('quiz.waitingFirst')
+            : t('quiz.submitted', { count: results.length })}
         </p>
         {results.length === 0 ? (
           <p className="quiz-waiting">
-            Your group is taking the quiz. Scores appear here as they finish.
+            {t('quiz.ownerWaiting')}
           </p>
         ) : (
           <ul className="panel-list">
@@ -59,8 +61,8 @@ export default function QuizScreen({ quiz, code, isOwner, results }) {
           </div>
           <p className="quiz-score-label">
             {score.score === score.total
-              ? 'Perfect! Well done.'
-              : 'Thanks for taking part.'}
+              ? t('quiz.perfect')
+              : t('quiz.thanks')}
           </p>
         </div>
       </div>
@@ -90,14 +92,14 @@ export default function QuizScreen({ quiz, code, isOwner, results }) {
         logout();
         return;
       }
-      setError(err.message || 'Invio non riuscito');
+      setError('quiz.submitError');
       setBusy(false);
     }
   }
 
   return (
     <form className="quiz-screen" onSubmit={handleSubmit}>
-      <p className="quiz-intro">Answer all the questions, then submit.</p>
+      <p className="quiz-intro">{t('quiz.intro')}</p>
       {quiz.map((q, qi) => (
         <fieldset className="quiz-q" key={qi}>
           <legend className="quiz-q-text">{q.question}</legend>
@@ -121,9 +123,9 @@ export default function QuizScreen({ quiz, code, isOwner, results }) {
           </div>
         </fieldset>
       ))}
-      {error && <p className="quiz-error">{error}</p>}
+      {error && <p className="quiz-error">{t(error)}</p>}
       <button type="submit" className="quiz-submit" disabled={!allAnswered || busy}>
-        {busy ? 'Submitting…' : 'Submit answers'}
+        {busy ? t('quiz.submitting') : t('quiz.submit')}
       </button>
     </form>
   );

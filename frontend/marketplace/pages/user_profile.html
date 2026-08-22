@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Account</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="account.title">ArtAround - Account</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/user_profile.css" />
   </head>
@@ -11,47 +12,59 @@
     <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
     <main>
       <section class="account-heading">
-        <span class="kicker">Area personale</span>
-        <h1>Account</h1>
-        <p>Profilo, wallet, visite create e preferiti in un'unica area personale.</p>
+        <span class="kicker" data-i18n="account.kicker">Area personale</span>
+        <h1 data-i18n="common.account">Account</h1>
+        <p data-i18n="account.intro">Profilo, wallet, visite create e preferiti in un'unica area personale.</p>
       </section>
       <section class="account-workspace">
         <article class="profile-card">
-          <img id="profile-avatar" src="/uploads/profiles/default-avatar.jpeg" alt="Avatar utente" />
-          <div><span class="label">Username</span><h2 id="profile-username">Caricamento...</h2></div>
-          <div><span class="label">Email</span><p id="profile-email">—</p></div>
+          <img id="profile-avatar" src="/uploads/profiles/default-avatar.jpeg" alt="Avatar utente" data-i18n-alt="account.avatarAlt" />
+          <div><span class="label" data-i18n="common.username">Username</span><h2 id="profile-username">Caricamento...</h2></div>
+          <div><span class="label" data-i18n="common.email">Email</span><p id="profile-email">—</p></div>
         </article>
         <article class="wallet-card">
-          <span class="label">Wallet</span>
+          <span class="label" data-i18n="account.walletLabel">Wallet</span>
           <p class="balance"><strong id="wallet-balance">0</strong> A&alpha;</p>
-          <p>Il credito viene usato per acquistare Item dal marketplace.</p>
+          <p data-i18n="account.walletCopy">Il credito viene usato per acquistare Item dal marketplace.</p>
           <form id="wallet-form">
-            <label for="wallet-amount"><span class="label">Importo ricarica</span><input id="wallet-amount" type="number" min="1" step="1" value="10" /></label>
-            <button class="primary-btn" type="submit">Ricarica</button>
+            <label for="wallet-amount"><span class="label" data-i18n="account.rechargeAmount">Importo ricarica</span><input id="wallet-amount" type="number" min="1" step="1" value="10" /></label>
+            <button class="primary-btn" type="submit" data-i18n="account.recharge">Ricarica</button>
           </form>
           <div id="account-feedback" class="feedback" aria-live="polite"></div>
+        </article>
+        <article class="settings-card">
+          <span class="label" data-i18n="account.settings">Impostazioni</span>
+          <h2 data-i18n="account.language">Lingua</h2>
+          <p data-i18n="account.settingsCopy">Personalizza la lingua dell'interfaccia.</p>
+          <div class="language-switcher" role="group" aria-label="Lingua dell'interfaccia" data-i18n-aria-label="account.languageGroupAria">
+            <button class="language-btn" type="button" data-language="it" data-i18n="account.italian" aria-pressed="false" disabled>Italiano</button>
+            <button class="language-btn" type="button" data-language="en" data-i18n="account.english" aria-pressed="false" disabled>Inglese</button>
+          </div>
+          <div id="language-feedback" class="feedback" aria-live="polite"></div>
         </article>
         <section class="account-library" aria-labelledby="account-library-title">
           <div class="account-library-heading">
             <div>
-              <span class="label">La tua raccolta</span>
-              <h2 id="account-library-title">Visite e preferiti</h2>
+              <span class="label" data-i18n="account.collection">La tua raccolta</span>
+              <h2 id="account-library-title" data-i18n="account.library">Visite e preferiti</h2>
             </div>
-            <a class="secondary-btn" href="visits_list.html">Gestisci le visite</a>
+            <a class="secondary-btn" href="visits_list.html" data-i18n="account.manageVisits">Gestisci le visite</a>
           </div>
           <div class="account-library-grid">
             <article>
-              <h3>Le mie visite</h3>
+              <h3 data-i18n="account.myVisits">Le mie visite</h3>
               <div id="account-visits" class="account-list"></div>
             </article>
             <article>
-              <h3>Preferiti</h3>
+              <h3 data-i18n="account.favorites">Preferiti</h3>
               <div id="account-favorites" class="account-list"></div>
             </article>
           </div>
         </section>
       </section>
     </main>
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/user_profile.js"></script>
   </body>

@@ -35,8 +35,13 @@ const rechargeWalletSchema = z.object({
     .max(10000, 'Recharge amount is too high'),
 });
 
+const updateLanguageSchema = z.object({
+  language: z.enum(['it', 'en']),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
   rechargeWalletSchema,
+  updateLanguageSchema,
 };

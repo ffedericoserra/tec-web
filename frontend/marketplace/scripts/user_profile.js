@@ -4,6 +4,8 @@ const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token") || localStorage.getItem("artaround_token");
 let user = null;
 
+document.getElementById("profile-username").textContent = marketplaceT("account.loading");
+
 if (!token) window.location.replace("login.html");
 
 async function api(path, options = {}) {
@@ -16,7 +18,7 @@ async function api(path, options = {}) {
         }
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "Richiesta non riuscita");
+    if (!response.ok) throw new Error(data.error || marketplaceT("errors.requestFailed"));
     return data;
 }
 
@@ -58,8 +60,8 @@ function renderVisitCollection(containerId, visits, isFavorite = false) {
         const empty = document.createElement("p");
         empty.classList.add("account-empty");
         empty.textContent = isFavorite
-            ? "Non hai ancora salvato visite nei preferiti."
-            : "Non hai ancora creato visite.";
+            ? marketplaceT("account.noFavorites")
+            : marketplaceT("account.noVisits");
         container.appendChild(empty);
         return;
     }
@@ -71,14 +73,16 @@ function renderVisitCollection(containerId, visits, isFavorite = false) {
 
         const copy = document.createElement("div");
         const title = document.createElement("strong");
-        title.textContent = visit.title || "Visita senza titolo";
+        title.textContent = visit.title || marketplaceT("account.untitledVisit");
         const meta = document.createElement("span");
-        meta.textContent = museum.name || (isFavorite ? "Visita salvata" : "Visita creata");
+        meta.textContent = museum.name || (isFavorite
+            ? marketplaceT("account.savedVisit")
+            : marketplaceT("account.createdVisit"));
         copy.append(title, meta);
 
         const link = document.createElement("a");
         link.href = accountVisitUrl(visit, isFavorite);
-        link.textContent = isFavorite ? "Apri" : "Gestisci";
+        link.textContent = isFavorite ? marketplaceT("account.open") : marketplaceT("account.manage");
         row.append(copy, link);
         container.appendChild(row);
     });
@@ -88,14 +92,59 @@ async function loadAccount() {
     try {
         const data = await api("/auth/me");
         user = data.user || data;
-        document.getElementById("profile-username").textContent = user.username || "Utente";
-        document.getElementById("profile-email").textContent = user.email || "Email non disponibile";
+        if (window.marketplaceI18n.SUPPORTED_LANGUAGES.includes(user.language)) {
+            await window.marketplaceI18n.changeLanguage(user.language);
+        }
+        document.getElementById("profile-username").textContent = user.username || marketplaceT("account.user");
+        document.getElementById("profile-email").textContent = user.email || marketplaceT("account.emailUnavailable");
         document.getElementById("profile-avatar").src = user.avatarUrl || "/uploads/profiles/default-avatar.jpeg";
         document.getElementById("wallet-balance").textContent = formatBalance(user.walletBalance);
         renderVisitCollection("account-visits", user.myVisits || []);
         renderVisitCollection("account-favorites", user.savedVisits || [], true);
+        updateLanguageButtons();
+        document.querySelectorAll(".language-btn").forEach((button) => {
+            button.disabled = false;
+        });
     } catch (error) {
-        document.getElementById("account-feedback").textContent = error.message;
+        document.getElementById("account-feedback").textContent = marketplaceT("account.loadError");
+    }
+}
+
+function updateLanguageButtons() {
+    const currentLanguage = window.marketplaceI18n.getLanguage();
+    document.querySelectorAll(".language-btn").forEach((button) => {
+        const isActive = button.dataset.language === currentLanguage;
+        button.classList.toggle("is-active", isActive);
+        button.setAttribute("aria-pressed", String(isActive));
+    });
+}
+
+async function saveAccountLanguage(language) {
+    if (!user) return;
+    const feedback = document.getElementById("language-feedback");
+    const buttons = document.querySelectorAll(".language-btn");
+    const previousLanguage = window.marketplaceI18n.getLanguage();
+    buttons.forEach((button) => { button.disabled = true; });
+    feedback.textContent = "";
+
+    await window.marketplaceI18n.changeLanguage(language);
+    updateLanguageButtons();
+
+    try {
+        const data = await api("/auth/language", {
+            method: "PATCH",
+            body: JSON.stringify({ language })
+        });
+        user = {
+            ...user,
+            language: data.user?.language || data.language || language
+        };
+        feedback.textContent = marketplaceT("account.languageSaved");
+    } catch (error) {
+        await window.marketplaceI18n.changeLanguage(previousLanguage);
+        feedback.textContent = marketplaceT("account.languageSaveError");
+    } finally {
+        buttons.forEach((button) => { button.disabled = false; });
     }
 }
 
@@ -104,7 +153,7 @@ document.getElementById("wallet-form").addEventListener("submit", async (event) 
     const amount = Number(document.getElementById("wallet-amount").value);
     const feedback = document.getElementById("account-feedback");
     if (!Number.isFinite(amount) || amount <= 0) {
-        feedback.textContent = "Inserisci un importo valido.";
+        feedback.textContent = marketplaceT("account.invalidAmount");
         return;
     }
     const button = event.currentTarget.querySelector("button");
@@ -112,12 +161,30 @@ document.getElementById("wallet-form").addEventListener("submit", async (event) 
     try {
         const data = await api("/auth/wallet", { method:"PATCH", body:JSON.stringify({ amount }) });
         document.getElementById("wallet-balance").textContent = formatBalance(data.walletBalance ?? data.user?.walletBalance);
-        feedback.textContent = `Ricarica di ${formatBalance(amount)} Aα completata.`;
+        feedback.textContent = marketplaceT("account.rechargeSuccess", {
+            amount: formatBalance(amount)
+        });
     } catch (error) {
-        feedback.textContent = error.message;
+        feedback.textContent = marketplaceT("account.rechargeError");
     } finally {
         button.disabled = false;
     }
 });
 
+document.querySelectorAll(".language-btn").forEach((button) => {
+    button.addEventListener("click", () => saveAccountLanguage(button.dataset.language));
+});
+
+window.addEventListener("marketplace:language-changed", () => {
+    updateLanguageButtons();
+    document.getElementById("profile-username").textContent = user?.username
+        || marketplaceT(user ? "account.user" : "account.loading");
+    document.getElementById("profile-email").textContent = user?.email
+        || (user ? marketplaceT("account.emailUnavailable") : "—");
+    if (!user) return;
+    renderVisitCollection("account-visits", user.myVisits || []);
+    renderVisitCollection("account-favorites", user.savedVisits || [], true);
+});
+
+updateLanguageButtons();
 loadAccount();
