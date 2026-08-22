@@ -13,6 +13,7 @@ let visits = [];
 let selectedMuseum = null;
 let pendingDelete = null;
 let museumLoadFailed = false;
+let currentUserId = "";
 
 if (!token) window.location.replace("login.html");
 
@@ -45,14 +46,30 @@ function visitEditorUrl(visitId = "") {
     return `create_visits.html?${params.toString()}`;
 }
 
-function filteredVisits() {
+function entityId(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
+}
+
+function isOwnVisit(visit) {
+    return entityId(visit.creatorId) === currentUserId;
+}
+
+function filteredVisits(collection) {
     const term = visitSearch.value.trim().toLowerCase();
-    if (!term) return visits;
-    return visits.filter((visit) =>
-        `${visit.title || ""} ${visit.description || ""} ${visit.type || ""}`
+    if (!term) return collection;
+    return collection.filter((visit) =>
+        `${visit.title || ""} ${visit.description || ""} ${visit.type || ""} ${visit.creatorId?.username || ""}`
             .toLowerCase()
             .includes(term)
     );
+}
+
+function visitRunUrl(visit) {
+    const museumRef = selectedMuseum.slug || selectedMuseum._id;
+    const visitRef = visit.slug || visit._id;
+    return `/${encodeURIComponent(museumRef)}/${encodeURIComponent(visitRef)}`;
 }
 
 function renderMuseumOptions() {
@@ -67,21 +84,57 @@ function renderMuseumOptions() {
 }
 
 function renderVisits() {
-    const visibleVisits = filteredVisits();
     visitsContainer.innerHTML = "";
-    if (visibleVisits.length === 0) {
-        const message = !selectedMuseum
-            ? marketplaceT("visits.chooseMuseumSearch")
-            : visits.length === 0
-            ? marketplaceT("visits.createFirst", { museum: escapeHTML(selectedMuseum.name) })
-            : marketplaceT("visits.noSearchResults");
+    if (!selectedMuseum) {
+        const message = marketplaceT("visits.chooseMuseumSearch");
         visitsContainer.innerHTML = `<div class="empty-state"><h2>${marketplaceT("visits.none")}</h2><p>${message}</p></div>`;
         return;
     }
 
-    visibleVisits.forEach((visit) => {
+    const ownVisits = filteredVisits(visits.filter(isOwnVisit));
+    const publicVisits = filteredVisits(visits.filter((visit) => visit.isPublic && !isOwnVisit(visit)));
+    renderVisitCollection({
+        title: marketplaceT("visits.mineHeading"),
+        intro: marketplaceT("visits.mineIntro"),
+        collection: ownVisits,
+        emptyMessage: visitSearch.value.trim()
+            ? marketplaceT("visits.noSearchResults")
+            : marketplaceT("visits.createFirst", { museum: selectedMuseum.name }),
+        isOwn: true
+    });
+    renderVisitCollection({
+        title: marketplaceT("visits.publicHeading"),
+        intro: marketplaceT("visits.publicIntro"),
+        collection: publicVisits,
+        emptyMessage: visitSearch.value.trim()
+            ? marketplaceT("visits.noSearchResults")
+            : marketplaceT("visits.noPublic"),
+        isOwn: false
+    });
+}
+
+function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }) {
+    const section = document.createElement("section");
+    section.classList.add("visit-collection");
+    section.innerHTML = `
+        <div class="visit-collection-heading">
+            <h2>${escapeHTML(title)}</h2>
+            <p>${escapeHTML(intro)}</p>
+        </div>
+        <div class="visits-grid"></div>
+    `;
+    const grid = section.querySelector(".visits-grid");
+
+    if (collection.length === 0) {
+        grid.innerHTML = `<div class="empty-state"><h2>${marketplaceT("visits.none")}</h2><p>${escapeHTML(emptyMessage)}</p></div>`;
+        visitsContainer.appendChild(section);
+        return;
+    }
+
+    collection.forEach((visit) => {
         const card = document.createElement("article");
         card.classList.add("visit-card");
+        const author = visit.creatorId?.username || marketplaceT("visits.unknownAuthor");
         card.innerHTML = `
             <div>
                 <span class="visit-label">${visit.type === "synchronized" ? marketplaceT("visits.group") : marketplaceT("visits.standard")}</span>
@@ -91,15 +144,20 @@ function renderVisits() {
             <div class="visit-meta">
                 <span>${marketplaceT("visits.contents", { count: visit.sequence?.length || 0 })}</span>
                 <span>${visit.isPublic ? marketplaceT("common.public") : marketplaceT("common.private")}</span>
+                ${isOwn ? "" : `<span>${escapeHTML(marketplaceT("visits.byAuthor", { author }))}</span>`}
             </div>
             <div class="visit-actions">
-                <a class="secondary-btn" href="${visitEditorUrl(visit._id)}">${marketplaceT("common.edit")}</a>
-                <button class="delete-btn" type="button">${marketplaceT("common.delete")}</button>
+                ${isOwn
+                    ? `<a class="secondary-btn" href="${visitEditorUrl(visit._id)}">${marketplaceT("common.edit")}</a>
+                       <button class="delete-btn" type="button">${marketplaceT("common.delete")}</button>`
+                    : `<a class="secondary-btn" href="${visitRunUrl(visit)}">${marketplaceT("visits.open")}</a>`}
             </div>
         `;
-        card.querySelector(".delete-btn").addEventListener("click", () => openDeleteModal(visit));
-        visitsContainer.appendChild(card);
+        const deleteButton = card.querySelector(".delete-btn");
+        if (deleteButton) deleteButton.addEventListener("click", () => openDeleteModal(visit));
+        grid.appendChild(card);
     });
+    visitsContainer.appendChild(section);
 }
 
 async function loadVisits() {
@@ -108,7 +166,7 @@ async function loadVisits() {
     feedback.classList.remove("is-error");
     visitsContainer.innerHTML = "";
     try {
-        const data = await api(`/visits/my?museumId=${encodeURIComponent(selectedMuseum._id)}`);
+        const data = await api(`/museums/${encodeURIComponent(selectedMuseum._id)}/visits`);
         visits = data.visits || [];
         renderVisits();
         feedback.textContent = marketplaceT("visits.count", { count: visits.length });
@@ -132,7 +190,11 @@ function selectMuseum(id) {
 
 async function loadMuseums() {
     try {
-        const data = await api("/museums");
+        const [meData, data] = await Promise.all([
+            api("/auth/me"),
+            api("/museums")
+        ]);
+        currentUserId = entityId(meData.user || meData);
         museums = data.museums || data || [];
         museumLoadFailed = false;
         renderMuseumOptions();
