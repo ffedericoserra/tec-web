@@ -15,7 +15,7 @@ import QuestionSectionScreen from '../components/QuestionSectionScreen.jsx';
 import '../styles/visitRun.css';
 import '../styles/session.css';
 
-const LENGTHS = ['3s', '15s', '45s'];
+const LENGTHS = ['15s', '30s', '60s'];
 
 /* Order matters: it's the order shown in the tone menu, easiest first. Values
  * match `descriptions[].tone` as written by the marketplace. */
@@ -542,8 +542,8 @@ export default function VisitRun() {
     }
   }
 
-  // "Simpler" — step back down the length ladder (45s → 15s → 3s). At 3s it's a
-  // no-op rather than falling back to logistic mode: dropping the user into
+  // "Simpler" — step back down the length ladder (60s → 30s → 15s). At 15s it's
+  // a no-op rather than falling back to logistic mode: dropping the user into
   // walking directions when they asked for a simpler description is confusing.
   function handleSimpler() {
     setAnswer(null);

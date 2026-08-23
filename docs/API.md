@@ -137,9 +137,9 @@ membership in `user.savedVisits`, responding with the resulting state (`isSaved`
     {
       "tone": "easy",
       "texts": [
-        { "text": "Beautiful!", "lengthCategory": "3s", "language": "it" },
-        { "text": "Longer description...", "lengthCategory": "15s", "language": "it" },
-        { "text": "Even longer...", "lengthCategory": "45s", "language": "it" }
+        { "text": "Short description...", "lengthCategory": "15s", "language": "it" },
+        { "text": "Longer description...", "lengthCategory": "30s", "language": "it" },
+        { "text": "Even longer, spoken by TTS...", "lengthCategory": "60s", "language": "it" }
       ]
     }
   ],
@@ -151,7 +151,7 @@ membership in `user.savedVisits`, responding with the resulting state (`isSaved`
 ```
 
 **Tone values:** `easy`, `medium`, `complex`
-**Length categories:** `3s`, `15s`, `45s`
+**Length categories:** `15s`, `30s`, `60s` — each text is meant to be spoken by TTS for at least that long, not skimmed by eye; word counts scale accordingly (roughly 40+/80+/150+ words at a ~150wpm speaking rate).
 **Languages:** `it`, `en`, `fr`, `de`, `es`
 **Target audiences:** `general`, `children`, `student`, `expert`, `tourist`
 **Licenses:** `CC-BY`, `CC-BY-SA`, `CC-BY-NC`, `Copyright`, `Public Domain`

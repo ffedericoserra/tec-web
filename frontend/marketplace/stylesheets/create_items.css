@@ -321,33 +321,69 @@
 }
 
 .audience-header {
-    display: flex; 
-    justify-content: space-between; 
+    display: flex;
+    justify-content: space-between;
     align-items: center;
+    gap: 20px;
     width: 100%;
-    font-size: 1.2rem; 
-    font-weight: 800; 
-    letter-spacing: 2px;
-    color: #161616; 
+    color: #161616;
     background: transparent;
     border: none;
     text-align: left;
     font-family: inherit;
-    cursor: pointer; 
+    cursor: pointer;
     padding: 25px 0;
     transition: color 0.3s;
 }
 
-.audience-header:hover, 
+/* Titolo + sottotitolo: il sottotitolo dichiara subito il registro
+   linguistico atteso, cosi il tono non si confonde con il campo
+   "Target" (quello è il pubblico dichiarato dell'Item, questo è solo
+   lo stile di scrittura del singolo blocco di testo). */
+.audience-header-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.audience-header-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.audience-header-hint {
+    color: rgba(22, 22, 22, 0.55);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.2px;
+    line-height: 1.4;
+    transition: color 0.3s;
+}
+
+.audience-header:hover,
 .audience-header:hover .arrow-icon,
 .audience-header:focus-visible,
 .audience-header:focus-visible .arrow-icon {
-    color: #710014; 
+    color: #710014;
+}
+
+.audience-header:hover .audience-header-hint,
+.audience-header:focus-visible .audience-header-hint {
+    color: rgba(113, 0, 20, 0.7);
 }
 
 .audience-header:focus-visible {
     outline: 1px solid #710014;
     outline-offset: 4px;
+}
+
+@media (max-width: 560px) {
+    .audience-header-hint {
+        display: none;
+    }
 }
 
 .arrow-icon {
@@ -776,7 +812,7 @@
 }
 
 #artaround-visit-builder .visit-builder-editor {
-    padding: 80px 10vw;
+    padding: 28px 10vw 60px;
 }
 
 #artaround-visit-builder .visit-editor-wrapper {
@@ -795,8 +831,8 @@
     align-items: flex-end;
     justify-content: space-between;
     gap: 40px;
-    margin-bottom: 52px;
-    padding-bottom: 15px;
+    margin-bottom: 22px;
+    padding-bottom: 12px;
     border-bottom: 2px solid #161616;
 }
 
@@ -821,15 +857,24 @@
 
 #artaround-visit-builder .visit-meta-form {
     display: grid;
-    grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr) repeat(3, minmax(170px, 0.55fr));
-    gap: 34px;
-    margin: 0 0 54px;
-    padding: 0 0 46px;
+    grid-template-columns: repeat(3, minmax(170px, 1fr));
+    gap: 16px 34px;
+    margin: 0 0 24px;
+    padding: 0 0 20px;
     border-bottom: 1px solid rgba(22, 22, 22, 0.22);
 }
 
 #artaround-visit-builder .input-group {
+    min-width: 0;
     margin: 0;
+}
+
+/* Titolo e introduzione occupano l'intera riga: sono i campi che
+   guidano la lettura del form e non devono condividere spazio con i
+   controlli più stretti sottostanti (livello, visibilità, modalità). */
+#artaround-visit-builder .visit-title-field,
+#artaround-visit-builder .visit-desc-field {
+    grid-column: 1 / -1;
 }
 
 #artaround-visit-builder #v-title,
@@ -849,19 +894,19 @@
 }
 
 #artaround-visit-builder #v-title {
-    padding: 8px 0 12px;
-    font-size: clamp(2rem, 5vw, 3.2rem);
+    padding: 6px 0 10px;
+    font-size: clamp(1.5rem, 3.4vw, 2.2rem);
     font-weight: 800;
-    line-height: 1.05;
-    letter-spacing: -1px;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
 }
 
 #artaround-visit-builder #v-desc {
-    min-height: 120px;
-    padding: 16px;
+    min-height: 72px;
+    padding: 12px 14px;
     resize: vertical;
     border: 1px solid rgba(22, 22, 22, 0.22);
-    line-height: 1.55;
+    line-height: 1.5;
 }
 
 #artaround-visit-builder #v-length {
@@ -891,8 +936,8 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    min-height: 92px;
-    padding: 18px 0;
+    min-height: 60px;
+    padding: 10px 0;
     border-top: 1px solid rgba(22, 22, 22, 0.22);
     border-bottom: 1px solid rgba(22, 22, 22, 0.22);
     cursor: pointer;
@@ -967,44 +1012,116 @@
     line-height: 1.45;
 }
 
-/* Horizontal section rail: intentionally preserved. */
-#artaround-visit-builder .blocks-wrapper {
+/* Schede capitolo: come le linguette dei fogli in Google Sheets — agganciate
+   a una barra, angoli superiori arrotondati, la scheda attiva "sale" e si
+   fonde visivamente con il contenuto sotto (stesso colore, bordo inferiore
+   che copre la riga della barra), le altre restano recessive dietro di lei.
+   Si clicca una scheda per aprirla; sotto è visibile solo quella attiva,
+   niente più scorrimento orizzontale. */
+#artaround-visit-builder .chapter-tabs {
     display: flex;
-    gap: 32px;
-    align-items: flex-start;
-    min-height: 540px;
-    padding: 8px 0 46px;
-    overflow-x: auto;
-    overflow-y: visible;
-    scrollbar-width: thin;
-    scrollbar-color: #710014 transparent;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 3px;
+    padding: 10px 0 0;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.3);
 }
 
-#artaround-visit-builder .blocks-wrapper::-webkit-scrollbar {
-    height: 8px;
+#artaround-visit-builder .chapter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 220px;
+    padding: 9px 16px 8px;
+    margin-bottom: -1px;
+    color: rgba(22, 22, 22, 0.5);
+    background: rgba(22, 22, 22, 0.045);
+    border: 1px solid rgba(22, 22, 22, 0.3);
+    border-bottom-color: rgba(22, 22, 22, 0.3);
+    border-radius: 7px 7px 0 0;
+    font-family: inherit;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-#artaround-visit-builder .blocks-wrapper::-webkit-scrollbar-track {
-    background: rgba(22, 22, 22, 0.08);
+#artaround-visit-builder .chapter-tab:hover {
+    color: #710014;
+    background: rgba(113, 0, 20, 0.06);
 }
 
-#artaround-visit-builder .blocks-wrapper::-webkit-scrollbar-thumb {
+#artaround-visit-builder .chapter-tab.is-active {
+    position: relative;
+    z-index: 2;
+    color: #161616;
+    background: #F2F1ED;
+    border-color: rgba(22, 22, 22, 0.3);
+    border-top: 3px solid #710014;
+    padding-top: 7px;
+    /* Copre la riga della barra proprio dove la scheda "sale": e' cosi'
+       che sembra attaccata al pannello sotto, non solo evidenziata. */
+    border-bottom-color: #F2F1ED;
+}
+
+#artaround-visit-builder .chapter-tab-number {
+    opacity: 0.7;
+}
+
+#artaround-visit-builder .chapter-tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#artaround-visit-builder .chapter-tab-add {
+    display: inline-grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin-bottom: -1px;
+    color: #161616;
+    background: transparent;
+    border: 1px solid rgba(22, 22, 22, 0.3);
+    border-bottom-color: transparent;
+    border-radius: 7px 7px 0 0;
+    font-family: inherit;
+    font-size: 1.2rem;
+    font-weight: 400;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+#artaround-visit-builder .chapter-tab-add:hover {
+    color: #F2F1ED;
     background-color: #710014;
+    border-color: #710014;
+}
+
+/* Vista a scheda piena: una sola sezione visibile alla volta, occupa
+   tutta la larghezza disponibile (prima le sezioni stavano affiancate
+   in una fila scorrevole, larghe appena 460px). */
+#artaround-visit-builder .blocks-wrapper {
+    padding: 20px 0 40px;
 }
 
 #artaround-visit-builder .visit-block {
-    flex: 0 0 460px;
-    width: 460px;
-    min-width: 460px;
-    min-height: 500px;
+    display: none;
+    width: 100%;
+    min-height: 460px;
     padding: 0;
     background: transparent;
     border: none;
-    border-top: 1px solid rgba(22, 22, 22, 0.24);
     border-radius: 0;
     box-shadow: none;
-    display: flex;
     flex-direction: column;
+}
+
+#artaround-visit-builder .visit-block.is-active-block {
+    display: flex;
 }
 
 #artaround-visit-builder .visit-block:focus-within {
@@ -1470,8 +1587,8 @@
 
 #artaround-visit-builder .artwork-card {
     position: relative;
-    flex: 0 0 190px;
-    width: 190px;
+    flex: 0 0 260px;
+    width: 260px;
     aspect-ratio: 63 / 88;
     overflow: hidden;
     border-radius: 8px;
@@ -1581,15 +1698,78 @@
     border-radius: 50%;
 }
 
-/* Pannello indicazioni: a bordo dell'item, sempre contenuto nella sezione */
-#artaround-visit-builder .item-route-panel {
-    flex: 1 1 auto;
+/* Scheda opera: sostituisce, a colpo d'occhio, lo spazio che prima andava
+   tutto alle indicazioni di percorso con le informazioni sull'opera
+   (autore, anno, tipo, licenza, target, prezzo) in righe etichetta/valore
+   coerenti con lo stile dei metadati di create_items.html. */
+#artaround-visit-builder .item-info-panel {
+    flex: 0 0 200px;
     align-self: stretch;
     min-width: 0;
+    margin: 0;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 14px 16px;
+    gap: 2px;
+    border: 1px solid rgba(22, 22, 22, 0.16);
+    background: rgba(22, 22, 22, 0.02);
+}
+
+#artaround-visit-builder .item-info-heading {
+    margin-bottom: 6px;
+    color: #710014;
+    font-size: 0.64rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#artaround-visit-builder .item-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px dotted rgba(22, 22, 22, 0.18);
+}
+
+#artaround-visit-builder .item-info-row:last-child {
+    border-bottom: none;
+}
+
+#artaround-visit-builder .item-info-row dt {
+    flex-shrink: 0;
+    margin: 0;
+    color: rgba(22, 22, 22, 0.55);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+#artaround-visit-builder .item-info-row dd {
+    margin: 0;
+    min-width: 0;
+    color: #161616;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+#artaround-visit-builder .item-info-row-price dd.is-paid {
+    color: #710014;
+}
+
+/* Pannello indicazioni: più compatto di prima, a bordo dell'item */
+#artaround-visit-builder .item-route-panel {
+    flex: 1 1 160px;
+    align-self: stretch;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
     border: 1px solid rgba(22, 22, 22, 0.2);
     background: rgba(22, 22, 22, 0.02);
 }
@@ -1613,7 +1793,7 @@
 #artaround-visit-builder .direction-field {
     flex: 1;
     width: 100%;
-    min-height: 70px;
+    min-height: 44px;
     box-sizing: border-box;
     padding: 8px 10px;
     color: #161616;
@@ -1725,51 +1905,6 @@
 #artaround-visit-builder .block-add-btn:focus-visible {
     outline: 2px solid #710014;
     outline-offset: 4px;
-}
-
-#artaround-visit-builder .add-section-wrapper {
-    flex: 0 0 260px;
-    min-width: 260px;
-    min-height: 500px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: 1px dashed rgba(22, 22, 22, 0.28);
-    border-radius: 0;
-    cursor: pointer;
-    transition: border-color 0.3s ease, background-color 0.3s ease;
-}
-
-#artaround-visit-builder .add-section-wrapper:hover {
-    background-color: #710014;
-    border-color: #710014;
-}
-
-#artaround-visit-builder .add-section-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-}
-
-#artaround-visit-builder .add-section-text {
-    color: #161616;
-    font-size: 0.75rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: color 0.3s ease;
-}
-
-#artaround-visit-builder .add-section-wrapper:hover .add-section-text {
-    color: #F2F1ED;
-}
-
-#artaround-visit-builder .add-section-wrapper:hover .add-btn {
-    color: #710014;
-    background-color: #F2F1ED;
-    border-color: #F2F1ED;
 }
 
 #artaround-visit-builder .placeholder {
@@ -1901,8 +2036,10 @@
 
 #artaround-visit-builder .items-scroll-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    /* Spazio abbondante tra le card: ognuna deve leggersi come un'opera a
+       sé, non come un mosaico continuo di immagini accostate. */
+    gap: 24px;
     max-height: 60vh;
     overflow-y: auto;
     margin-bottom: 28px;
@@ -1910,27 +2047,67 @@
     border-top: 1px solid rgba(22, 22, 22, 0.2);
 }
 
-/* Card a piena immagine, senza contenitore visibile intorno all'opera */
+/* Il modale di scelta opere deve avere una sola barra di scorrimento.
+   Prima sia il modale (overflow-y: auto sopra) sia questa griglia
+   scorrevano in modo indipendente, producendo due barre annidate. Qui il
+   modale diventa una colonna flessibile che non scorre più da sola:
+   titolo, saldo e bottone Chiudi restano fissi, solo la griglia scorre. */
+#artaround-visit-builder #select-item-modal .visit-builder-modal {
+    display: flex;
+    flex-direction: column;
+    overflow-y: hidden;
+}
+
+#artaround-visit-builder #select-item-modal .modal-top-title,
+#artaround-visit-builder #select-item-modal .visit-wallet-panel,
+#artaround-visit-builder #select-item-modal .close-modal-btn {
+    flex-shrink: 0;
+}
+
+#artaround-visit-builder #select-item-modal .items-scroll-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
+}
+
+/* Ogni opera è una card a sé: cornice propria, sfondo pieno e un'etichetta
+   sotto l'immagine (non più sovrapposta) — così restano nette e separate
+   anche quando sono affiancate in griglia, invece di sembrare un unico
+   mosaico di immagini a contatto. */
 #artaround-visit-builder .modal-artwork-item {
-    position: relative;
-    aspect-ratio: 63 / 88;
+    display: flex;
+    flex-direction: column;
     padding: 0;
-    overflow: hidden;
+    /* NIENTE overflow:hidden qui: su un figlio di grid/flex "overflow"
+       diverso da visible azzera la dimensione minima automatica, e la
+       card collassava sotto l'altezza reale del suo contenuto. Il
+       ritaglio degli angoli superiori vive sulla sola .modal-artwork-media. */
     color: #161616;
-    background: rgba(22, 22, 22, 0.06);
-    border: none;
+    background: #F2F1ED;
+    border: 1px solid rgba(22, 22, 22, 0.24);
     border-radius: 8px;
     font-family: inherit;
     text-align: left;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(22, 22, 22, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 #artaround-visit-builder .modal-artwork-item:hover,
 #artaround-visit-builder .modal-artwork-item:focus-visible {
     transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(22, 22, 22, 0.28);
+    border-color: #710014;
+    box-shadow: 0 10px 20px rgba(22, 22, 22, 0.22);
     outline: none;
+}
+
+#artaround-visit-builder .modal-artwork-media {
+    position: relative;
+    aspect-ratio: 63 / 88;
+    overflow: hidden;
+    background: rgba(22, 22, 22, 0.05);
+    border-bottom: 1px solid rgba(22, 22, 22, 0.16);
+    border-radius: 7px 7px 0 0;
 }
 
 #artaround-visit-builder .modal-artwork-image {
@@ -1938,29 +2115,67 @@
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    /* "contain", non "cover": l'opera intera deve restare visibile nella
+       card, senza che i bordi vengano ritagliati per riempire il riquadro. */
+    object-fit: contain;
     object-position: center;
     display: block;
+    padding: 8px;
+    box-sizing: border-box;
 }
 
 #artaround-visit-builder .modal-artwork-image.is-hidden {
     display: none;
 }
 
+#artaround-visit-builder .modal-artwork-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px 12px;
+}
+
+/* I pill/titolo condivisi (definiti per l'overlay scuro delle altre card,
+   vedi .artwork-card-info) diventano testo scuro su questo sfondo chiaro. */
+#artaround-visit-builder .modal-artwork-footer .card-title {
+    color: #161616;
+}
+
+#artaround-visit-builder .modal-artwork-footer .meta-pill {
+    background: transparent;
+    border-color: rgba(22, 22, 22, 0.3);
+    color: rgba(22, 22, 22, 0.65);
+}
+
+#artaround-visit-builder .modal-artwork-footer .meta-pill-price.is-paid {
+    border-color: rgba(113, 0, 20, 0.4);
+    color: #710014;
+}
+
+#artaround-visit-builder .modal-artwork-footer .meta-pill-price.is-free {
+    color: rgba(22, 22, 22, 0.5);
+}
+
+#artaround-visit-builder .modal-artwork-footer .meta-pill-create {
+    border-color: rgba(113, 0, 20, 0.4);
+    color: #710014;
+}
+
 #artaround-visit-builder .modal-artwork-item:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    opacity: 0.5;
 }
 
 #artaround-visit-builder .modal-artwork-item:disabled:hover,
 #artaround-visit-builder .modal-artwork-item:disabled:focus-visible {
     transform: none;
-    box-shadow: none;
+    border-color: rgba(22, 22, 22, 0.24);
+    box-shadow: 0 1px 3px rgba(22, 22, 22, 0.08);
 }
 
 #artaround-visit-builder .create-content-item {
     border: 1px dashed rgba(22, 22, 22, 0.4);
-    background: transparent;
+    background: #F2F1ED;
 }
 
 #artaround-visit-builder .builder-empty-message {
@@ -2024,7 +2239,7 @@
     }
 
     #artaround-visit-builder .visit-builder-editor {
-        padding: 52px 6vw 72px;
+        padding: 20px 6vw 60px;
     }
 
     #artaround-visit-builder .visit-editor-toolbar {
@@ -2037,25 +2252,27 @@
         text-align: left;
     }
 
-    #artaround-visit-builder .visit-block {
-        flex-basis: 300px;
-        width: 300px;
-        min-width: 300px;
+    #artaround-visit-builder .chapter-tab {
+        max-width: none;
     }
 
     #artaround-visit-builder .action-buttons {
         flex-direction: column-reverse;
     }
 
-    /* Sotto i 640px, a fisarmonica aperta, la carta e le indicazioni si
-       impilano invece di stare affiancate, restando contenute nella sezione. */
+    /* Sotto i 640px, a fisarmonica aperta, la carta, la scheda opera e le
+       indicazioni si impilano invece di stare affiancate, restando
+       contenute nella sezione. */
     #artaround-visit-builder .item-accordion-body {
         flex-direction: column;
     }
 
-    #artaround-visit-builder .artwork-card {
+    #artaround-visit-builder .artwork-card,
+    #artaround-visit-builder .item-info-panel,
+    #artaround-visit-builder .item-route-panel {
         flex-basis: auto;
         width: 100%;
+        min-width: 0;
     }
 
     #artaround-visit-builder .main-btn {

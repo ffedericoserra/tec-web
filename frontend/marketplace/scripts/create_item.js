@@ -21,8 +21,7 @@ const urlTitle = urlParams.get('title') || 'Titolo Sconosciuto';
 const urlAuthor = urlParams.get('author') || 'Autore Ignoto';
 const urlImage = urlParams.get('image');
 
-const urlYear = urlParams.get('year') || 'N/D';
-const urlContentId = urlParams.get('contentId'); 
+const urlContentId = urlParams.get('contentId');
 
 // VARIABILI GLOBALI
 let originalContentId = urlContentId || null;
@@ -77,7 +76,43 @@ const audienceMap = [
     { id: 'expert', tone: 'complex', label: 'esperti' }
 ];
 
-const durationMap = ['3s', '15s', '45s'];
+const durationMap = ['15s', '30s', '60s'];
+// Tab aperta di default in ogni sezione tono: la durata "media" della terna.
+const DEFAULT_DURATION = durationMap[1];
+
+// --- GUIDA ALLA SCRITTURA: placeholder su misura per tono e lunghezza ---
+// Ognuna delle 9 caselle (3 toni x 3 durate) riceve un suggerimento diverso —
+// lessico atteso, ingombro indicativo in parole e il titolo dell'opera aperta —
+// al posto dello stesso placeholder generico ripetuto ovunque.
+const TONE_WRITING_GUIDE = {
+    children: { lexicon: 'lessico semplice e frasi brevi', voice: 'un tono curioso e giocoso, come lo spiegheresti a un bambino' },
+    standard: { lexicon: 'lessico comune e scorrevole', voice: 'un tono chiaro e accessibile, adatto al grande pubblico' },
+    expert: { lexicon: 'lessico specialistico', voice: 'approfondimenti tecnici, storico-critici o materici per un pubblico esperto' }
+};
+
+// Le durate sono lette da un vocalizzatore (TTS), non lette dall'occhio: il
+// conteggio parole è calibrato su un ritmo di lettura parlata (~150 parole/min).
+const DURATION_WRITING_GUIDE = {
+    '15s': { words: '30-40 parole', shape: 'un breve paragrafo essenziale' },
+    '30s': { words: '65-80 parole', shape: 'un paragrafo più corposo, con un dettaglio in più' },
+    '60s': { words: '130-160 parole', shape: 'un racconto esteso su più frasi, pensato per essere ascoltato per intero' }
+};
+
+function buildTextPlaceholder(audienceId, duration) {
+    const tone = TONE_WRITING_GUIDE[audienceId];
+    const length = DURATION_WRITING_GUIDE[duration];
+    if (!tone || !length) return '';
+    return `Descrivi "${urlTitle}" con ${tone.lexicon}: ${tone.voice}. Punta a ${length.words} (${length.shape}).`;
+}
+
+function applyTailoredPlaceholders() {
+    audienceMap.forEach(aud => {
+        durationMap.forEach(duration => {
+            const textarea = getAudienceTextarea(aud.id, duration);
+            if (textarea) textarea.placeholder = buildTextPlaceholder(aud.id, duration);
+        });
+    });
+}
 
 function getAudienceTextarea(audienceId, duration) {
     return document.getElementById(`text-${audienceId}-${duration}`);
@@ -103,8 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Popoliamo la grafica fissa dell'opera
     document.getElementById('artwork-title-display').textContent = `${urlTitle} - ${urlAuthor}`;
     document.getElementById('museum-name-display').textContent = museumName;
-    document.getElementById('item-anno').value = urlYear;
-    document.getElementById('item-universal-id').value = originalContentId || '';
+    applyTailoredPlaceholders();
     resetCommercialFields();
     await loadAssociatedContentOptions();
 
@@ -161,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             const activeTab = panel.querySelector('.duration-tab.is-active');
-            setActiveDuration(aud.id, activeTab?.dataset.duration || '15s');
+            setActiveDuration(aud.id, activeTab?.dataset.duration || DEFAULT_DURATION);
         }
     });
 
@@ -261,13 +295,24 @@ async function loadCommunityItems() {
 
 document.getElementById('btn-create-new').addEventListener('click', () => {
     clearUI();
-    activeItemId = null; 
+    activeItemId = null;
     viewedItemId = null;
     document.getElementById('dropdown-selected-text').textContent = "Crea il tuo item (Nuovo)";
-    document.getElementById('btn-delete-item').classList.add('hidden'); 
-    document.getElementById('btn-save-exit').classList.remove('hidden');
+    document.getElementById('btn-delete-item').classList.add('hidden');
+    setSaveButtonState({ owned: true });
     dropdownMenu.classList.add('hidden');
 });
+
+// Il tasto Salva sta sempre affiancato ad Annulla, anche quando i testi
+// visualizzati non sono i tuoi: i campi restano modificabili (v. sotto),
+// quindi serve sempre un modo per salvare cio' che hai scritto. Se l'Item
+// non e' tuo, "Salva" non sovrascrive quello altrui: crea una tua nuova
+// copia (activeItemId resta null => POST, non PUT).
+function setSaveButtonState({ owned }) {
+    const saveBtn = document.getElementById('btn-save-exit');
+    saveBtn.classList.remove('hidden');
+    saveBtn.textContent = owned ? 'Salva Item' : 'Salva come nuovo Item';
+}
 
 function clearUI() {
     audienceMap.forEach(aud => {
@@ -282,8 +327,8 @@ function clearUI() {
 
         if(panel) panel.classList.add('hidden');
         if(header) header.setAttribute('aria-expanded', 'false');
-        if(arrow) arrow.classList.remove('open'); 
-        setActiveDuration(aud.id, '15s');
+        if(arrow) arrow.classList.remove('open');
+        setActiveDuration(aud.id, DEFAULT_DURATION);
     });
     document.getElementById('item-creatore').value = loggedInUsername;
     document.getElementById('btn-purchase-item').classList.add('hidden');
@@ -297,9 +342,6 @@ function resetCommercialFields() {
     document.getElementById('item-prezzo').value = '0';
     document.getElementById('item-license').value = 'CC-BY';
     document.getElementById('item-is-public').checked = false;
-    document.getElementById('item-sales-count').value = '0';
-    document.getElementById('item-revenue').value = '0 crediti';
-    document.getElementById('item-language').value = 'it';
     document.getElementById('item-target-audience').value = 'general';
 }
 
@@ -377,7 +419,6 @@ async function caricaTestiDaDB(idToLoad) {
         const currentItem = data.item || data; 
 
         if (currentItem.contentId) originalContentId = currentItem.contentId;
-        document.getElementById('item-universal-id').value = originalContentId || '';
         clearUI();
         viewedItemId = currentItem._id;
         activeItemId = currentItem.isOwned ? currentItem._id : null;
@@ -385,22 +426,13 @@ async function caricaTestiDaDB(idToLoad) {
         document.getElementById('item-prezzo').value = String(currentItem.price ?? 0);
         document.getElementById('item-license').value = currentItem.license || 'CC-BY';
         document.getElementById('item-is-public').checked = Boolean(currentItem.isPublic);
-        document.getElementById('item-sales-count').value = String(currentItem.salesCount ?? 0);
-        document.getElementById('item-revenue').value = currentItem.revenue === undefined
-            ? 'Riservato all’autore'
-            : `${currentItem.revenue} crediti`;
         document.getElementById('item-target-audience').value = currentItem.targetAudience || 'general';
-        const firstText = currentItem.descriptions
-            ?.flatMap((description) => description.texts || [])
-            .find((textEntry) => textEntry.language);
-        document.getElementById('item-language').value = firstText?.language || 'it';
         await loadAssociatedContentOptions(
             (currentItem.associatedContents || []).map((content) => content._id || content)
         );
-        if (currentItem.year) document.getElementById('item-anno').value = currentItem.year;
 
         document.getElementById('btn-delete-item').classList.toggle('hidden', !currentItem.isOwned);
-        document.getElementById('btn-save-exit').classList.toggle('hidden', !currentItem.isOwned);
+        setSaveButtonState({ owned: currentItem.isOwned });
         document.getElementById('btn-purchase-item').classList.toggle(
             'hidden',
             currentItem.isOwned || currentItem.isPurchased || !currentItem.isPublic
@@ -426,13 +458,29 @@ async function caricaTestiDaDB(idToLoad) {
                     const arrow = document.getElementById(`arrow-${uiMap.id}`);
                     const loadedDurations = [];
 
-                    descGroup.texts.forEach((textEntry, index) => {
-                        const duration = durationMap.includes(textEntry.lengthCategory)
-                            ? textEntry.lengthCategory
-                            : (index === 0 ? '15s' : null);
+                    // Prima passata: i testi con una lengthCategory riconosciuta
+                    // (15s/30s/60s) vanno dritti nella loro casella.
+                    const legacyTexts = [];
+                    descGroup.texts.forEach((textEntry) => {
+                        if (durationMap.includes(textEntry.lengthCategory)) {
+                            const textarea = getAudienceTextarea(uiMap.id, textEntry.lengthCategory);
+                            if (!textarea) return;
+                            textarea.value = textEntry.text || "";
+                            loadedDurations.push(textEntry.lengthCategory);
+                        } else {
+                            legacyTexts.push(textEntry);
+                        }
+                    });
+
+                    // Seconda passata: testi salvati prima della migrazione a
+                    // 15/30/60s (vecchie categorie 3s/45s) riempiono, in ordine,
+                    // le caselle ancora libere — senza sovrascrivere un testo
+                    // già assegnato nella prima passata e senza scartarne nessuno.
+                    const freeDurations = durationMap.filter((d) => !loadedDurations.includes(d));
+                    legacyTexts.forEach((textEntry, i) => {
+                        const duration = freeDurations[i];
                         const textarea = duration ? getAudienceTextarea(uiMap.id, duration) : null;
                         if (!textarea) return;
-
                         textarea.value = textEntry.text || "";
                         loadedDurations.push(duration);
                     });
@@ -443,7 +491,7 @@ async function caricaTestiDaDB(idToLoad) {
                         arrow?.classList.add('open');
                         setActiveDuration(
                             uiMap.id,
-                            loadedDurations.includes('15s') ? '15s' : loadedDurations[0]
+                            loadedDurations.includes(DEFAULT_DURATION) ? DEFAULT_DURATION : loadedDurations[0]
                         );
                     }
                 }
@@ -471,7 +519,9 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
                 entries.push({
                     text: text,
                     lengthCategory: duration,
-                    language: document.getElementById('item-language').value
+                    // Il selettore lingua è stato rimosso dall'interfaccia:
+                    // i testi sono redatti in italiano di default (v. AGENTS.md §3).
+                    language: 'it'
                 });
             }
             return entries;

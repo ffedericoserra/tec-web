@@ -152,7 +152,7 @@
     tone: String,                // 'easy'|'medium'|'complex'
     texts: [{
       text: String,
-      lengthCategory: String,    // '3s'|'15s'|'45s'
+      lengthCategory: String,    // '15s'|'30s'|'60s'
       language: String,          // default: 'it'
       isAiGenerated: Boolean     // default: false
     }]

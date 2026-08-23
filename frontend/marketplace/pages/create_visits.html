@@ -45,7 +45,7 @@
           </div>
 
           <div class="visit-meta-form">
-            <div class="input-group">
+            <div class="input-group visit-title-field">
               <label for="v-title" class="text-label">Titolo visita</label>
               <input
                 type="text"
@@ -54,7 +54,7 @@
                 required
               />
             </div>
-            <div class="input-group">
+            <div class="input-group visit-desc-field">
               <label for="v-desc" class="text-label">Introduzione</label>
               <textarea
                 id="v-desc"
@@ -99,14 +99,17 @@
             </div>
           </div>
 
-          <div class="blocks-wrapper" id="blocks-container">
-            <div class="add-section-wrapper" id="add-block-btn">
-              <div class="add-section-content">
-                <button class="add-btn" type="button">+</button>
-                <span class="add-section-text">Aggiungi capitolo</span>
-              </div>
-            </div>
+          <div class="chapter-tabs" id="chapter-tabs" role="tablist" aria-label="Capitoli della visita">
+            <button
+              id="add-block-btn"
+              type="button"
+              class="chapter-tab-add"
+              title="Aggiungi capitolo"
+              aria-label="Aggiungi capitolo"
+            >+</button>
           </div>
+
+          <div class="blocks-wrapper" id="blocks-container"></div>
 
           <div class="action-buttons">
             <button

@@ -14,7 +14,7 @@ const textSchema = new mongoose.Schema(
     },
     lengthCategory: {
         type: String,
-        enum: ['3s', '15s', '45s'],
+        enum: ['15s', '30s', '60s'],
         required: true,
     },
     language: {

@@ -236,7 +236,7 @@ The most complex page. Read this carefully before changing anything.
 |-------|-------|---------|
 | `entryIndex` | `0..n-1` | Current sequence position |
 | `mode` | `'logistic' \| 'describe'` | What the body shows |
-| `lengthIdx` | `0..2` | Index into `LENGTHS = ['3s', '15s', '45s']`, only meaningful in `describe` |
+| `lengthIdx` | `0..2` | Index into `LENGTHS = ['15s', '30s', '60s']`, only meaningful in `describe` |
 
 Initial: `entryIndex=0`, `mode='describe'`, `lengthIdx=0` (first item starts at the shortest description per the spec — no logistic prelude on the first entry).
 
@@ -281,7 +281,7 @@ Transitions:
 
 **`End Visit`** lives in the header's right slot (plain underlined text → `navigate('/${museumSlug}')`). Intentionally no profile dropdown during a visit — the user has to End Visit before logging out, matching the mockup.
 
-**`.visit-length-pill`** (small uppercase `3s` / `15s` / `45s` chip above the body text in describe mode) is added beyond the mockup, so the user can see which length-tier they're on. Drop it if you want byte-for-byte mockup parity.
+**`.visit-length-pill`** (small uppercase `15s` / `30s` / `60s` chip above the body text in describe mode) is added beyond the mockup, so the user can see which length-tier they're on. Drop it if you want byte-for-byte mockup parity.
 
 ---
 
@@ -309,7 +309,7 @@ useEffect(() => {
 }, [ttsEnabled, bodyText]);
 ```
 
-- The effect is keyed on `[ttsEnabled, bodyText]` — `bodyText` is a derived render-time string, so Next / Previous / Describe! all change it and re-trigger the effect. Each transition cancels the in-flight utterance and starts a fresh one. That means switching `3s → 15s` mid-sentence cuts the 3s read short — **desired**.
+- The effect is keyed on `[ttsEnabled, bodyText]` — `bodyText` is a derived render-time string, so Next / Previous / Describe! all change it and re-trigger the effect. Each transition cancels the in-flight utterance and starts a fresh one. That means switching `15s → 30s` mid-sentence cuts the 15s read short — **desired**.
 - Default off because some browsers (notably iOS Safari) require a user gesture before `speak()` works. The toggle click is that gesture.
 - The button is hidden entirely if `'speechSynthesis' in window` is false (`TTS_SUPPORTED` constant at the top of the file).
 - The cleanup (`speechSynthesis.cancel()`) handles unmount, so End Visit / browser-nav stop the voice immediately.
@@ -327,7 +327,7 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 - **Recognition is `it-IT`**, matching the TTS voice and the Italian content, so `phrases` are Italian even though the button labels are English.
 - **`matchCommand()` checks phrases longest-first** across the whole registry, sorted once at module load into `PHRASE_INDEX`. This is load-bearing, not tidiness: `"dimmi di più"` (`more`) contains `"più"`, and `simpler` owns `"più breve"` — shortest-first substring matching mis-routes. `normalize()` also folds accents (`più → piu`) and apostrophe variants (`’ → '`) because recognizers are inconsistent about both.
 - **Push-to-talk, never continuous.** `listenOnce()` sets `continuous = false` and calls `speechSynthesis.cancel()` before starting — an open mic hears the runner reading a description aloud and fires phantom commands. `maxAlternatives = 3` and every alternative is tested: free accuracy on a fixed vocabulary.
-- **`simpler` is the only genuinely new state transition** — `handleSimpler()` walks `lengthIdx` *down* (45s → 15s → 3s). At `3s` it's a no-op and deliberately does **not** fall back to logistic mode; dropping the user into walking directions when they asked for something simpler would be confusing.
+- **`simpler` is the only genuinely new state transition** — `handleSimpler()` walks `lengthIdx` *down* (60s → 30s → 15s). At `15s` it's a no-op and deliberately does **not** fall back to logistic mode; dropping the user into walking directions when they asked for something simpler would be confusing.
 - **Question commands (`author` / `year` / `exit`) set `answer`**, which wins over the description in the `bodyText` chain — so answers are spoken by the existing TTS effect with no new speech code. The area gets `.is-answer` (terracotta left border, `Risposta` pill, `×` dismiss). Every navigation command calls `setAnswer(null)` first, so an answer never outlives the item it described.
 - **`exit` needs no extra request** — `getVisit` does `.populate('museumId')` *unselected*, so `visit.museumId.pointsOfInterest` already rides along. It names the exit POIs without any "nearest" claim, since the base tier is explicitly *map without user positioning*.
 - **Graceful degradation**: `SPEECH_SUPPORTED` checks both `SpeechRecognition` and `webkitSpeechRecognition`. Firefox implements neither, so the mic is hidden entirely and the tap list is the complete interface — the fallback by design, not an afterthought.

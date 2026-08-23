@@ -4,6 +4,22 @@ const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token") || localStorage.getItem("artaround_token");
 const CONTENT_PLACEHOLDER = "/uploads/placeholders/template-no-image.jpg";
 
+// Etichette leggibili per la scheda-opera nell'accordion della tappa.
+const CONTENT_TYPE_LABELS = {
+    Artwork: 'Opera',
+    Artist: 'Artista',
+    Movement: 'Movimento',
+    Place: 'Luogo'
+};
+
+const TARGET_AUDIENCE_LABELS = {
+    general: 'Generale',
+    children: 'Bambini e famiglie',
+    student: 'Studenti',
+    expert: 'Esperti',
+    tourist: 'Turisti'
+};
+
 if (!token) {
     alert("You must be logged in to access this page.");
     window.location.href = "../pages/login.html";
@@ -277,8 +293,58 @@ async function loadMuseumItemCatalog(forceReload = false) {
 
 const blocksContainer = document.getElementById('blocks-container');
 const addBlockBtnWrapper = document.getElementById('add-block-btn');
+const chapterTabsList = document.getElementById('chapter-tabs');
 let blockCounter = 0;
 let questionEditorCounter = 0;
+let blockUidSeed = 0;
+
+function generateBlockUid() {
+    blockUidSeed += 1;
+    return `chapter-${Date.now()}-${blockUidSeed}`;
+}
+
+// --- SCHEDE CAPITOLO (una alla volta, come le pagine di un documento) ---
+// Ogni sezione resta sempre nel DOM (stato ed eventi non vanno persi), ma
+// solo quella con .is-active-block è visibile: niente più scorrimento
+// orizzontale, si passa da un capitolo all'altro cliccando la sua scheda.
+function getChapterTabLabel(block, index) {
+    const isQuestions = block.dataset.sectionType === 'questions';
+    const titleInput = block.querySelector('.block-title-input');
+    const title = titleInput?.value?.trim() || (isQuestions ? 'Domande' : 'Nuovo capitolo');
+    return { number: toRoman(index + 1), title };
+}
+
+function renderChapterTabs() {
+    if (!chapterTabsList) return;
+    chapterTabsList.querySelectorAll('.chapter-tab').forEach((tab) => tab.remove());
+
+    const blocks = Array.from(blocksContainer.querySelectorAll('.visit-block'));
+    blocks.forEach((block, index) => {
+        const isActive = block.classList.contains('is-active-block');
+        const { number, title } = getChapterTabLabel(block, index);
+
+        const tab = document.createElement('button');
+        tab.type = 'button';
+        tab.classList.add('chapter-tab');
+        tab.classList.toggle('is-active', isActive);
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.title = title;
+        tab.innerHTML = `
+            <span class="chapter-tab-number">${number}</span>
+            <span class="chapter-tab-title">${escapeHTML(title)}</span>
+        `;
+        tab.addEventListener('click', () => setActiveBlock(block));
+        chapterTabsList.insertBefore(tab, addBlockBtnWrapper);
+    });
+}
+
+function setActiveBlock(block) {
+    blocksContainer.querySelectorAll('.visit-block').forEach((candidate) => {
+        candidate.classList.toggle('is-active-block', candidate === block);
+    });
+    renderChapterTabs();
+}
 
 function getQuestionEditorId(editor) {
     if (!editor.dataset.questionEditorId) {
@@ -406,7 +472,15 @@ function bindBlockDelete(block) {
             ? 'Delete this question section and all its questions?'
             : 'Delete this artwork section and all its artworks?';
         if (confirm(message)) {
+            const wasActive = block.classList.contains('is-active-block');
             block.remove();
+            if (wasActive) {
+                // La scheda attiva è sparita: apriamo quella rimasta più a
+                // sinistra, cosi la vista a scheda-singola non resta vuota.
+                setActiveBlock(blocksContainer.querySelector('.visit-block'));
+            } else {
+                renderChapterTabs();
+            }
             aggiornaContatoriBlocchi();
         }
     });
@@ -432,6 +506,7 @@ function createNewBlock(defaultTitle = "Nuovo capitolo", sectionType = "artwork"
     const block = document.createElement('div');
     block.classList.add('visit-block');
     block.dataset.sectionType = sectionType;
+    block.dataset.blockUid = generateBlockUid();
 
     const sectionBody = sectionType === 'questions'
         ? `<div class="question-list"></div>
@@ -455,6 +530,7 @@ function createNewBlock(defaultTitle = "Nuovo capitolo", sectionType = "artwork"
 
     normalizeBlockAddButton(block);
     bindBlockDelete(block);
+    block.querySelector('.block-title-input').addEventListener('input', renderChapterTabs);
 
     if (sectionType === 'questions') {
         block.classList.add('question-block');
@@ -476,7 +552,8 @@ function createNewBlock(defaultTitle = "Nuovo capitolo", sectionType = "artwork"
         setupDragAndDropForList(ulList);
     }
 
-    blocksContainer.insertBefore(block, addBlockBtnWrapper);
+    blocksContainer.appendChild(block);
+    setActiveBlock(block);
     aggiornaContatoriBlocchi();
 }
 
@@ -510,6 +587,7 @@ function aggiornaContatoriBlocchi() {
             : block.querySelectorAll('.draggable-item').length;
         block.querySelector('.block-count').textContent = `${count} ${isQuestions ? 'questions' : 'artworks'}`;
     });
+    renderChapterTabs();
     updateWalletPreview();
     refreshModalItemAvailability();
 }
@@ -561,9 +639,8 @@ async function apriModaleOpere(itemToReplace = null) {
                     : '<span class="image-fallback">IMG</span>';
 
                 itemDiv.innerHTML = `
-                    ${imgTag}
-                    <div class="artwork-card-scrim"></div>
-                    <div class="artwork-card-info">
+                    <div class="modal-artwork-media">${imgTag}</div>
+                    <div class="modal-artwork-footer">
                         <strong class="card-title">${escapeHTML(itemInfo.title)}</strong>
                         <div class="card-meta-row">
                             <span class="meta-pill meta-pill-author">${escapeHTML(itemInfo.author)}</span>
@@ -610,9 +687,8 @@ async function apriModaleOpere(itemToReplace = null) {
                     : '<span class="image-fallback">IMG</span>';
 
                 itemDiv.innerHTML = `
-                    ${imgTag}
-                    <div class="artwork-card-scrim"></div>
-                    <div class="artwork-card-info">
+                    <div class="modal-artwork-media">${imgTag}</div>
+                    <div class="modal-artwork-footer">
                         <strong class="card-title">${escapeHTML(content.name || 'Opera')}</strong>
                         <div class="card-meta-row">
                             <span class="meta-pill meta-pill-author">${escapeHTML(content.author || 'Autore Ignoto')}</span>
@@ -883,6 +959,13 @@ function creaEdAggiungiItem(
             : priceValue > 0 ? `${priceValue} Aα` : 'Free';
     const priceClass = priceValue > 0 ? 'is-paid' : 'is-free';
 
+    // Scheda-opera: sostituisce lo spazio che prima andava tutto alle
+    // indicazioni con informazioni utili sul quadro stesso.
+    const yearLabel = priceInfo?.year || '—';
+    const typeLabel = CONTENT_TYPE_LABELS[priceInfo?.contentType] || priceInfo?.contentType || '—';
+    const licenseLabel = priceInfo?.license || 'CC-BY';
+    const targetLabel = TARGET_AUDIENCE_LABELS[priceInfo?.targetAudience] || '—';
+
     li.innerHTML = `
         <div class="item-accordion-header" role="button" tabindex="0" aria-label="Modifica testi opera">
             <span class="item-toggle-thumb">${imgTag}</span>
@@ -912,12 +995,35 @@ function creaEdAggiungiItem(
                     <div class="artwork-card-scrim"></div>
                     <div class="artwork-card-info">
                         <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
-                        <div class="card-meta-row">
-                            <span class="meta-pill meta-pill-author">${escapeHTML(author)}</span>
-                            <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
-                        </div>
                     </div>
                 </div>
+                <dl class="item-info-panel">
+                    <span class="item-info-heading">Scheda opera</span>
+                    <div class="item-info-row">
+                        <dt>Autore</dt>
+                        <dd>${escapeHTML(author)}</dd>
+                    </div>
+                    <div class="item-info-row">
+                        <dt>Anno</dt>
+                        <dd>${escapeHTML(yearLabel)}</dd>
+                    </div>
+                    <div class="item-info-row">
+                        <dt>Tipo</dt>
+                        <dd>${escapeHTML(typeLabel)}</dd>
+                    </div>
+                    <div class="item-info-row">
+                        <dt>Licenza</dt>
+                        <dd>${escapeHTML(licenseLabel)}</dd>
+                    </div>
+                    <div class="item-info-row">
+                        <dt>Target</dt>
+                        <dd>${escapeHTML(targetLabel)}</dd>
+                    </div>
+                    <div class="item-info-row item-info-row-price">
+                        <dt>Prezzo</dt>
+                        <dd class="${priceClass}">${escapeHTML(priceLabel)}</dd>
+                    </div>
+                </dl>
             </div>
         </div>
     `;
@@ -965,7 +1071,10 @@ function salvaStatoTemporaneo() {
     const desc = document.getElementById('v-desc') ? document.getElementById('v-desc').value : '';
     const length = document.getElementById('v-length')?.value || 'normal';
 
-    const blocksHtmlNodes = Array.from(document.getElementById('blocks-container').children).filter(el => el.id !== 'add-block-btn');
+    const activeBlock = blocksContainer.querySelector('.visit-block.is-active-block');
+    const activeBlockUid = activeBlock?.dataset.blockUid || null;
+
+    const blocksHtmlNodes = Array.from(blocksContainer.querySelectorAll('.visit-block'));
     blocksHtmlNodes.forEach((block) => {
         block.querySelectorAll('input, textarea, select').forEach((field) => {
             if (field.tagName === 'TEXTAREA') {
@@ -991,6 +1100,7 @@ function salvaStatoTemporaneo() {
         isGroup: getGroupVisit(),
         blocks: blocksHtml,
         blockCounter: blockCounter,
+        activeBlockUid: activeBlockUid,
         museumId: museumId,
         visitId: visitId || null
     };
@@ -1071,12 +1181,16 @@ function createItemInfo(item, museumContents) {
     return {
         title: getItemTitle(item, relatedContent),
         author: relatedContent?.author || "Autore Ignoto",
+        year: relatedContent?.year || "",
+        contentType: relatedContent?.type || "",
         imageUrl: contentImagePath(relatedContent),
         contentId: item.contentId || "",
         price: Number(item.price) || 0,
         adoptionPrice: Number(item.adoptionPrice ?? item.price) || 0,
         isOwned: item.isOwned === true,
-        isPurchased: item.isPurchased === true
+        isPurchased: item.isPurchased === true,
+        license: item.license || "CC-BY",
+        targetAudience: item.targetAudience || ""
     };
 }
 
@@ -1201,6 +1315,8 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
             });
         });
 
+        setActiveBlock(blocksContainer.querySelector('.visit-block'));
+
     } catch(err) {
         console.error("ERRORE CRITICO in caricaVisitaEsistente:", err);
         if(typeof createNewBlock === 'function') createNewBlock("Prima tappa");
@@ -1248,15 +1364,16 @@ window.addEventListener('DOMContentLoaded', async () => {
             setVisitVisibility(state.isPublic === true);
             setGroupVisit(state.isGroup === true);
 
-            const addBtn = document.getElementById('add-block-btn');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = state.blocks;
 
             Array.from(tempDiv.children).forEach(block => {
-                blocksContainer.insertBefore(block, addBtn);
+                blocksContainer.appendChild(block);
                 block.dataset.sectionType = block.dataset.sectionType || 'artwork';
+                block.dataset.blockUid = block.dataset.blockUid || generateBlockUid();
                 normalizeBlockAddButton(block);
                 bindBlockDelete(block);
+                block.querySelector('.block-title-input').addEventListener('input', renderChapterTabs);
 
                 if (block.dataset.sectionType === 'questions') {
                     const questionList = block.querySelector('.question-list');
@@ -1279,6 +1396,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             });
 
             blockCounter = state.blockCounter;
+            const restoredActiveBlock = state.activeBlockUid
+                ? blocksContainer.querySelector(`.visit-block[data-block-uid="${state.activeBlockUid}"]`)
+                : null;
+            setActiveBlock(restoredActiveBlock || blocksContainer.querySelector('.visit-block'));
             aggiornaContatoriBlocchi();
             sessionStorage.removeItem('temp_visit_state');
         } else {

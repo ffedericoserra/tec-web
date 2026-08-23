@@ -9,6 +9,7 @@
  */
 
 const path = require('path');
+const fs = require('fs');
 const { connectDB, disconnectDB } = require('../src/config/db');
 const { loadMuseums } = require('./load-museum');
 
@@ -18,6 +19,13 @@ const Content = require('../src/models/Content');
 const Item = require('../src/models/Item');
 const Visit = require('../src/models/Visit');
 const Session = require('../src/models/Session');
+
+// Descrizioni scritte a mano per ogni opera del seed (3 toni x 3 durate
+// 15/30/60s), tenute in un file dati a parte per non appesantire lo script.
+// Chiave: Content.universalId. Vedi data/item-descriptions.json.
+const itemDescriptionsByContentId = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '../data/item-descriptions.json'), 'utf8')
+);
 
 async function seed() {
   try {
@@ -73,71 +81,20 @@ async function seed() {
     // =====================
     // 3. CREATE ITEMS
     // =====================
-    const createDescriptions = (contentName, contentAuthor = '') => {
-      const authorText = contentAuthor ? ` di ${contentAuthor}` : '';
-
-      return [
-        {
-          tone: 'easy',
-          texts: [
-            {
-              text: `Guarda che bello!`,
-              lengthCategory: '3s',
-              language: 'it',
-            },
-            {
-              text: `Questo quadro bellissimo si chiama ${contentName}. Vedi tutti questi colori? L'artista ha dipinto con tanto amore!`,
-              lengthCategory: '15s',
-              language: 'it',
-            },
-            {
-              text: `Ciao amico! Questo è ${contentName}${authorText}. È come un grande libro di favole fatto di colori! Vedi le persone nel quadro? Stanno raccontando una storia. L'artista era bravissimo a usare i pennelli, come quando tu fai i disegni più belli. Che colore ti piace di più?`,
-              lengthCategory: '45s',
-              language: 'it',
-            },
-          ],
-        },
-        {
-          tone: 'medium',
-          texts: [
-            {
-              text: `Wow, guarda${authorText}! È ${contentName}!`,
-              lengthCategory: '3s',
-              language: 'it',
-            },
-            {
-              text: `Questa è ${contentName}${authorText}. Un'opera che ha fatto la storia! Osserva i colori e le forme: non ti sembrano magici?`,
-              lengthCategory: '15s',
-              language: 'it',
-            },
-            {
-              text: `Benvenuto davanti a ${contentName}${authorText}! Quest'opera è come una finestra su un mondo lontano. L'artista ha usato tecniche incredibili per creare qualcosa di unico. Nota come la luce gioca sui personaggi e come ogni dettaglio racconta una storia.`,
-              lengthCategory: '45s',
-              language: 'it',
-            },
-          ],
-        },
-        {
-          tone: 'complex',
-          texts: [
-            {
-              text: `${contentName}${authorText}.`,
-              lengthCategory: '3s',
-              language: 'it',
-            },
-            {
-              text: `L'opera ${contentName}${authorText} rappresenta un esempio significativo della storia dell'arte italiana, caratterizzato da innovazioni tecniche e tematiche.`,
-              lengthCategory: '15s',
-              language: 'it',
-            },
-            {
-              text: `${contentName}${authorText} costituisce uno dei vertici della storia dell'arte. L'opera si distingue per la raffinata esecuzione tecnica, la sapiente composizione spaziale e l'uso magistrale del colore. La scena rappresentata riflette i valori estetici e culturali dell'epoca, integrando elementi simbolici e riferimenti alla tradizione.`,
-              lengthCategory: '45s',
-              language: 'it',
-            },
-          ],
-        },
-      ];
+    // Ogni opera ha 9 testi scritti a mano (3 toni x 3 durate 15/30/60s),
+    // caricati da data/item-descriptions.json e indicizzati per
+    // Content.universalId. Nessuna frase generica basata su un template:
+    // se un'opera non ha un testo dedicato lo segnaliamo invece di
+    // inventare un placeholder silenzioso.
+    const getDescriptionsForContent = (content) => {
+      const descriptions = itemDescriptionsByContentId[content.universalId];
+      if (!descriptions) {
+        throw new Error(
+          `Nessuna descrizione scritta a mano per "${content.universalId}" (${content.name}). ` +
+          `Aggiungila a data/item-descriptions.json prima di rilanciare il seed.`
+        );
+      }
+      return descriptions;
     };
 
     // Create items for Uffizi artworks
@@ -147,7 +104,7 @@ async function seed() {
         contentId: content.universalId,
         creatorId: autore._id,
         targetAudience: 'tourist',
-        descriptions: createDescriptions(content.name, content.author),
+        descriptions: getDescriptionsForContent(content),
         price: Math.floor(Math.random() * 10) * 5,
         license: 'CC-BY',
         isPublic: true,
@@ -162,7 +119,7 @@ async function seed() {
         contentId: content.universalId,
         creatorId: autore._id,
         targetAudience: 'tourist',
-        descriptions: createDescriptions(content.name, content.author),
+        descriptions: getDescriptionsForContent(content),
         price: Math.floor(Math.random() * 10) * 5,
         license: 'CC-BY',
         isPublic: true,

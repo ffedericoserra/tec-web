@@ -279,7 +279,7 @@
   cursor: not-allowed;
 }
 
-/* Length indicator — which of the 3s / 15s / 45s texts is showing. */
+/* Length indicator — which of the 15s / 30s / 60s texts is showing. */
 .visit-length-dots {
   display: flex;
   align-items: center;

@@ -6,7 +6,7 @@ const { z } = require('zod');
 
 const textSchema = z.object({
   text: z.string().min(1, 'Description text is required'),
-  lengthCategory: z.enum(['3s', '15s', '45s']),
+  lengthCategory: z.enum(['15s', '30s', '60s']),
   language: z.enum(['it', 'en', 'fr', 'de', 'es']).default('it'),
   isAiGenerated: z.boolean().default(false),
 });
