@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /**
  * The shell the participants / chat / activities panels share: a bottom sheet
@@ -10,6 +11,7 @@ import { useEffect } from 'react';
  * composer stay pinned while the backlog scrolls behind it.
  */
 export default function SessionPanel({ title, onClose, children, footer }) {
+  const { t } = useTranslation();
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose();
@@ -36,7 +38,7 @@ export default function SessionPanel({ title, onClose, children, footer }) {
             type="button"
             className="panel-close"
             onClick={onClose}
-            aria-label="Chiudi"
+            aria-label={t('common.close')}
           >
             ×
           </button>

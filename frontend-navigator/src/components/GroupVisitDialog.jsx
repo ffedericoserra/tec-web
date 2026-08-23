@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api.js';
 import { logout } from '../auth.js';
 
@@ -17,6 +18,7 @@ import { logout } from '../auth.js';
  * div, dismissed by backdrop mousedown or Escape.
  */
 export default function GroupVisitDialog({ museum, onClose, onJoined }) {
+  const { t } = useTranslation();
   const [tab, setTab] = useState('join');
 
   const [code, setCode] = useState('');
@@ -54,7 +56,7 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
           return;
         }
         setVisits([]);
-        setError(err.message || 'Impossibile caricare le tue visite');
+        setError('groupVisit.loadError');
       });
     return () => {
       cancelled = true;
@@ -84,8 +86,8 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
       }
       setError(
         err.status === 404
-          ? 'Nessuna sessione attiva con questo codice.'
-          : err.message || 'Impossibile entrare nella sessione'
+          ? 'groupVisit.notFound'
+          : 'groupVisit.joinError'
       );
       setBusy(false);
     }
@@ -109,8 +111,8 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
       }
       setError(
         err.status === 409
-          ? 'Questo codice è già in uso. Scegline un altro.'
-          : err.message || 'Impossibile creare la sessione'
+          ? 'groupVisit.codeConflict'
+          : 'groupVisit.createError'
       );
       setBusy(false);
     }
@@ -129,18 +131,18 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
         aria-labelledby="gv-title"
       >
         <header className="gv-head">
-          <h2 id="gv-title">Group visit</h2>
+          <h2 id="gv-title">{t('groupVisit.title')}</h2>
           <button
             type="button"
             className="gv-close"
             onClick={onClose}
-            aria-label="Chiudi"
+            aria-label={t('common.close')}
           >
             ×
           </button>
         </header>
 
-        <div className="gv-tabs" role="tablist">
+        <div className="gv-tabs" role="tablist" aria-label={t('groupVisit.tabsAria')}>
           <button
             type="button"
             role="tab"
@@ -148,7 +150,7 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
             className={`gv-tab${tab === 'join' ? ' is-active' : ''}`}
             onClick={() => switchTab('join')}
           >
-            Join
+            {t('groupVisit.joinTab')}
           </button>
           <button
             type="button"
@@ -157,45 +159,44 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
             className={`gv-tab${tab === 'create' ? ' is-active' : ''}`}
             onClick={() => switchTab('create')}
           >
-            Create
+            {t('groupVisit.createTab')}
           </button>
         </div>
 
         {tab === 'join' ? (
           <form className="gv-body" onSubmit={handleJoin}>
             <label className="gv-label" htmlFor="gv-code">
-              Session code
+              {t('groupVisit.sessionCode')}
             </label>
             <input
               id="gv-code"
               className="gv-input gv-code-input"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="ROSSO_LEONE_12"
+              placeholder={t('groupVisit.codePlaceholder')}
               autoComplete="off"
               autoFocus
             />
-            <p className="gv-hint">Ask your guide for the code.</p>
-            {error && <p className="gv-error">{error}</p>}
+            <p className="gv-hint">{t('groupVisit.askGuide')}</p>
+            {error && <p className="gv-error">{t(error)}</p>}
             <button
               type="submit"
               className="gv-submit"
               disabled={busy || !code.trim()}
             >
-              {busy ? 'Joining…' : 'Join visit'}
+              {busy ? t('groupVisit.joining') : t('groupVisit.join')}
             </button>
           </form>
         ) : (
           <form className="gv-body" onSubmit={handleCreate}>
             <label className="gv-label" htmlFor="gv-visit">
-              Your visit
+              {t('groupVisit.yourVisit')}
             </label>
             {visits === null ? (
-              <p className="gv-hint">Caricamento…</p>
+              <p className="gv-hint">{t('common.loading')}</p>
             ) : visits.length === 0 ? (
               <p className="gv-hint">
-                You have no visits for this museum yet. Create one in the
-                Marketplace first.
+                {t('groupVisit.noVisits')}
               </p>
             ) : (
               <select
@@ -213,24 +214,25 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
             )}
 
             <label className="gv-label" htmlFor="gv-custom">
-              Session code <span className="gv-optional">(optional)</span>
+              {t('groupVisit.sessionCode')}{' '}
+              <span className="gv-optional">{t('groupVisit.optional')}</span>
             </label>
             <input
               id="gv-custom"
               className="gv-input gv-code-input"
               value={customCode}
               onChange={(e) => setCustomCode(e.target.value.toUpperCase())}
-              placeholder="CLASSE_3B"
+              placeholder={t('groupVisit.customCodePlaceholder')}
               autoComplete="off"
             />
-            <p className="gv-hint">Leave empty for a generated code.</p>
-            {error && <p className="gv-error">{error}</p>}
+            <p className="gv-hint">{t('groupVisit.generatedCode')}</p>
+            {error && <p className="gv-error">{t(error)}</p>}
             <button
               type="submit"
               className="gv-submit"
               disabled={busy || !visitId}
             >
-              {busy ? 'Creating…' : 'Create visit'}
+              {busy ? t('groupVisit.creating') : t('groupVisit.create')}
             </button>
           </form>
         )}

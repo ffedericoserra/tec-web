@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { isAuthenticated } from '../auth.js';
 import AuthDialog from '../components/AuthDialog.jsx';
 import '../styles/home.css';
 
 export default function HomeNoLogin() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [authMode, setAuthMode] = useState(null);
 
@@ -22,7 +24,7 @@ export default function HomeNoLogin() {
     <main className="home">
       <div className="home-hero">
         <h1 className="home-title">ArtAround</h1>
-        <p className="home-tagline">Visite museali, su misura per te.</p>
+        <p className="home-tagline">{t('home.tagline')}</p>
       </div>
       <div className="home-actions">
         <button
@@ -30,17 +32,17 @@ export default function HomeNoLogin() {
           className="btn-primary"
           onClick={() => setAuthMode('register')}
         >
-          Register
+          {t('home.register')}
         </button>
         <button
           type="button"
           className="home-link"
           onClick={() => setAuthMode('login')}
         >
-          Sign in
+          {t('home.signIn')}
         </button>
         <a className="marketplace-link" href="/marketplace">
-          Go to marketplace
+          {t('home.marketplace')}
         </a>
       </div>
       {authMode && (

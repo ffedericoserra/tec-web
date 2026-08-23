@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - About Us</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="about.title">ArtAround - Chi siamo</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/about.css" />
   </head>
@@ -23,16 +24,16 @@
 
         <div class="about-hero-layout">
           <div class="about-heading-block">
-            <span class="about-kicker">What is ArtAround?</span>
+            <span class="about-kicker" data-i18n="about.kicker">Cos'è ArtAround?</span>
             <h1 class="about-title">
               <span class="font-light">ART</span><br />
               <span class="burgundy-text">AROUND.</span>
             </h1>
           </div>
 
-          <aside class="about-meta-panel" aria-label="Project summary">
-            <strong>Web technologies</strong>
-            <p>
+          <aside class="about-meta-panel" aria-label="Sintesi del progetto" data-i18n-aria-label="about.summaryAria">
+            <strong data-i18n="about.webTechnologies">Tecnologie Web</strong>
+            <p data-i18n="about.summary">
               Un progetto per costruire, esplorare e seguire visite museali
               personalizzate.
             </p>
@@ -42,15 +43,15 @@
 
       <section class="about-content-section">
         <div class="about-section-header">
-          <h2 class="section-title-new">Manifesto</h2>
-          <p>Esperienze museali navigabili, personali, vocali.</p>
+          <h2 class="section-title-new" data-i18n="about.manifesto">Manifesto</h2>
+          <p data-i18n="about.manifestoCopy">Esperienze museali navigabili, personali, vocali.</p>
         </div>
 
         <div class="about-grid">
           <section class="about-main-column">
-            <span class="about-label">Piattaforma</span>
-            <h2 class="about-heading">Esplora l'arte in modo nuovo</h2>
-            <p class="about-paragraph">
+            <span class="about-label" data-i18n="about.platform">Piattaforma</span>
+            <h2 class="about-heading" data-i18n="about.heading">Esplora l'arte in modo nuovo</h2>
+            <p class="about-paragraph" data-i18n-html="about.descriptionHtml">
               <strong>ArtAround</strong> è una piattaforma per creare e seguire
               esperienze museali personalizzate. Nel <strong>Marketplace</strong>
               puoi gestire le visite per museo, scrivere i tuoi Item a partire
@@ -61,9 +62,9 @@
           </section>
 
           <aside class="about-side-column">
-            <span class="about-label">Credits</span>
-            <h3 class="about-subheading">Il Progetto</h3>
-            <p class="about-small-text">
+            <span class="about-label" data-i18n="about.credits">Crediti</span>
+            <h3 class="about-subheading" data-i18n="about.project">Il progetto</h3>
+            <p class="about-small-text" data-i18n-html="about.projectCopyHtml">
               <strong>ArtAround</strong> is the Unibo's Web Technologies project
               for the academic year 2025/26 created by
               <strong
@@ -75,6 +76,8 @@
       </section>
     </main>
 
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
   </body>
 </html>

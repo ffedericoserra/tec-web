@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { api, getCachedUser, setCachedUser } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
 import PageHeader from '../components/PageHeader.jsx';
 import ProfileMenu from '../components/ProfileMenu.jsx';
+import { localeForLanguage } from '../i18n.js';
 import '../styles/museums.css';
 
 export default function Museums() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [user, setUser] = useState(getCachedUser());
   const [museums, setMuseums] = useState([]);
@@ -34,7 +37,7 @@ export default function Museums() {
           logout();
           return;
         }
-        setError(err.message || 'Impossibile caricare i musei');
+        setError('museums.loadError');
         setLoading(false);
       });
     return () => {
@@ -47,28 +50,31 @@ export default function Museums() {
     const list = q
       ? museums.filter((m) => (m.name || '').toLowerCase().includes(q))
       : [...museums];
-    return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-  }, [museums, query]);
+    const locale = localeForLanguage(i18n.resolvedLanguage);
+    return list.sort((a, b) =>
+      (a.name || '').localeCompare(b.name || '', locale)
+    );
+  }, [museums, query, i18n.resolvedLanguage]);
 
   return (
     <div className="page-museums">
       <PageHeader right={<ProfileMenu user={user} />} />
       <main className="page-museums-body">
-        <span className="kicker">ArtAround Navigator</span>
-        <h1 className="page-museums-title">Select a Museum</h1>
+        <span className="kicker">{t('museums.kicker')}</span>
+        <h1 className="page-museums-title">{t('museums.title')}</h1>
         <label className="search-field">
-          <span className="search-label">Search</span>
+          <span className="search-label">{t('museums.searchLabel')}</span>
           <input
             type="search"
             className="search-input"
-            placeholder="Search a museum…"
+            placeholder={t('museums.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Cerca museo"
+            aria-label={t('museums.searchAria')}
           />
         </label>
-        {loading && <p className="status">Caricamento…</p>}
-        {error && !loading && <p className="status error">{error}</p>}
+        {loading && <p className="status">{t('common.loading')}</p>}
+        {error && !loading && <p className="status error">{t(error)}</p>}
         {!loading && !error && (
           <ul className="museum-list">
             {filtered.map((m) => (
@@ -88,8 +94,8 @@ export default function Museums() {
             {filtered.length === 0 && (
               <li className="empty">
                 {museums.length === 0
-                  ? 'Nessun museo disponibile.'
-                  : 'Nessun museo trovato.'}
+                  ? t('museums.empty')
+                  : t('museums.notFound')}
               </li>
             )}
           </ul>
@@ -97,7 +103,7 @@ export default function Museums() {
         {/* Plain <a>, not a Link: the marketplace is served by Express, not
          * the SPA router, so it needs a real page load. */}
         <a className="marketplace-link is-footer" href="/marketplace">
-          Go to marketplace
+          {t('home.marketplace')}
         </a>
       </main>
     </div>

@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Editorial Item Edit</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="itemEditor.title">ArtAround - Editor Item</title>
     <!-- Fogli di stile -->
     <link rel="stylesheet" href="../stylesheets/navbar.css">
     <link rel="stylesheet" href="../stylesheets/create_items.css" />
@@ -19,7 +20,7 @@
         <!-- INTESTAZIONE GIGANTE TIPO HOMEPAGE -->
         <div class="editorial-header-section">
             <div class="museum-context-info">
-                MUSEO / <span id="museum-name-display" class="burgundy-text">CARICAMENTO...</span>
+                <span data-i18n="itemEditor.museumPrefix">MUSEO /</span> <span id="museum-name-display" class="burgundy-text">CARICAMENTO...</span>
             </div>
             <h1 class="artwork-title" id="artwork-title-display">CARICAMENTO OPERA...</h1>
         </div>
@@ -27,7 +28,7 @@
         <!-- DROPDOWN CUSTOM MINIMALE -->
         <div class="custom-dropdown-container">
             <div class="dropdown-trigger" id="dropdown-trigger">
-                <span id="dropdown-selected-text" class="dropdown-label">Select (and edit) an existing item or create a new one</span> 
+                <span id="dropdown-selected-text" class="dropdown-label">Seleziona e modifica un Item esistente oppure creane uno nuovo</span>
                 <span class="arrow">▼</span>
             </div>
             
@@ -36,7 +37,7 @@
                     <!-- Iniettati da JS -->
                 </ul>
                 <div class="dropdown-action">
-                    <button id="btn-create-new" class="create-new-btn">Crea il tuo item (Nuovo)</button>
+                    <button id="btn-create-new" class="create-new-btn" data-i18n="itemEditor.createOwn">Crea il tuo Item (nuovo)</button>
                 </div>
             </div>
         </div>
@@ -48,13 +49,14 @@
                 <div class="image-placeholder" id="image-preview">
                     <img
                       src="/uploads/placeholders/template-no-image.jpg"
-                      alt="Immagine placeholder"
+                      alt="Immagine segnaposto"
+                      data-i18n-alt="itemEditor.placeholderAlt"
                       class="image-preview-img"
                     />
                 </div>
                 <div class="item-metadata">
                     <div class="meta-row">
-                        <label class="meta-label" for="item-license">LICENZA</label>
+                        <label class="meta-label" for="item-license" data-i18n="itemEditor.license">LICENZA</label>
                         <select id="item-license" class="metadata-control">
                             <option value="CC-BY">CC-BY</option>
                             <option value="CC-BY-SA">CC-BY-SA</option>
@@ -64,36 +66,36 @@
                         </select>
                     </div>
                     <div class="meta-row">
-                        <span class="meta-label">AUTORE ITEM</span>
+                        <span class="meta-label" data-i18n="itemEditor.itemAuthor">AUTORE ITEM</span>
                         <input type="text" id="item-creatore" class="readonly-input" readonly>
                     </div>
                     <div class="meta-row">
-                        <span class="meta-label">PREZZO</span>
+                        <span class="meta-label" data-i18n="itemEditor.price">PREZZO</span>
                         <div class="meta-control-with-unit">
                             <input type="number" id="item-prezzo" class="metadata-control metadata-number" min="0" step="1" value="0">
-                            <span class="meta-unit">crediti</span>
+                            <span class="meta-unit" data-i18n="common.credits">crediti</span>
                         </div>
                     </div>
                     <div class="meta-row">
-                        <span class="meta-label">PUBBLICAZIONE</span>
+                        <span class="meta-label" data-i18n="itemEditor.publishing">PUBBLICAZIONE</span>
                         <label class="publication-toggle" for="item-is-public">
                             <input type="checkbox" id="item-is-public">
-                            <span>Disponibile nel marketplace</span>
+                            <span data-i18n="itemEditor.availableMarketplace">Disponibile nel marketplace</span>
                         </label>
                     </div>
                     <div class="meta-row">
-                        <label class="meta-label" for="item-target-audience">TARGET</label>
+                        <label class="meta-label" for="item-target-audience" data-i18n="itemEditor.target">TARGET</label>
                         <select id="item-target-audience" class="metadata-control">
-                            <option value="general">Generale</option>
-                            <option value="children">Bambini e famiglie</option>
-                            <option value="student">Studenti</option>
-                            <option value="expert">Esperti</option>
-                            <option value="tourist">Turisti</option>
+                            <option value="general" data-i18n="itemEditor.audienceGeneral">Generale</option>
+                            <option value="children" data-i18n="itemEditor.audienceChildren">Bambini e famiglie</option>
+                            <option value="student" data-i18n="itemEditor.audienceStudents">Studenti</option>
+                            <option value="expert" data-i18n="itemEditor.audienceExperts">Esperti</option>
+                            <option value="tourist" data-i18n="itemEditor.audienceTourists">Turisti</option>
                         </select>
                     </div>
                 </div>
                 <fieldset class="associated-content-fieldset">
-                    <legend>CONTENUTI OPZIONALI</legend>
+                    <legend data-i18n="itemEditor.optionalContents">CONTENUTI OPZIONALI</legend>
                     <div id="associated-contents-list" class="associated-contents-list"></div>
                 </fieldset>
             </div>
@@ -110,16 +112,16 @@
                       aria-controls="audience-panel-children"
                     >
                         <span class="audience-header-text">
-                            <span class="audience-header-title">Tono semplice</span>
-                            <span class="audience-header-hint">Lessico per bambini: frasi brevi e parole quotidiane</span>
+                            <span class="audience-header-title" data-i18n="itemEditor.children">Tono semplice</span>
+                            <span class="audience-header-hint" data-i18n="itemEditor.childrenHint">Lessico per bambini: frasi brevi e parole quotidiane</span>
                         </span>
                         <span class="arrow-icon" id="arrow-children">▼</span>
                     </button>
                     <div class="audience-panel hidden" id="audience-panel-children">
-                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione per bambini">
-                            <button type="button" class="duration-tab" data-duration="15s" role="tab" aria-selected="false" aria-controls="text-children-15s">15 SEC</button>
-                            <button type="button" class="duration-tab is-active" data-duration="30s" role="tab" aria-selected="true" aria-controls="text-children-30s">30 SEC</button>
-                            <button type="button" class="duration-tab" data-duration="60s" role="tab" aria-selected="false" aria-controls="text-children-60s">60 SEC</button>
+                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione per bambini" data-i18n-aria-label="itemEditor.durationChildrenAria">
+                            <button type="button" class="duration-tab" data-duration="15s" role="tab" aria-selected="false" aria-controls="text-children-15s" data-i18n="itemEditor.seconds15">15 SEC</button>
+                            <button type="button" class="duration-tab is-active" data-duration="30s" role="tab" aria-selected="true" aria-controls="text-children-30s" data-i18n="itemEditor.seconds30">30 SEC</button>
+                            <button type="button" class="duration-tab" data-duration="60s" role="tab" aria-selected="false" aria-controls="text-children-60s" data-i18n="itemEditor.seconds60">60 SEC</button>
                         </div>
                         <textarea id="text-children-15s" class="audience-textarea hidden" data-duration="15s" role="tabpanel" placeholder="Scrivi una descrizione per bambini da 15 secondi..."></textarea>
                         <textarea id="text-children-30s" class="audience-textarea" data-duration="30s" role="tabpanel" placeholder="Scrivi una descrizione per bambini da 30 secondi..."></textarea>
@@ -137,16 +139,16 @@
                       aria-controls="audience-panel-standard"
                     >
                         <span class="audience-header-text">
-                            <span class="audience-header-title">Tono standard</span>
-                            <span class="audience-header-hint">Lessico comune e scorrevole, adatto a tutti</span>
+                            <span class="audience-header-title" data-i18n="itemEditor.standard">Tono standard</span>
+                            <span class="audience-header-hint" data-i18n="itemEditor.standardHint">Lessico comune e scorrevole, adatto a tutti</span>
                         </span>
                         <span class="arrow-icon open" id="arrow-standard">▼</span>
                     </button>
                     <div class="audience-panel" id="audience-panel-standard">
-                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione standard">
-                            <button type="button" class="duration-tab" data-duration="15s" role="tab" aria-selected="false" aria-controls="text-standard-15s">15 SEC</button>
-                            <button type="button" class="duration-tab is-active" data-duration="30s" role="tab" aria-selected="true" aria-controls="text-standard-30s">30 SEC</button>
-                            <button type="button" class="duration-tab" data-duration="60s" role="tab" aria-selected="false" aria-controls="text-standard-60s">60 SEC</button>
+                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione standard" data-i18n-aria-label="itemEditor.durationStandardAria">
+                            <button type="button" class="duration-tab" data-duration="15s" role="tab" aria-selected="false" aria-controls="text-standard-15s" data-i18n="itemEditor.seconds15">15 SEC</button>
+                            <button type="button" class="duration-tab is-active" data-duration="30s" role="tab" aria-selected="true" aria-controls="text-standard-30s" data-i18n="itemEditor.seconds30">30 SEC</button>
+                            <button type="button" class="duration-tab" data-duration="60s" role="tab" aria-selected="false" aria-controls="text-standard-60s" data-i18n="itemEditor.seconds60">60 SEC</button>
                         </div>
                         <textarea id="text-standard-15s" class="audience-textarea hidden" data-duration="15s" role="tabpanel" placeholder="Scrivi una descrizione standard da 15 secondi..."></textarea>
                         <textarea id="text-standard-30s" class="audience-textarea" data-duration="30s" role="tabpanel" placeholder="Scrivi una descrizione standard da 30 secondi..."></textarea>
@@ -163,16 +165,16 @@
                       aria-controls="audience-panel-expert"
                     >
                         <span class="audience-header-text">
-                            <span class="audience-header-title">Tono approfondito</span>
-                            <span class="audience-header-hint">Lessico specialistico, riferimenti tecnici e storico-critici</span>
+                            <span class="audience-header-title" data-i18n="itemEditor.experts">Tono approfondito</span>
+                            <span class="audience-header-hint" data-i18n="itemEditor.expertsHint">Lessico specialistico, riferimenti tecnici e storico-critici</span>
                         </span>
                         <span class="arrow-icon" id="arrow-expert">▼</span>
                     </button>
                     <div class="audience-panel hidden" id="audience-panel-expert">
-                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione per esperti">
-                            <button type="button" class="duration-tab" data-duration="15s" role="tab" aria-selected="false" aria-controls="text-expert-15s">15 SEC</button>
-                            <button type="button" class="duration-tab is-active" data-duration="30s" role="tab" aria-selected="true" aria-controls="text-expert-30s">30 SEC</button>
-                            <button type="button" class="duration-tab" data-duration="60s" role="tab" aria-selected="false" aria-controls="text-expert-60s">60 SEC</button>
+                        <div class="duration-tabs" role="tablist" aria-label="Durata descrizione per esperti" data-i18n-aria-label="itemEditor.durationExpertsAria">
+                            <button type="button" class="duration-tab" data-duration="15s" role="tab" aria-selected="false" aria-controls="text-expert-15s" data-i18n="itemEditor.seconds15">15 SEC</button>
+                            <button type="button" class="duration-tab is-active" data-duration="30s" role="tab" aria-selected="true" aria-controls="text-expert-30s" data-i18n="itemEditor.seconds30">30 SEC</button>
+                            <button type="button" class="duration-tab" data-duration="60s" role="tab" aria-selected="false" aria-controls="text-expert-60s" data-i18n="itemEditor.seconds60">60 SEC</button>
                         </div>
                         <textarea id="text-expert-15s" class="audience-textarea hidden" data-duration="15s" role="tabpanel" placeholder="Scrivi una descrizione per esperti da 15 secondi..."></textarea>
                         <textarea id="text-expert-30s" class="audience-textarea" data-duration="30s" role="tabpanel" placeholder="Scrivi una descrizione per esperti da 30 secondi..."></textarea>
@@ -186,10 +188,10 @@
         <!-- AZIONI FINALI: BOTTONI SQUADRATI -->
         <div class="item-actions">
             <!-- Il bottone elimina è rosso e nascosto di default -->
-            <button id="btn-delete-item" class="secondary-btn hidden" type="button">Elimina il mio Item</button>
-            <button id="btn-purchase-item" class="secondary-btn hidden" type="button">Acquista Item</button>
-            <button id="btn-cancel-exit" class="secondary-btn">Annulla</button>
-            <button id="btn-save-exit" class="primary-btn">Salva Item</button>
+            <button id="btn-delete-item" class="secondary-btn hidden" type="button" data-i18n="itemEditor.deleteMine">Elimina il mio Item</button>
+            <button id="btn-purchase-item" class="secondary-btn hidden" type="button" data-i18n="itemEditor.purchase">Acquista Item</button>
+            <button id="btn-cancel-exit" class="secondary-btn" data-i18n="common.cancel">Annulla</button>
+            <button id="btn-save-exit" class="primary-btn" data-i18n="itemEditor.save">Salva Item</button>
         </div>
 
     </main>
@@ -198,6 +200,8 @@
     <div id="toast-container"></div>
 
     <!-- SCRIPT -->
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/create_item.js"></script>
   </body>

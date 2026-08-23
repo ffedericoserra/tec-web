@@ -2,7 +2,7 @@
 
 Consolidated backlog: bugs, gaps and decisions still to make. Kept here so no single page's "known gaps" section is the only record. **When you close one, delete it here in the same change.**
 
-Last reviewed: 2026-08-17 (hybrid merge on `fusione-fede-mazzo`).
+Last reviewed: 2026-08-21 (Italian/English UI localization).
 
 ---
 
@@ -41,6 +41,12 @@ The only tier with grading headroom (18–33). Nothing here is stubbed-out-and-h
 - `src/services/aiService.js` and `src/controllers/ai.controller.js` are empty files.
 - `src/routes/ai.routes.js` exists but is a comment; the mount is commented out in `src/routes/index.js:14,27`.
 - Scope per SPECS: AI content generation, natural-language commands beyond the fixed vocabulary, translation, dynamic visit assembly, plus georeferencing / QR positioning.
+- **The shipped `it`/`en` selector is UI localization, not the Extension 2
+  translation feature.** It translates fixed interface copy and controlled voice
+  commands. Museum metadata, visit titles, directions, questions, chat and other
+  authored content remain as stored; existing language-tagged Item descriptions are
+  selected when available, but missing translations are not generated. Real-time
+  content/command translation therefore remains open.
 - The navigator's map is deliberately position-free today (base tier is "map without user positioning"). Real georeferencing is what would justify a "you are here" marker — see NAVIGATOR.md §11.
 
 ## 4. Demo data gaps
@@ -56,7 +62,10 @@ The only tier with grading headroom (18–33). Nothing here is stubbed-out-and-h
 - **The active marketplace still uses one plain script per page** with no module boundaries. Restoring section and question authoring made `create_visit.js` large again; shared API/auth helpers remain duplicated.
 - **Helpers duplicated across active marketplace scripts** (`escapeHTML`, `resolveAssetUrl`, `getEntityId`) because there's no module system in play there.
 - **`confirm()`** is still used for purchases and destructive actions in the active marketplace; `create_item.js` has a `showToast()` worth extracting into a shared helper.
-- **Three localStorage token keys in play** (`token`, `artaround_token`, plus v2's `user` cache). Both marketplaces and the navigator now read and write compatibly, but it's one key too many; collapse to `token` once nothing depends on the legacy name.
+- **Two token keys remain** (`token` and legacy `artaround_token`), alongside the
+  intentional `artaround_user` profile cache and shared `artaround_language` locale.
+  Both marketplaces and the navigator read the token pair compatibly; collapse it to
+  `token` once nothing depends on the legacy name.
 - **Stale logistic text after a sequence reorder.** `nextDirections` belongs to the transition but travels with its entry, so reordering can produce directions written for a different neighbour. Editorial problem, not a code fix — documented in NAVIGATOR.md §8.4 and MARKETPLACE.md.
 
 ## 6. Deployment

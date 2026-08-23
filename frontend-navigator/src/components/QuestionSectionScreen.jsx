@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api, getCachedUser } from '../api.js';
 import { logout } from '../auth.js';
 
@@ -6,9 +7,9 @@ function questionId(question) {
   return String(question?._id || '');
 }
 
-function responseText(question, response) {
+function responseText(question, response, t) {
   if (question.answerType === 'multiple-choice') {
-    return question.options?.[response.selectedIndex] || 'Opzione non disponibile';
+    return question.options?.[response.selectedIndex] || t('questions.optionUnavailable');
   }
   return response.text || '—';
 }
@@ -22,8 +23,9 @@ export default function QuestionSectionScreen({
   isLast,
   onPrevious,
   onNext,
-  nextLabel = 'Next',
+  nextLabel,
 }) {
+  const { t } = useTranslation();
   const me = getCachedUser();
   const questions = section?.questions || [];
   const sectionId = String(section?._id || '');
@@ -81,7 +83,7 @@ export default function QuestionSectionScreen({
         logout();
         return;
       }
-      setError(err.message || 'Invio delle risposte non riuscito');
+      setError('questions.submitError');
     } finally {
       setBusy(false);
     }
@@ -97,12 +99,12 @@ export default function QuestionSectionScreen({
   return (
     <div className="section-question-screen">
       <div className="section-question-heading">
-        <span>Question section</span>
-        <h1>{section?.blockName || 'Questions'}</h1>
+        <span>{t('questions.sectionKicker')}</span>
+        <h1>{section?.blockName || t('questions.fallbackTitle')}</h1>
         <p>
           {isOwner
-            ? 'Le risposte dei partecipanti compaiono qui in tempo reale.'
-            : 'Rispondi alle domande. Puoi aggiornare le risposte finché la sezione è attiva.'}
+            ? t('questions.ownerIntro')
+            : t('questions.participantIntro')}
         </p>
       </div>
 
@@ -117,16 +119,16 @@ export default function QuestionSectionScreen({
               <section className="section-result-group" key={id}>
                 <div className="section-result-title">
                   <h2>{index + 1}. {question.prompt}</h2>
-                  <span>{questionResponses.length} risposte</span>
+                  <span>{t('questions.responses', { count: questionResponses.length })}</span>
                 </div>
                 {questionResponses.length === 0 ? (
-                  <p className="section-result-empty">In attesa delle risposte…</p>
+                  <p className="section-result-empty">{t('questions.waiting')}</p>
                 ) : (
                   <ul>
                     {questionResponses.map((response) => (
                       <li key={`${response.userId}-${id}`}>
-                        <strong>{response.username || 'Partecipante'}</strong>
-                        <span>{responseText(question, response)}</span>
+                        <strong>{response.username || t('common.participant')}</strong>
+                        <span>{responseText(question, response, t)}</span>
                       </li>
                     ))}
                   </ul>
@@ -175,22 +177,26 @@ export default function QuestionSectionScreen({
                     }
                     rows="4"
                     maxLength="1000"
-                    placeholder="Scrivi la tua risposta"
+                    placeholder={t('questions.answerPlaceholder')}
                   />
                 )}
               </fieldset>
             );
           })}
           {submitted && (
-            <p className="section-submit-success">Risposte inviate.</p>
+            <p className="section-submit-success">{t('questions.sent')}</p>
           )}
-          {error && <p className="quiz-error" role="alert">{error}</p>}
+          {error && <p className="quiz-error" role="alert">{t(error)}</p>}
           <button
             type="submit"
             className="quiz-submit"
             disabled={!allAnswered || busy}
           >
-            {busy ? 'Invio…' : submitted ? 'Aggiorna risposte' : 'Invia risposte'}
+            {busy
+              ? t('questions.sending')
+              : submitted
+                ? t('questions.update')
+                : t('questions.submit')}
           </button>
         </form>
       )}
@@ -203,7 +209,7 @@ export default function QuestionSectionScreen({
             onClick={onPrevious}
             disabled={isFirst}
           >
-            Previous
+            {t('visitRun.previous')}
           </button>
           <button
             type="button"
@@ -211,7 +217,7 @@ export default function QuestionSectionScreen({
             onClick={onNext}
             disabled={isLast}
           >
-            {nextLabel}
+            {nextLabel || t('visitRun.next')}
           </button>
         </div>
       )}

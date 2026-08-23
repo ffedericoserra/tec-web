@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom"
+import { useTranslation } from "react-i18next"
 import { isAuthenticated } from "../auth.js"
 import "../styles/header.css"
 
@@ -6,6 +7,7 @@ import "../styles/header.css"
 // runner deliberately leaves the brand inert.
 export default function PageHeader({ subtitle, right, brandTo }) {
     const navigate = useNavigate()
+    const { t } = useTranslation()
 
     if (!isAuthenticated()) return null
 
@@ -24,8 +26,8 @@ export default function PageHeader({ subtitle, right, brandTo }) {
                 type="button"
                 className="page-header-back"
                 onClick={goBack}
-                aria-label="Torna indietro"
-                title="Torna indietro"
+                aria-label={t("header.back")}
+                title={t("header.back")}
             >
                 <span aria-hidden="true">←</span>
             </button>
@@ -46,7 +48,7 @@ export default function PageHeader({ subtitle, right, brandTo }) {
             </div>
             <div className="page-header-actions">
                 <a className="page-header-marketplace" href="/marketplace">
-                    GO TO MARKETPLACE
+                    {t("common.goMarketplace")}
                 </a>
                 {right && <div className="page-header-right">{right}</div>}
             </div>

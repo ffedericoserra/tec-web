@@ -31,6 +31,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '/uploads/profiles/default-avatar.jpeg',
     },
+    language: {
+      type: String,
+      enum: ['it', 'en'],
+      default: 'it',
+    },
     savedMuseums: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -75,6 +80,13 @@ userSchema.virtual('password').set(function (password) {
   this.passwordHash = password; // Will be hashed in pre-save
 });
 
+// Spanish was briefly offered as the second UI language. Convert that legacy
+// preference before validation so existing accounts remain writable.
+userSchema.pre('validate', function (next) {
+  if (this.language === 'es') this.language = 'en';
+  next();
+});
+
 // Hash password before saving
 userSchema.pre('save', async function (next) {
   if (!this._rawPassword) return next();
@@ -92,6 +104,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 // Remove passwordHash from JSON output
 userSchema.methods.toJSON = function () {
   const obj = this.toObject();
+  if (obj.language === 'es') obj.language = 'en';
   delete obj.passwordHash;
   return obj;
 };

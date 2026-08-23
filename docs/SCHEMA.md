@@ -16,12 +16,17 @@
 - `email` - Contact address (collected at registration)
 - `passwordHash` - Bcrypt hashed password
 - `avatarUrl` - Profile image
+- `language` - Preferred interface language (`it` or `en`, default: `it`)
 - `savedMuseums` - Array of saved museum IDs
 - `savedVisits` - Array of favourited visit IDs
 - `myVisits` - Array of created visit IDs
 - `purchasedItems` - Array of purchased item IDs
 - `walletBalance` - Virtual currency (default: 100)
 - `activeSession` - Current session ID
+
+Legacy user documents that still contain the former `es` UI preference are serialized
+as `en` and normalized to `en` on their next validation/save. `es` is not accepted by
+the account-language API; it remains valid only for authored Item text metadata.
 
 ### Museum
 - `name`, `slug` - Identification
@@ -82,6 +87,7 @@
   email: String,
   passwordHash: String,          // bcrypt (virtual `password` setter → pre-save hook)
   avatarUrl: String,
+  language: String,              // 'it'|'en', default: 'it'
   savedMuseums: [ObjectId],      // refs Museum
   savedVisits: [ObjectId],       // refs Visit (favourites)
   myVisits: [ObjectId],          // refs Visit

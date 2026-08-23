@@ -1,3 +1,5 @@
+import { syncLanguageFromUser } from './i18n.js';
+
 const TOKEN_KEY = 'token';
 const LEGACY_TOKEN_KEY = 'artaround_token';
 const USER_KEY = 'artaround_user';
@@ -24,6 +26,7 @@ export function getCachedUser() {
 
 export function setCachedUser(user) {
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+  syncLanguageFromUser(user);
 }
 
 export async function api(path, options = {}) {

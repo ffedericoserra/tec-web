@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Login</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="login.title">ArtAround - Accesso</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/login.css" />
   </head>
@@ -23,12 +24,12 @@
 
         <div class="login-layout">
           <section class="login-heading-block">
-            <span class="login-kicker">Accesso personale</span>
+            <span class="login-kicker" data-i18n="login.kicker">Accesso personale</span>
             <h1 class="login-title">
               <span class="font-light">ART</span><br />
-              <span class="burgundy-text">AROUND.</span>
+              <span class="burgundy-text">AROUND</span>
             </h1>
-            <p class="login-copy">
+            <p class="login-copy" data-i18n="login.copy">
               Accedi per creare visite, salvare tour e gestire la tua esperienza
               museale.
             </p>
@@ -36,14 +37,14 @@
 
           <section class="login-panel" aria-labelledby="login-panel-title">
             <div class="login-panel-header">
-              <span class="text-label">Account</span>
-              <h2 id="login-panel-title">Login</h2>
+              <span class="text-label" data-i18n="common.account">Account</span>
+              <h2 id="login-panel-title" data-i18n="login.submit">Accedi</h2>
             </div>
 
             <form id="login-form" class="login-form">
               <div class="input-group">
-                <label for="login-username" class="text-label"
-                  >Username or email</label
+                <label for="login-username" class="text-label" data-i18n="login.usernameOrEmail"
+                  >Username o email</label
                 >
                 <input
                   id="login-username"
@@ -56,7 +57,7 @@
               </div>
 
               <div class="input-group">
-                <label for="login-password" class="text-label">Password</label>
+                <label for="login-password" class="text-label" data-i18n="common.password">Password</label>
                 <input
                   id="login-password"
                   class="input-slot"
@@ -67,20 +68,22 @@
                 />
               </div>
 
-              <button class="main-btn" type="submit">Login</button>
+              <button class="main-btn" type="submit" data-i18n="login.submit">Accedi</button>
 
               <div id="error-msg" class="login-error" aria-live="polite"></div>
             </form>
 
             <p class="register-prompt">
-              <span>Don't have an account?</span>
-              <a href="register.html">Create one here</a>
+              <span data-i18n="login.noAccount">Non hai un account?</span>
+              <a href="register.html" data-i18n="login.createHere">Creane uno qui</a>
             </p>
           </section>
         </div>
       </section>
     </main>
 
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/login.js"></script>
   </body>

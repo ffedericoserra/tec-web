@@ -10,8 +10,9 @@ This doc is the source of truth for anyone picking up frontend work. If you chan
 
 - **React 18** + **React Router v6** (`BrowserRouter`, route params for slugs).
 - **Vite 5** dev server + bundler. Plain JS.
+- **i18next** + **react-i18next** for the Italian/English UI catalogues and React bindings.
 - No state library, no UI kit, no CSS framework. All styles are hand-rolled CSS in `src/styles/`.
-- All third-party deps (root and dev) declared in `frontend-navigator/package.json`. As of this writing: `react`, `react-dom`, `react-router-dom`, `socket.io-client`, plus `vite` and `@vitejs/plugin-react`.
+- All third-party deps (root and dev) declared in `frontend-navigator/package.json`. As of this writing: `react`, `react-dom`, `react-router-dom`, `socket.io-client`, `i18next`, `react-i18next`, plus `vite` and `@vitejs/plugin-react`.
 
 Design tokens live in `src/styles/base.css` (cream `#f6f3ee`, near-black `#1a1a1a`, muted `#6b6b6b`, terracotta `#b34a3a`). `--tap: 44px` enforces a minimum tap-target size.
 
@@ -21,14 +22,18 @@ Design tokens live in `src/styles/base.css` (cream `#f6f3ee`, near-black `#1a1a1
 
 ```
 frontend-navigator/
-├── package.json              # react, react-dom, react-router-dom, vite, @vitejs/plugin-react
+├── package.json              # React, Router, Socket.io, i18next/react-i18next, Vite
 ├── vite.config.js            # /api + /uploads proxy to :8000, outDir 'dist'
 ├── index.html                # mounts #root + /src/main.jsx
 ├── src/
 │   ├── main.jsx              # BrowserRouter + Routes
 │   ├── api.js                # token storage + fetch wrapper
 │   ├── auth.js               # isAuthenticated(), logout()
-│   ├── voice.js              # COMMANDS registry, matchCommand(), listenOnce()
+│   ├── i18n.js               # IT/EN setup, persistence, <html lang> + cross-tab sync
+│   ├── locales/
+│   │   ├── it.json           # Italian UI catalogue (default/fallback)
+│   │   └── en.json           # English UI catalogue
+│   ├── voice.js              # bilingual command registry, matchCommand(), listenOnce()
 │   ├── session.js            # connectSession() socket helper + ACTIVITY_LABELS
 │   ├── mapGeometry.js        # pure projection: buildGeometry/expandToAspect/imageToLatLng
 │   ├── styles/
@@ -119,7 +124,7 @@ Defined in `src/main.jsx`, plus a `*` fallback that bounces to `/`.
 |------|-----------|------|-------|
 | `/` | `HomeNoLogin` | public | Auto-redirects to `/museums` if already authed; otherwise opens the AuthDialog on user action |
 | `/museums` | `Museums` | required | List of museums with search and a profile menu |
-| `/account` | `Account` | required | Profile data, wallet recharge, created visits and saved visits |
+| `/account` | `Account` | required | Profile data, language setting, wallet recharge, created visits and saved visits |
 | `/session/:sessionCode` | `VisitRun` | required | **The same runner in group-visit mode.** Declared before the slug routes so a code can't be read as a museum slug |
 | `/:museumSlug` | `VisitSelect` | required | Museum landing — pick a visit |
 | `/:museumSlug/:visitSlug` | `VisitRun` | required | The fullscreen visit runner |
@@ -136,7 +141,11 @@ Same JWT scheme as the marketplace — there is **no server-side session**.
 - `localStorage.token` — the shared marketplace/Navigator JWT. The legacy
   `artaround_token` key is still read for existing browser sessions.
 - `localStorage.artaround_user` — cached user object (saves a `/auth/me` round-trip on warm starts).
-- Both keys are owned by `src/api.js` (`getToken` / `setToken` / `clearToken` / `getCachedUser` / `setCachedUser`).
+- `localStorage.artaround_language` — the shared `it`/`en` UI preference. `it` is
+  used when the value is missing or unsupported.
+- Auth/cache keys are owned by `src/api.js` (`getToken` / `setToken` / `clearToken` /
+  `getCachedUser` / `setCachedUser`); locale initialization and persistence live in
+  `src/i18n.js`.
 
 Each authed page does this in its first effect:
 
@@ -164,6 +173,36 @@ api(path, { method, body, headers })   // path is relative to /api
 - Parses the JSON response. On non-2xx throws `Error` with `.status` (HTTP status) and `.data` (parsed body).
 
 Always go through this wrapper rather than `fetch` directly so 401 handling stays consistent.
+
+### 6.1. Language lifecycle
+
+`src/i18n.js` initializes `i18next` through `initReactI18next`, loading the complete
+Italian and English catalogues from `src/locales/it.json` and `src/locales/en.json`.
+Only the base codes `it` and `en` are supported; Italian is both the initial default
+and `fallbackLng`.
+
+- Before login, the locale comes from `localStorage.artaround_language`. A
+  `languageChanged` listener writes every accepted change back to that key and updates
+  `document.documentElement.lang`, so the DOM always exposes `it` or `en` to assistive
+  technology. Logout clears auth/profile data but deliberately keeps this locale, so
+  the logged-out landing page does not jump back to Italian.
+- The former local value `es` is normalized once to `en`, matching the backend's
+  compatibility rule for accounts created while Spanish was briefly available.
+- The browser `storage` event applies a change made in another tab. The marketplace
+  uses the same storage key, so an open Navigator tab follows its language choice too.
+- For an authenticated user, `User.language` is canonical. Login/register and
+  `GET /auth/me` return it; `setCachedUser(user)` synchronizes i18next whenever it
+  caches such a response. This lets an account preference override a stale local value.
+- Registering from an English interface persists `en` with the authenticated language
+  endpoint before caching the new profile, so signup does not jump back to Italian.
+- The Account settings control persists changes with `PATCH /auth/language`, body
+  `{ "language": "it" }` or `{ "language": "en" }`, then merges the returned
+  language into the current profile cache. It deliberately keeps the populated
+  visits already loaded by `GET /auth/me`.
+
+This layer translates application chrome and fixed commands only. Museum metadata,
+visit titles, directions, questions, chat messages and other authored/database content
+remain in their authored language; there is no runtime machine translation.
 
 ---
 
@@ -199,6 +238,11 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Protected route declared before `/:museumSlug`, so `account` is never interpreted as a museum slug.
 - Loads `/auth/me` and `/visits/my` in parallel and refreshes the cached user.
 - Shows created and saved visits in separate tabs; both can launch the visit runner using museum and visit slugs.
+- The Settings tab contains an accessible two-button Italian/English language control
+  (`aria-pressed` marks the active choice). Buttons are disabled while saving. It sends
+  the choice through `PATCH /auth/language`; only after success does the returned
+  language merge into the page/cache state and switch i18next. A failed request leaves
+  the previous language active and renders an inline error.
 - Wallet recharge uses `PATCH /auth/wallet` and updates both page state and the cached profile.
 
 ### 8.3. `VisitSelect` (`/:museumSlug`)
@@ -268,7 +312,7 @@ Transitions:
 - `onPointerCancel` clears the gesture — that's what fires when the browser takes over for scrolling.
 - Swiping is inert in logistic mode and while an answer is showing; neither has a length ladder.
 
-**Logistic text source** — when arriving at entry `i` via Next, we render `sequence[i-1].nextDirections` (the previous entry's instructions to leave it). Falls back to `sequence[i].prevDirections`, then a generic Italian "Vai al prossimo punto della visita." This is owned by the *transition*, not by the entry itself. Caveat: reordering a sequence (in the marketplace editor) drags `nextDirections` with the entry it was authored under, so the runner can show stale text. Live with it for now.
+**Logistic text source** — when arriving at entry `i` via Next, we render `sequence[i-1].nextDirections` (the previous entry's instructions to leave it). Falls back to `sequence[i].prevDirections`, then the localized `visitRun.nextDirectionsFallback` UI string. This is owned by the *transition*, not by the entry itself. Caveat: reordering a sequence (in the marketplace editor) drags `nextDirections` with the entry it was authored under, so the runner can show stale text. Live with it for now.
 
 **Tone selection** is a pill in the description header (`.visit-tone-pill`, showing `EASY` / `MEDIUM` / `COMPLEX` + a caret) opening a small menu. It replaced the old hard-coded `descriptions[0]`, which — since the marketplace writes all three tones in a fixed `easy → medium → complex` order — always resolved to *easy*, making the other two unreachable.
 
@@ -289,43 +333,56 @@ Transitions:
 
 Implemented in `VisitRun` via the browser-native `window.speechSynthesis` — no third-party TTS dep. **Opt-in** (default off): the round speaker toggle lives in the description header, next to the length pill.
 
-How it works:
+The runner derives both `bodyText` and the language of that exact text. The speech
+effect maps UI and authored-content codes through `speechLocaleForLanguage()`:
+`it-IT`, `en-US`, `fr-FR`, `de-DE` or `es-ES`. An absent or unsupported language
+falls back to Italian.
 
-```js
-const [ttsEnabled, setTtsEnabled] = useState(false);
+For authored Item descriptions, selection is language-aware as well as length-aware:
 
-useEffect(() => {
-  if (!TTS_SUPPORTED) return;
-  if (!ttsEnabled || !bodyText) {
-    window.speechSynthesis.cancel();
-    return;
-  }
-  const utter = new SpeechSynthesisUtterance(bodyText);
-  utter.lang = 'it-IT';
-  utter.rate = 1;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utter);
-  return () => window.speechSynthesis.cancel();
-}, [ttsEnabled, bodyText]);
-```
+- first use the requested `15s` / `30s` / `60s` entry in the current UI language;
+- if it is missing, use the Italian entry at that length;
+- if that is missing too, use any entry at the requested length.
 
-- The effect is keyed on `[ttsEnabled, bodyText]` — `bodyText` is a derived render-time string, so Next / Previous / Describe! all change it and re-trigger the effect. Each transition cancels the in-flight utterance and starts a fresh one. That means switching `15s → 30s` mid-sentence cuts the 15s read short — **desired**.
+The utterance language follows the entry that actually won, not merely the UI setting.
+This matters when the interface is English but an older Item has Italian text only: the
+fallback remains visibly and audibly Italian instead of being pronounced with an English
+voice. Logistic directions do not carry language metadata and are treated as Italian.
+Answers and generic fallback copy produced by `t()` use the current UI language.
+
+- The effect is keyed on the enabled flag, text and resolved text language. Next /
+  Previous / Describe!, a length change and a language change all cancel the in-flight
+  utterance and start the new one. Switching `15s → 30s` mid-sentence therefore cuts the
+  15s read short — **desired**.
 - Default off because some browsers (notably iOS Safari) require a user gesture before `speak()` works. The toggle click is that gesture.
 - The button is hidden entirely if `'speechSynthesis' in window` is false (`TTS_SUPPORTED` constant at the top of the file).
 - The cleanup (`speechSynthesis.cancel()`) handles unmount, so End Visit / browser-nav stop the voice immediately.
-- We use whatever voice the browser ships for `it-IT`; we don't pick a specific entry from `getVoices()`.
+- We use whatever voice the browser ships for the resolved content locale;
+  we don't pick a specific entry from `getVoices()`.
 
-If you need to change the spoken text source, change `bodyText` — don't add a separate state for "what to speak."
+If you change the spoken text source, update its derived language at the same time —
+text and voice metadata must never drift.
 
 ---
 
 ## 10. Voice control
 
-`src/voice.js` + `components/CommandSheet.jsx` satisfy the base-tier "controlled vocabulary" requirement (SPECS §5). `Ask me anything` opens `CommandSheet`, which holds **both** ways of issuing a command so they can't drift: a push-to-talk mic and a tappable list, both dispatching the same ids through `VisitRun`'s `runCommand(id)`.
+`src/voice.js` + `components/CommandSheet.jsx` satisfy the base-tier "controlled vocabulary" requirement (SPECS §5). The translated command action opens `CommandSheet`, which holds **both** ways of issuing a command so they can't drift: a push-to-talk mic and a tappable list, both dispatching the same ids through `VisitRun`'s `runCommand(id)`.
 
-- **`COMMANDS` in `voice.js` is the single source of truth** — `{ id, label, hint, phrases[] }`. Adding a command there makes it available to the mic *and* the list at once. Eight ids: `more` / `simpler` / `next` / `previous` / `author` / `year` / `exit` / `map`.
-- **Recognition is `it-IT`**, matching the TTS voice and the Italian content, so `phrases` are Italian even though the button labels are English.
-- **`matchCommand()` checks phrases longest-first** across the whole registry, sorted once at module load into `PHRASE_INDEX`. This is load-bearing, not tidiness: `"dimmi di più"` (`more`) contains `"più"`, and `simpler` owns `"più breve"` — shortest-first substring matching mis-routes. `normalize()` also folds accents (`più → piu`) and apostrophe variants (`’ → '`) because recognizers are inconsistent about both.
+- **The bilingual registry in `voice.js` is the single source of truth.** Italian
+  and English expose the same eight stable ids: `more` / `simpler` / `next` /
+  `previous` / `author` / `year` / `exit` / `map`. Labels and hints shown by the
+  sheet come from the UI catalogues; spoken phrases are selected for the current
+  language. Adding a command means adding the same id and copy for both locales.
+- **Recognition follows the UI locale:** `it` uses `it-IT`, `en` uses `en-US`.
+  Switching language therefore changes both the visible command list and what the
+  recognizer listens for; it does not invoke automatic NLP translation.
+- **`matchCommand()` checks the selected language's phrases longest-first.** This is
+  load-bearing, not tidiness: a longer intent phrase can contain a shorter phrase owned
+  by another command. Matches require space-delimited phrase boundaries, so tokens such
+  as `background`, `yearning` or `mapping` cannot trigger `back`, `year` or `map`.
+  `normalize()` also folds accents and apostrophe variants because recognizers are
+  inconsistent about both.
 - **Push-to-talk, never continuous.** `listenOnce()` sets `continuous = false` and calls `speechSynthesis.cancel()` before starting — an open mic hears the runner reading a description aloud and fires phantom commands. `maxAlternatives = 3` and every alternative is tested: free accuracy on a fixed vocabulary.
 - **`simpler` is the only genuinely new state transition** — `handleSimpler()` walks `lengthIdx` *down* (60s → 30s → 15s). At `15s` it's a no-op and deliberately does **not** fall back to logistic mode; dropping the user into walking directions when they asked for something simpler would be confusing.
 - **Question commands (`author` / `year` / `exit`) set `answer`**, which wins over the description in the `bodyText` chain — so answers are spoken by the existing TTS effect with no new speech code. The area gets `.is-answer` (terracotta left border, `Risposta` pill, `×` dismiss). Every navigation command calls `setAnswer(null)` first, so an answer never outlives the item it described.
@@ -401,7 +458,16 @@ If you need to change the spoken text source, change `bodyText` — don't add a 
 - **Late-fetch guard.** Every effect that fires `Promise.all([...])` uses a `cancelled` flag (`let cancelled = false; ... return () => { cancelled = true; }`) and ignores the response when set. Don't drop this — without it, navigating away mid-fetch can call `setState` on an unmounted component.
 - **No `<dialog>`.** Modals are overlay `<div>`s with their own keydown listener. Easier to control from React state and avoids cross-browser polyfills.
 - **CSS scoping.** No CSS modules / styled-components. Page CSS is global, but every page uses unique class prefixes (`.visit-`, `.museums-`, etc.) to avoid collision. Keep the prefix when you add classes to a page.
-- **Italian copy** is the default user-facing language. The seed contents are Italian and the TTS is hard-coded to `it-IT`. New strings should be Italian unless you wire i18n first.
+- **UI copy belongs in both locale catalogues.** Do not hard-code a new user-facing
+  string in JSX: add the same key to `src/locales/it.json` and `src/locales/en.json`,
+  then render it with `t()`. Italian remains the default/fallback, so a missing English
+  key is a defect rather than an invitation to rely on fallback indefinitely. Keep
+  authored/database strings separate; they are selected by language metadata when
+  available, not passed through `t()`.
+- **Language-dependent browser APIs use full locales.** UI state/storage/backend use
+  `it` and `en`; UI formatting and speech recognition receive `it-IT` or `en-US` via
+  the mapping in `i18n.js`. TTS can additionally follow authored `fr`, `de` or `es`
+  metadata. Do not scatter locale literals through components.
 - **Both frontends share the same JWT.** Login on the marketplace and the navigator picks up the session on the same origin, and vice versa.
 - **Zoom is disabled**, because a pinched-in visit runner pushes the Next/Previous controls off-screen. This takes **two** rules that must stay in sync: `maximum-scale=1, user-scalable=no` on the viewport meta in `index.html` (Android/Chrome) and `html { touch-action: pan-x pan-y }` in `base.css` (iOS Safari, which has ignored `user-scalable=no` since iOS 10). `pan-x pan-y` still allows scrolling but blocks pinch *and* double-tap; `touch-action: manipulation` would **not** be enough, since it only kills double-tap. Separately, every input is `font-size: 16px` — that's what stops iOS zooming on focus, so don't drop any input below 16px. A deliberate accessibility trade-off (WCAG 1.4.4 wants 200% zoom), justified by the fixed runner layout.
 
@@ -415,6 +481,10 @@ These are deliberately deferred — *not* bugs. Don't fix without aligning with 
 - **Demo data gaps.** Uffizi has no floor plan (the map falls back to a blank plate); most contents still have no image.
 - **Step-building logic is duplicated** between `VisitRun.jsx` and `session.controller.js` (§12). Worth unifying if the block model grows.
 - **Natural-language commands** beyond the fixed vocabulary need the Extension 2 LLM work; `src/services/aiService.js` and `src/controllers/ai.controller.js` are still empty and the routes are commented out in `src/routes/index.js`.
+- **Authored content is not translated at runtime.** The IT/EN setting localizes fixed
+  UI and controlled commands, and the runner selects a matching language-tagged Item
+  description when one exists. It does not translate museum metadata, directions,
+  questions, chat or missing description variants. That remains Extension 2 work.
 - **No georeferencing / QR** (Extension 2). The map is deliberately position-free (§11).
 - **Stale logistic text after sequence reorder.** Documented in §8.4; the marketplace editor has the same caveat. Editorial responsibility, not a code fix.
 - **No service worker / offline support.** The visit runner needs network for the initial fetch.
@@ -426,7 +496,7 @@ These are deliberately deferred — *not* bugs. Don't fix without aligning with 
 
 Endpoints the navigator depends on (full reference in [API.md](API.md)):
 
-- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`
+- `POST /api/auth/register`, `POST /api/auth/login`, `GET /api/auth/me`, `PATCH /api/auth/language`
 - `GET /api/museums`, `GET /api/museums/:slug`
 - `GET /api/museums/:slug/contents`, `GET /api/museums/:slug/visits`
 - `GET /api/visits/:slug`

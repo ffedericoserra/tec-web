@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getCachedUser } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
@@ -12,6 +13,7 @@ import ChatPanel from '../components/ChatPanel.jsx';
 import ActivitiesPanel from '../components/ActivitiesPanel.jsx';
 import QuizScreen from '../components/QuizScreen.jsx';
 import QuestionSectionScreen from '../components/QuestionSectionScreen.jsx';
+import { normalizeLanguage, speechLocaleForLanguage } from '../i18n.js';
 import '../styles/visitRun.css';
 import '../styles/session.css';
 
@@ -20,7 +22,6 @@ const LENGTHS = ['15s', '30s', '60s'];
 /* Order matters: it's the order shown in the tone menu, easiest first. Values
  * match `descriptions[].tone` as written by the marketplace. */
 const TONES = ['easy', 'medium', 'complex'];
-const TONE_LABELS = { easy: 'Easy', medium: 'Medium', complex: 'Complex' };
 
 const TTS_SUPPORTED =
   typeof window !== 'undefined' && 'speechSynthesis' in window;
@@ -115,17 +116,28 @@ function PeopleIcon() {
   );
 }
 
-function findText(description, lengthIdx) {
-  if (!description) return '';
+function findTextEntry(description, lengthIdx, language) {
+  if (!description) return null;
   const target = LENGTHS[lengthIdx];
-  return description.texts?.find((t) => t.lengthCategory === target)?.text || '';
+  const candidates = (description.texts || []).filter(
+    (entry) => entry.lengthCategory === target && entry.text
+  );
+  const preferred = normalizeLanguage(language) || 'it';
+  const entryLanguage = (entry) =>
+    String(entry.language || 'it').toLowerCase().split('-')[0];
+  return (
+    candidates.find((entry) => entryLanguage(entry) === preferred) ||
+    candidates.find((entry) => entryLanguage(entry) === 'it') ||
+    candidates[0] ||
+    null
+  );
 }
 
-function lastAvailableLengthIdx(description) {
+function lastAvailableLengthIdx(description, language) {
   if (!description?.texts?.length) return 0;
   let max = 0;
   for (let i = 0; i < LENGTHS.length; i++) {
-    if (description.texts.some((t) => t.lengthCategory === LENGTHS[i])) {
+    if (findTextEntry(description, i, language)) {
       max = i;
     }
   }
@@ -163,6 +175,8 @@ function buildSessionSteps(visit) {
 }
 
 export default function VisitRun() {
+  const { t, i18n } = useTranslation();
+  const uiLanguage = normalizeLanguage(i18n.resolvedLanguage) || 'it';
   /* One component, two routes. `/:museumSlug/:visitSlug` is a solo visit;
    * `/session/:sessionCode` is a group visit (Extension 1). Session mode adds a
    * toolbar, hands navigation to the guide and can end in a quiz — everything
@@ -230,6 +244,12 @@ export default function VisitRun() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [mapOpen, setMapOpen] = useState(false);
 
+  // Command answers are localized snapshots. Close one if another tab changes
+  // the UI language so stale copy is never left over the translated runner.
+  useEffect(() => {
+    setAnswer(null);
+  }, [uiLanguage]);
+
   useEffect(() => {
     if (!isAuthenticated()) {
       navigate('/', { replace: true });
@@ -253,7 +273,7 @@ export default function VisitRun() {
         visitRef = sess.visitId?._id;
         museum = sess.visitId?.museumId?.slug;
         if (!visitRef || !museum) {
-          throw new Error('Sessione non valida');
+          throw new Error(t('visitRun.invalidSession'));
         }
       }
 
@@ -305,7 +325,7 @@ export default function VisitRun() {
           });
           return;
         }
-        setError(err.message || 'Impossibile caricare la visita');
+        setError('visitRun.loadError');
         setLoading(false);
       });
     return () => {
@@ -395,7 +415,7 @@ export default function VisitRun() {
   const item = entry?.itemId || null;
   const content = item?.contentId ? contents[item.contentId] : null;
   const description = pickDescription(item, tone);
-  const maxLen = lastAvailableLengthIdx(description);
+  const maxLen = lastAvailableLengthIdx(description, uiLanguage);
   const itemTones = availableTones(item);
   /* What the user is actually hearing, which is the preference only when this
    * item carries it. The pill shows this rather than the preference so it never
@@ -413,12 +433,15 @@ export default function VisitRun() {
         const seqContent = seqItem?.contentId ? contents[seqItem.contentId] : null;
         return {
           index: i,
-          name: seqContent?.name || seqItem?.contentId || `Tappa ${i + 1}`,
+          name:
+            seqContent?.name ||
+            seqItem?.contentId ||
+            t('visitRun.stopFallback', { count: i + 1 }),
           lat: seqContent?.coordinates?.lat,
           lng: seqContent?.coordinates?.lng,
         };
       }),
-    [sequence, contents]
+    [sequence, contents, t]
   );
 
   const isFirst = inSession ? currentStepIndex === 0 : entryIndex === 0;
@@ -431,6 +454,7 @@ export default function VisitRun() {
   const quizActive = inSession && quizStarted && quiz.length > 0;
 
   let bodyText = '';
+  let bodyTextLanguage = uiLanguage;
   if (!visit || activeQuestionSection || sequence.length === 0 || quizActive) {
     /* Empty during the quiz too, which is what stops TTS from reading the last
      * artwork's description over the questions — the speech effect keys on
@@ -439,19 +463,30 @@ export default function VisitRun() {
   } else if (answer) {
     // Wins over the description. Because the TTS effect below keys on bodyText,
     // answers get spoken automatically with no extra speech code.
-    bodyText = answer;
+    bodyText = answer.text;
+    bodyTextLanguage = answer.language;
   } else if (mode === 'logistic') {
     const prevEntry = sequence[entryIndex - 1];
-    bodyText =
-      prevEntry?.nextDirections?.trim() ||
-      entry?.prevDirections?.trim() ||
-      'Vai al prossimo punto della visita.';
+    const authoredDirections =
+      prevEntry?.nextDirections?.trim() || entry?.prevDirections?.trim();
+    if (authoredDirections) {
+      bodyText = authoredDirections;
+      // Directions have no language metadata in the Visit schema. Existing
+      // and seeded directions are Italian, so that is the honest fallback.
+      bodyTextLanguage = 'it';
+    } else {
+      bodyText = t('visitRun.nextDirectionsFallback');
+    }
   } else if (description) {
-    bodyText =
-      findText(description, lengthIdx) ||
-      'Nessuna descrizione disponibile per questa lunghezza.';
+    const textEntry = findTextEntry(description, lengthIdx, uiLanguage);
+    if (textEntry) {
+      bodyText = textEntry.text;
+      bodyTextLanguage = String(textEntry.language || 'it').toLowerCase().split('-')[0];
+    } else {
+      bodyText = t('visitRun.descriptionLengthUnavailable');
+    }
   } else {
-    bodyText = 'Nessuna descrizione disponibile.';
+    bodyText = t('visitRun.descriptionUnavailable');
   }
 
   useEffect(() => {
@@ -461,12 +496,12 @@ export default function VisitRun() {
       return;
     }
     const utter = new SpeechSynthesisUtterance(bodyText);
-    utter.lang = 'it-IT';
+    utter.lang = speechLocaleForLanguage(bodyTextLanguage);
     utter.rate = 1;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utter);
     return () => window.speechSynthesis.cancel();
-  }, [ttsEnabled, bodyText]);
+  }, [ttsEnabled, bodyText, bodyTextLanguage]);
 
   /* Same dismissal contract as ProfileMenu: outside-mousedown or Escape. */
   useEffect(() => {
@@ -528,7 +563,7 @@ export default function VisitRun() {
       /* Non-fatal: the visit keeps working, the group just didn't move. Shown
        * as a dismissible line rather than through setError, which would swap
        * the whole runner for an error screen over one failed button press. */
-      setNotice(err.message || 'Azione non riuscita');
+      setNotice('visitRun.actionError');
     }
   }
 
@@ -557,7 +592,10 @@ export default function VisitRun() {
     // Keep the reading depth across the switch — you change tone to re-hear the
     // same amount of detail differently — but don't land past the end if the new
     // tone happens to carry fewer lengths.
-    const nextMax = lastAvailableLengthIdx(pickDescription(item, next));
+    const nextMax = lastAvailableLengthIdx(
+      pickDescription(item, next),
+      uiLanguage
+    );
     setLengthIdx((i) => Math.min(i, nextMax));
   }
 
@@ -603,19 +641,21 @@ export default function VisitRun() {
   }
 
   function answerAuthor() {
-    setAnswer(
-      content?.author
-        ? `L'autore è ${content.author}.`
-        : 'Autore non disponibile per quest’opera.'
-    );
+    setAnswer({
+      text: content?.author
+        ? t('visitRun.authorAnswer', { author: content.author })
+        : t('visitRun.authorUnavailable'),
+      language: uiLanguage,
+    });
   }
 
   function answerYear() {
-    setAnswer(
-      content?.year
-        ? `Anno: ${content.year}.`
-        : 'Anno non disponibile per quest’opera.'
-    );
+    setAnswer({
+      text: content?.year
+        ? t('visitRun.yearAnswer', { year: content.year })
+        : t('visitRun.yearUnavailable'),
+      language: uiLanguage,
+    });
   }
 
   function answerExit() {
@@ -623,15 +663,18 @@ export default function VisitRun() {
     const pois = visit?.museumId?.pointsOfInterest || [];
     const exits = pois.filter((p) => p.type === 'exit' && p.label);
     if (exits.length === 0) {
-      setAnswer('Nessuna uscita indicata per questo museo.');
+      setAnswer({ text: t('visitRun.noExit'), language: uiLanguage });
       return;
     }
     // No "nearest" claim — the Base tier is explicitly map without positioning.
-    setAnswer(
-      exits.length === 1
-        ? `L'uscita è: ${exits[0].label}.`
-        : `Uscite disponibili: ${exits.map((e) => e.label).join(', ')}.`
-    );
+    setAnswer({
+      text: exits.length === 1
+        ? t('visitRun.oneExit', { exit: exits[0].label })
+        : t('visitRun.manyExits', {
+            exits: exits.map((exit) => exit.label).join(', '),
+          }),
+      language: uiLanguage,
+    });
   }
 
   /* The one place the mic and the tap list converge. */
@@ -699,7 +742,7 @@ export default function VisitRun() {
      * running. Ending is destructive for other people, so it's confirmed. */
     if (isOwner) {
       const ok = window.confirm(
-        'End the visit for the whole group? Everyone will be sent back.'
+        t('visitRun.endGroupConfirm')
       );
       if (!ok) return;
       await sessionAction('end');
@@ -724,7 +767,7 @@ export default function VisitRun() {
         logout();
         return;
       }
-      setAssocError(err.message || 'Errore nel caricamento');
+      setAssocError('visitRun.loadAssociatedError');
     } finally {
       setAssocLoading(false);
     }
@@ -750,7 +793,7 @@ export default function VisitRun() {
     return (
       <div className="page-visit-run">
         <PageHeader />
-        <p className="visit-status">Caricamento…</p>
+        <p className="visit-status">{t('common.loading')}</p>
       </div>
     );
   }
@@ -765,11 +808,11 @@ export default function VisitRun() {
               className="end-visit-btn"
               onClick={handleEndVisit}
             >
-              End Visit
+              {t('visitRun.endVisit')}
             </button>
           }
         />
-        <p className="visit-status error">{error}</p>
+        <p className="visit-status error">{t(error)}</p>
       </div>
     );
   }
@@ -781,13 +824,13 @@ export default function VisitRun() {
       <div className="page-visit-run">
         <PageHeader subtitle={visit?.museumId?.name} />
         <div className="quiz-waiting">
-          <p>The guide has ended this visit.</p>
+          <p>{t('visitRun.endedByGuide')}</p>
           <button
             type="button"
             className="quiz-submit"
             onClick={() => navigate(museumSlug ? `/${museumSlug}` : '/museums')}
           >
-            Back to visits
+            {t('visitRun.backToVisits')}
           </button>
         </div>
       </div>
@@ -808,11 +851,11 @@ export default function VisitRun() {
               className="end-visit-btn"
               onClick={handleEndVisit}
             >
-              End Visit
+              {t('visitRun.endVisit')}
             </button>
           }
         />
-        <p className="visit-status">Questa visita è vuota.</p>
+        <p className="visit-status">{t('visitRun.empty')}</p>
       </div>
     );
   }
@@ -832,7 +875,7 @@ export default function VisitRun() {
             className="end-visit-btn"
             onClick={handleEndVisit}
           >
-            End Visit
+            {t('visitRun.endVisit')}
           </button>
         }
       />
@@ -843,8 +886,10 @@ export default function VisitRun() {
             type="button"
             className="session-bar-btn is-icon"
             onClick={() => openPanel('participants')}
-            aria-label={`Partecipanti (${activeParticipants})`}
-            title="Participants"
+            aria-label={t('visitRun.participantsAria', {
+              count: activeParticipants,
+            })}
+            title={t('visitRun.participants')}
           >
             <PeopleIcon />
           </button>
@@ -853,7 +898,7 @@ export default function VisitRun() {
             className="session-bar-btn"
             onClick={() => openPanel('chat')}
           >
-            Chat
+            {t('chat.title')}
             {unreadChat > 0 && (
               <span className="session-badge">{unreadChat}</span>
             )}
@@ -866,7 +911,7 @@ export default function VisitRun() {
               className="session-bar-btn"
               onClick={() => openPanel('activities')}
             >
-              Activities
+              {t('visitRun.activities')}
               {unreadActivities > 0 && (
                 <span className="session-badge">{unreadActivities}</span>
               )}
@@ -878,7 +923,7 @@ export default function VisitRun() {
 
       {notice && (
         <p className="visit-status error" onClick={() => setNotice(null)}>
-          {notice}
+          {t(notice)}
         </p>
       )}
 
@@ -903,7 +948,11 @@ export default function VisitRun() {
               ? () => sessionAction('quiz/start')
               : goNext
           }
-          nextLabel={isLast && quiz.length > 0 ? 'Start Quiz' : 'Next'}
+          nextLabel={
+            isLast && quiz.length > 0
+              ? t('visitRun.startQuiz')
+              : t('visitRun.next')
+          }
         />
       ) : (
         <>
@@ -925,7 +974,7 @@ export default function VisitRun() {
           type="button"
           className="visit-image-plus"
           onClick={openAssociated}
-          aria-label="Mostra contenuti associati"
+          aria-label={t('visitRun.showAssociated')}
           disabled={!item}
         >
           +
@@ -941,14 +990,14 @@ export default function VisitRun() {
           onClick={handleDescribe}
           disabled={atMaxLength}
         >
-          Describe!
+          {t('visitRun.describe')}
         </button>
         <button
           type="button"
           className="visit-ask-btn"
           onClick={() => setSheetOpen(true)}
         >
-          Ask me anything
+          {t('visitRun.askAnything')}
         </button>
       </div>
 
@@ -963,7 +1012,7 @@ export default function VisitRun() {
       >
         <div className="visit-desc-head">
           {answer ? (
-            <span className="visit-answer-pill">Risposta</span>
+            <span className="visit-answer-pill">{t('visitRun.answer')}</span>
           ) : mode === 'describe' && description ? (
             <div className="visit-tone">
               <button
@@ -972,31 +1021,37 @@ export default function VisitRun() {
                 onClick={() => setToneMenuOpen((v) => !v)}
                 aria-expanded={toneMenuOpen}
                 aria-haspopup="menu"
-                aria-label={`Tono: ${TONE_LABELS[effectiveTone]}. Cambia tono`}
+                aria-label={t('visitRun.toneAria', {
+                  tone: t(`visitRun.tones.${effectiveTone}`, {
+                    defaultValue: effectiveTone,
+                  }),
+                })}
               >
-                {TONE_LABELS[effectiveTone] || effectiveTone}
+                {t(`visitRun.tones.${effectiveTone}`, {
+                  defaultValue: effectiveTone,
+                })}
                 <span className="visit-tone-caret" aria-hidden="true">
                   ▾
                 </span>
               </button>
               {toneMenuOpen && (
                 <div className="visit-tone-menu" role="menu">
-                  {TONES.map((t) => {
-                    const has = itemTones.includes(t);
+                  {TONES.map((toneOption) => {
+                    const has = itemTones.includes(toneOption);
                     return (
                       <button
-                        key={t}
+                        key={toneOption}
                         type="button"
                         role="menuitemradio"
-                        aria-checked={t === effectiveTone}
+                        aria-checked={toneOption === effectiveTone}
                         className={`visit-tone-option${
-                          t === effectiveTone ? ' is-active' : ''
+                          toneOption === effectiveTone ? ' is-active' : ''
                         }`}
-                        onClick={() => selectTone(t)}
+                        onClick={() => selectTone(toneOption)}
                         disabled={!has}
-                        title={has ? undefined : 'Non disponibile per quest’opera'}
+                        title={has ? undefined : t('visitRun.toneUnavailable')}
                       >
-                        {TONE_LABELS[t]}
+                        {t(`visitRun.tones.${toneOption}`)}
                       </button>
                     );
                   })}
@@ -1010,7 +1065,10 @@ export default function VisitRun() {
           {mode === 'describe' && description && !answer && (
             <div
               className="visit-length-dots"
-              aria-label={`Lunghezza ${lengthIdx + 1} di ${maxLen + 1}`}
+              aria-label={t('visitRun.lengthAria', {
+                current: lengthIdx + 1,
+                total: maxLen + 1,
+              })}
             >
               {Array.from({ length: maxLen + 1 }, (_, i) => (
                 <span
@@ -1028,7 +1086,7 @@ export default function VisitRun() {
               type="button"
               className="visit-answer-close"
               onClick={() => setAnswer(null)}
-              aria-label="Chiudi la risposta"
+              aria-label={t('visitRun.closeAnswer')}
             >
               ×
             </button>
@@ -1040,9 +1098,15 @@ export default function VisitRun() {
               onClick={() => setTtsEnabled((v) => !v)}
               aria-pressed={ttsEnabled}
               aria-label={
-                ttsEnabled ? 'Disattiva la voce' : 'Attiva la voce'
+                ttsEnabled
+                  ? t('visitRun.disableVoice')
+                  : t('visitRun.enableVoice')
               }
-              title={ttsEnabled ? 'Disattiva la voce' : 'Attiva la voce'}
+              title={
+                ttsEnabled
+                  ? t('visitRun.disableVoice')
+                  : t('visitRun.enableVoice')
+              }
             >
               <SpeakerIcon active={ttsEnabled} />
             </button>
@@ -1064,7 +1128,7 @@ export default function VisitRun() {
               onClick={goPrevious}
               disabled={isFirst}
             >
-              Previous
+              {t('visitRun.previous')}
             </button>
             {/* On the last stop the guide's Next becomes Start Quiz, but only
                 when the visit actually carries one — otherwise Next just ends
@@ -1075,7 +1139,7 @@ export default function VisitRun() {
                 className="visit-nav-btn"
                 onClick={() => sessionAction('quiz/start')}
               >
-                Start Quiz
+                {t('visitRun.startQuiz')}
               </button>
             ) : (
               <button
@@ -1084,7 +1148,7 @@ export default function VisitRun() {
                 onClick={goNext}
                 disabled={isLast}
               >
-                Next
+                {t('visitRun.next')}
               </button>
             )}
           </>
@@ -1094,7 +1158,7 @@ export default function VisitRun() {
           className="visit-nav-btn"
           onClick={() => setMapOpen(true)}
         >
-          Map
+          {t('visitRun.map')}
         </button>
       </div>
         </>
@@ -1122,7 +1186,7 @@ export default function VisitRun() {
           content={content}
           item={assocItemId ? assocCache[assocItemId] : null}
           loading={assocLoading}
-          error={assocError}
+          error={assocError ? t(assocError) : null}
           onClose={closeAssociated}
         />
       )}

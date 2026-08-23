@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - Le mie visite</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="visits.title">ArtAround - Visite del museo</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/visits_list.css" />
   </head>
@@ -11,39 +12,41 @@
     <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
     <main class="visits-shell">
       <section class="visits-heading">
-        <span class="kicker">Area autore</span>
-        <h1>Gestisci le tue visite</h1>
-        <p>Seleziona un museo per vedere e modificare i percorsi che hai creato.</p>
+        <span class="kicker" data-i18n="visits.kicker">Visite del museo</span>
+        <h1 data-i18n="visits.heading">Crea e scopri visite</h1>
+        <p data-i18n="visits.intro">Seleziona un museo per gestire i tuoi percorsi e vedere le visite pubblicate dagli altri autori.</p>
       </section>
 
       <section class="visits-workspace">
         <div class="visits-toolbar">
           <label class="museum-filter" for="museum-select">
-            <span>Museo</span>
-            <select id="museum-select"><option value="">Caricamento musei...</option></select>
+            <span data-i18n="common.museum">Museo</span>
+            <select id="museum-select"><option value="" data-i18n="visits.loadingMuseums">Caricamento musei...</option></select>
           </label>
           <label class="visit-search" for="visit-search">
-            <span>Cerca nelle visite</span>
-            <input id="visit-search" type="search" placeholder="Titolo o descrizione..." />
+            <span data-i18n="visits.search">Cerca nelle visite</span>
+            <input id="visit-search" type="search" placeholder="Titolo o descrizione..." data-i18n-placeholder="visits.searchPlaceholder" />
           </label>
-          <button id="add-visit-btn" class="primary-btn" type="button" disabled>Crea nuova visita</button>
+          <button id="add-visit-btn" class="primary-btn" type="button" disabled data-i18n="visits.create">Crea nuova visita</button>
         </div>
         <div id="visits-feedback" class="feedback" aria-live="polite"></div>
-        <div id="tours-list" class="visits-grid"></div>
+        <div id="tours-list" class="visits-collections"></div>
       </section>
     </main>
 
     <div id="delete-confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
       <div class="modal-content">
-        <h2>Eliminare la visita?</h2>
+        <h2 data-i18n="visits.deleteTitle">Eliminare la visita?</h2>
         <p id="delete-modal-text"></p>
         <div class="modal-actions">
-          <button id="cancel-delete-btn" class="secondary-btn" type="button">Annulla</button>
-          <button id="confirm-delete-btn" class="danger-btn" type="button">Elimina</button>
+          <button id="cancel-delete-btn" class="secondary-btn" type="button" data-i18n="common.cancel">Annulla</button>
+          <button id="confirm-delete-btn" class="danger-btn" type="button" data-i18n="common.delete">Elimina</button>
         </div>
       </div>
     </div>
 
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/visits_list.js"></script>
   </body>

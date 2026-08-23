@@ -13,18 +13,18 @@ import { getToken } from './api.js';
 
 /** Activity actions worth showing the teacher, labelled as the student saw them. */
 export const ACTIVITY_LABELS = {
-  joined: 'joined the visit',
-  left: 'left the visit',
-  more: 'asked for more detail',
-  simpler: 'asked for something simpler',
-  author: "asked: who's the author?",
-  year: 'asked: what year is it from?',
-  exit: 'asked: where is the exit?',
-  map: 'opened the map',
+  joined: 'activities.actions.joined',
+  left: 'activities.actions.left',
+  more: 'activities.actions.more',
+  simpler: 'activities.actions.simpler',
+  author: 'activities.actions.author',
+  year: 'activities.actions.year',
+  exit: 'activities.actions.exit',
+  map: 'activities.actions.map',
   // Legacy values kept so old sessions still render something sensible.
-  tellMore: 'asked for more detail',
-  tellLess: 'asked for less detail',
-  tooSimple: 'said it was too simple',
+  tellMore: 'activities.actions.tellMore',
+  tellLess: 'activities.actions.tellLess',
+  tooSimple: 'activities.actions.tooSimple',
 };
 
 /**

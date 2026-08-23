@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, getCachedUser, setCachedUser } from '../api.js';
 import { isAuthenticated, logout } from '../auth.js';
@@ -6,11 +7,6 @@ import PageHeader from '../components/PageHeader.jsx';
 import ProfileMenu from '../components/ProfileMenu.jsx';
 import GroupVisitDialog from '../components/GroupVisitDialog.jsx';
 import '../styles/visitSelect.css';
-
-function capitalize(s) {
-  if (!s) return '';
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
 
 function Chevron() {
   return (
@@ -34,6 +30,7 @@ function Chevron() {
 }
 
 export default function VisitSelect() {
+  const { t } = useTranslation();
   const { museumSlug } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(getCachedUser());
@@ -85,7 +82,7 @@ export default function VisitSelect() {
           navigate('/museums', { replace: true });
           return;
         }
-        setError(err.message || 'Impossibile caricare le visite');
+        setError('visitSelect.loadError');
         setLoading(false);
       });
     return () => {
@@ -102,7 +99,7 @@ export default function VisitSelect() {
         if (!cancelled) setVisits(res.visits || []);
       } catch (err) {
         if (!cancelled && err.status !== 401) {
-          setError(err.message || 'Impossibile aggiornare le visite');
+          setError('visitSelect.refreshError');
         }
       }
     }
@@ -143,19 +140,19 @@ export default function VisitSelect() {
         right={<ProfileMenu user={user} />}
       />
       <main className="page-visit-select-body">
-        <span className="kicker">{museum?.name || 'Museum'}</span>
+        <span className="kicker">{museum?.name || t('common.museum')}</span>
         <h1 className="page-visit-select-title">
-          What kind of visit are you looking for?
+          {t('visitSelect.title')}
         </h1>
         <label className="search-field">
-          <span className="search-label">Search</span>
+          <span className="search-label">{t('visitSelect.searchLabel')}</span>
           <input
             type="search"
             className="search-input"
-            placeholder="Search for a visit…"
+            placeholder={t('visitSelect.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Cerca visita"
+            aria-label={t('visitSelect.searchAria')}
           />
         </label>
         <button
@@ -163,10 +160,10 @@ export default function VisitSelect() {
           className="group-visit-link"
           onClick={() => setGroupOpen(true)}
         >
-          or join/create a group visit
+          {t('visitSelect.groupAction')}
         </button>
-        {loading && <p className="status">Caricamento…</p>}
-        {error && !loading && <p className="status error">{error}</p>}
+        {loading && <p className="status">{t('common.loading')}</p>}
+        {error && !loading && <p className="status error">{t(error)}</p>}
         {!loading && !error && (
           <ul className="visit-list">
             {filtered.map((v) => {
@@ -185,13 +182,23 @@ export default function VisitSelect() {
                       <div className="visit-card-info">
                         <h2 className="visit-card-title">{v.title}</h2>
                         <p className="visit-card-meta">
-                          Author: {v.creatorId?.username || '—'}
+                          {t('visitSelect.author', {
+                            author: v.creatorId?.username || '—',
+                          })}
                         </p>
                         <p className="visit-card-meta">
-                          Length: {capitalize(v.length) || '—'}
+                          {t('visitSelect.length', {
+                            length: v.length
+                              ? t(`visitMeta.length.${v.length}`, {
+                                  defaultValue: v.length,
+                                })
+                              : '—',
+                          })}
                         </p>
                         {v.isPublic === false && (
-                          <p className="visit-card-meta">Visibility: Private</p>
+                          <p className="visit-card-meta">
+                            {t('visitSelect.visibilityPrivate')}
+                          </p>
                         )}
                       </div>
                       <button
@@ -199,7 +206,7 @@ export default function VisitSelect() {
                         className="start-visit-btn"
                         onClick={() => navigate(`/${museumSlug}/${v.slug}`)}
                       >
-                        Start Visit
+                        {t('visitSelect.start')}
                       </button>
                     </div>
                     {isOpen && hasDesc && (
@@ -210,7 +217,7 @@ export default function VisitSelect() {
                     {isOpen && hasStops && (
                       <div className="visit-card-stops">
                         <h3 className="visit-card-stops-title">
-                          {stops.length} stops
+                          {t('visitSelect.stops', { count: stops.length })}
                         </h3>
                         <ol className="visit-card-stop-list">
                           {stops.map((c, i) => (
@@ -219,10 +226,14 @@ export default function VisitSelect() {
                                 {i + 1}
                               </span>
                               <span className="visit-card-stop-name">
-                                {c?.name || 'Contenuto non disponibile'}
+                                {c?.name || t('visitSelect.contentUnavailable')}
                               </span>
                               <span className="visit-card-stop-type">
-                                {c?.type || '—'}
+                                {c?.type
+                                  ? t(`contentType.${c.type}`, {
+                                      defaultValue: c.type,
+                                    })
+                                  : '—'}
                               </span>
                             </li>
                           ))}
@@ -236,7 +247,9 @@ export default function VisitSelect() {
                         onClick={() => toggleExpand(v._id)}
                         aria-expanded={isOpen}
                         aria-label={
-                          isOpen ? 'Nascondi dettagli' : 'Mostra dettagli'
+                          isOpen
+                            ? t('visitSelect.hideDetails')
+                            : t('visitSelect.showDetails')
                         }
                       >
                         <Chevron />
@@ -249,8 +262,8 @@ export default function VisitSelect() {
             {filtered.length === 0 && (
               <li className="empty">
                 {visits.length === 0
-                  ? 'Nessuna visita disponibile.'
-                  : 'Nessuna visita trovata.'}
+                  ? t('visitSelect.empty')
+                  : t('visitSelect.notFound')}
               </li>
             )}
           </ul>

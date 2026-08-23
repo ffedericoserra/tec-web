@@ -20,7 +20,7 @@ if (form) {
         const originalText = submitBtn.textContent;
 
         setLoginError();
-        submitBtn.textContent = "Accesso...";
+        submitBtn.textContent = marketplaceT("login.submitting");
         submitBtn.classList.add("is-loading");
         submitBtn.disabled = true;
 
@@ -39,13 +39,18 @@ if (form) {
             if (res.ok) {
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("user", JSON.stringify(data.user));
+                if (window.marketplaceI18n.SUPPORTED_LANGUAGES.includes(data.user?.language)) {
+                    await window.marketplaceI18n.changeLanguage(data.user.language);
+                }
                 window.location.href = "../pages/homepage.html";
             } else {
-                setLoginError(data.error || "Login failed");
+                setLoginError(marketplaceT(
+                    res.status === 401 ? "login.invalidCredentials" : "login.failed"
+                ));
             }
         } catch (err) {
             console.log("Errore durante il login: " + err);
-            setLoginError("Server error");
+            setLoginError(marketplaceT("errors.server"));
         } finally {
             submitBtn.textContent = originalText;
             submitBtn.classList.remove("is-loading");
@@ -54,11 +59,15 @@ if (form) {
     });
 }
 
+let typewriterRun = 0;
+
 function typeWriterEffect(inputElement, text, speed) {
+    const currentRun = ++typewriterRun;
     let i = 0;
     inputElement.placeholder = "";
 
     function type() {
+        if (currentRun !== typewriterRun) return;
         if (i < text.length) {
             inputElement.placeholder += text.charAt(i);
             i++;
@@ -69,10 +78,13 @@ function typeWriterEffect(inputElement, text, speed) {
     setTimeout(type, 500);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function startUsernamePlaceholder() {
     const userField = document.querySelector('input[name="username"]');
 
     if (userField) {
-        typeWriterEffect(userField, "Inserisci username o email...", 100);
+        typeWriterEffect(userField, marketplaceT("login.placeholder"), 100);
     }
-});
+}
+
+document.addEventListener('DOMContentLoaded', startUsernamePlaceholder);
+window.addEventListener("marketplace:language-changed", startUsernamePlaceholder);

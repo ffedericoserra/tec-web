@@ -1,4 +1,6 @@
 import SessionPanel from './SessionPanel.jsx';
+import { useTranslation } from 'react-i18next';
+import { localeForLanguage } from '../i18n.js';
 
 /**
  * Who is in the group visit. Opened by the people icon, available to both roles
@@ -16,20 +18,24 @@ export default function ParticipantsPanel({
   meId,
   onClose,
 }) {
+  const { t, i18n } = useTranslation();
   // Active first, then alphabetically — a teacher scanning the room wants the
   // people actually present at the top.
   const sorted = [...participants].sort((a, b) => {
     if (!!a.isActive !== !!b.isActive) return a.isActive ? -1 : 1;
-    return (a.username || '').localeCompare(b.username || '');
+    return (a.username || '').localeCompare(
+      b.username || '',
+      localeForLanguage(i18n.resolvedLanguage)
+    );
   });
 
   const activeCount = participants.filter((p) => p.isActive).length;
 
   return (
-    <SessionPanel title={`Participants (${activeCount})`} onClose={onClose}>
+    <SessionPanel title={t('participants.title', { count: activeCount })} onClose={onClose}>
       {isOwner && (
         <p className="participant-code">
-          <span className="participant-code-label">Session code</span>
+          <span className="participant-code-label">{t('participants.sessionCode')}</span>
           <span className="participant-code-value">{code}</span>
         </p>
       )}
@@ -37,8 +43,8 @@ export default function ParticipantsPanel({
       <ul className="panel-list">
         <li className="participant-row">
           <span className="participant-dot is-active" aria-hidden="true" />
-          <span className="participant-name">{ownerName || 'Guide'}</span>
-          <span className="participant-tag">guide</span>
+          <span className="participant-name">{ownerName || t('common.guide')}</span>
+          <span className="participant-tag">{t('common.guide').toLowerCase()}</span>
         </li>
         {sorted.map((p) => (
           <li key={p.userId} className="participant-row">
@@ -48,7 +54,7 @@ export default function ParticipantsPanel({
             />
             <span className="participant-name">{p.username}</span>
             <span className="participant-tag">
-              {p.userId === meId ? 'you' : p.isActive ? '' : 'left'}
+              {p.userId === meId ? t('common.you') : p.isActive ? '' : t('common.left')}
             </span>
           </li>
         ))}
@@ -57,8 +63,8 @@ export default function ParticipantsPanel({
       {participants.length === 0 && (
         <p className="panel-empty">
           {isOwner
-            ? 'Nobody has joined yet. Share the code above.'
-            : 'You are the first one here.'}
+            ? t('participants.nobody')
+            : t('participants.first')}
         </p>
       )}
     </SessionPanel>

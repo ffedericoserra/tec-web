@@ -1,13 +1,20 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 /* Detail rows for one Content, in the order the spec asks for:
  * Author / Title / Year / Content Type, then Universal ID below a divider. */
 function ContentDetails({ content }) {
+  const { t } = useTranslation();
   const rows = [
-    { label: 'Author', value: content.author },
-    { label: 'Title', value: content.name },
-    { label: 'Year', value: content.year },
-    { label: 'Content Type', value: content.type },
+    { label: t('associated.author'), value: content.author },
+    { label: t('associated.contentTitle'), value: content.name },
+    { label: t('associated.year'), value: content.year },
+    {
+      label: t('associated.contentType'),
+      value: content.type
+        ? t(`contentType.${content.type}`, { defaultValue: content.type })
+        : null,
+    },
   ];
 
   return (
@@ -19,7 +26,7 @@ function ContentDetails({ content }) {
         </div>
       ))}
       <div className="assoc-detail-row is-separated">
-        <dt>Universal ID:</dt>
+        <dt>{t('associated.universalId')}:</dt>
         <dd>{content.universalId || '—'}</dd>
       </div>
     </dl>
@@ -33,6 +40,7 @@ export default function AssociatedContentsModal({
   error,
   onClose,
 }) {
+  const { t } = useTranslation();
   useEffect(() => {
     function onKey(e) {
       if (e.key === 'Escape') onClose();
@@ -58,12 +66,12 @@ export default function AssociatedContentsModal({
         aria-labelledby="assoc-title"
       >
         <header className="assoc-head">
-          <h2 id="assoc-title">Dettagli contenuto</h2>
+          <h2 id="assoc-title">{t('associated.title')}</h2>
           <button
             type="button"
             className="assoc-close"
             onClick={onClose}
-            aria-label="Chiudi"
+            aria-label={t('common.close')}
           >
             ×
           </button>
@@ -74,15 +82,15 @@ export default function AssociatedContentsModal({
           {content ? (
             <ContentDetails content={content} />
           ) : (
-            <p className="assoc-empty">Nessun dettaglio disponibile.</p>
+            <p className="assoc-empty">{t('associated.empty')}</p>
           )}
 
-          {loading && <p className="assoc-empty">Caricamento…</p>}
+          {loading && <p className="assoc-empty">{t('common.loading')}</p>}
           {error && !loading && <p className="assoc-empty">{error}</p>}
 
           {!loading && !error && list.length > 0 && (
             <section className="assoc-related">
-              <h3 className="assoc-related-title">Contenuti associati</h3>
+              <h3 className="assoc-related-title">{t('associated.related')}</h3>
               <ul className="assoc-list">
                 {list.map((c) => (
                   <li key={c._id}>

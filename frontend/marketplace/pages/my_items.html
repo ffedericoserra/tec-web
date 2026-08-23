@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ArtAround - I miei item</title>
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="items.title">ArtAround - I miei Item</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/my_items.css" />
   </head>
@@ -11,14 +12,14 @@
     <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
     <main>
       <section class="items-heading">
-        <span class="kicker">Collezione</span>
-        <h1>I miei item</h1>
-        <p>Parti da un Content del museo per gestire le tue descrizioni e quelle acquistate.</p>
+        <span class="kicker" data-i18n="items.kicker">Collezione</span>
+        <h1 data-i18n="items.heading">I miei Item</h1>
+        <p data-i18n="items.intro">Parti da un Content del museo per gestire le tue descrizioni e quelle acquistate.</p>
       </section>
       <section class="items-workspace">
         <div class="items-toolbar">
-          <label><span>Museo</span><select id="items-museum-select"><option value="">Tutti i musei</option></select></label>
-          <label><span>Cerca Content</span><input id="content-search" type="search" placeholder="Titolo o autore" /></label>
+          <label><span data-i18n="common.museum">Museo</span><select id="items-museum-select"><option value="" data-i18n="items.allMuseums">Tutti i musei</option></select></label>
+          <label><span data-i18n="items.search">Cerca Content</span><input id="content-search" type="search" placeholder="Titolo o autore" data-i18n-placeholder="items.searchPlaceholder" /></label>
         </div>
         <div id="items-feedback" class="feedback" aria-live="polite">Caricamento contenuti...</div>
         <div id="contents-grid" class="contents-grid"></div>
@@ -29,16 +30,18 @@
       <section class="detail-panel">
         <div class="detail-heading">
           <div><span class="kicker" id="detail-museum"></span><h2 id="detail-title">Content</h2><p id="detail-author"></p></div>
-          <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi">&times;</button>
+          <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi" data-i18n-aria-label="items.closeAria">&times;</button>
         </div>
         <div class="detail-tabs" role="tablist">
-          <button class="tab-btn active" data-tab="mine" type="button">My Items</button>
-          <button class="tab-btn" data-tab="purchased" type="button">Purchased Items</button>
+          <button class="tab-btn active" data-tab="mine" type="button" data-i18n="items.mineTab">I miei Item</button>
+          <button class="tab-btn" data-tab="purchased" type="button" data-i18n="items.purchasedTab">Item acquistati</button>
         </div>
         <div id="items-detail-list" class="items-detail-list"></div>
       </section>
     </div>
 
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/my_items.js"></script>
   </body>

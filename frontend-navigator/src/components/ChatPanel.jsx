@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { api } from '../api.js';
 import { logout } from '../auth.js';
 import SessionPanel from './SessionPanel.jsx';
@@ -13,6 +14,7 @@ import SessionPanel from './SessionPanel.jsx';
  * socket.
  */
 export default function ChatPanel({ code, messages, meId, onClose }) {
+  const { t } = useTranslation();
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -40,7 +42,7 @@ export default function ChatPanel({ code, messages, meId, onClose }) {
         logout();
         return;
       }
-      setError(err.message || 'Messaggio non inviato');
+      setError('chat.sendError');
     } finally {
       setBusy(false);
     }
@@ -52,21 +54,21 @@ export default function ChatPanel({ code, messages, meId, onClose }) {
         className="chat-input"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Write a message…"
+        placeholder={t('chat.placeholder')}
         maxLength={500}
-        aria-label="Messaggio"
+        aria-label={t('chat.messageAria')}
         autoFocus
       />
       <button type="submit" className="chat-send" disabled={busy || !text.trim()}>
-        Send
+        {t('chat.send')}
       </button>
     </form>
   );
 
   return (
-    <SessionPanel title="Chat" onClose={onClose} footer={footer}>
+    <SessionPanel title={t('chat.title')} onClose={onClose} footer={footer}>
       {messages.length === 0 ? (
-        <p className="panel-empty">No messages yet.</p>
+        <p className="panel-empty">{t('chat.empty')}</p>
       ) : (
         <ul className="panel-list">
           {messages.map((m, i) => {
@@ -83,7 +85,7 @@ export default function ChatPanel({ code, messages, meId, onClose }) {
           })}
         </ul>
       )}
-      {error && <p className="quiz-error">{error}</p>}
+      {error && <p className="quiz-error">{t(error)}</p>}
       <div ref={bodyEndRef} />
     </SessionPanel>
   );

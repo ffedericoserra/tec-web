@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { buildGeometry, expandToAspect, isFiniteNumber } from '../mapGeometry.js';
 
 /**
@@ -20,15 +21,15 @@ import { buildGeometry, expandToAspect, isFiniteNumber } from '../mapGeometry.js
  * figure, so it needs no legend lookup. Verified legible over a real architectural
  * plan, which is the background that matters. */
 const POI_META = {
-  entrance: { glyph: '🚪', label: 'Ingresso' },
-  exit: { glyph: '🏃', label: 'Uscita' },
-  toilet: { glyph: '🚻', label: 'Servizi' },
-  bar: { glyph: '☕', label: 'Bar' },
-  stairs: { glyph: '🪜', label: 'Scale' },
-  shop: { glyph: '🛍️', label: 'Negozio' },
+  entrance: { glyph: '🚪', labelKey: 'map.poi.entrance' },
+  exit: { glyph: '🏃', labelKey: 'map.poi.exit' },
+  toilet: { glyph: '🚻', labelKey: 'map.poi.toilet' },
+  bar: { glyph: '☕', labelKey: 'map.poi.bar' },
+  stairs: { glyph: '🪜', labelKey: 'map.poi.stairs' },
+  shop: { glyph: '🛍️', labelKey: 'map.poi.shop' },
 };
 
-const FALLBACK_POI = { glyph: '📍', label: 'Punto di interesse' };
+const FALLBACK_POI = { glyph: '📍', labelKey: 'map.poi.fallback' };
 
 function poiMeta(type) {
   return POI_META[type] || FALLBACK_POI;
@@ -70,6 +71,7 @@ function distance(a, b) {
 }
 
 export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
+  const { t } = useTranslation();
   // The configs point at floor plans that may not have been uploaded yet; when
   // the image 404s we just draw on the blank plate instead of a broken tile.
   const [planOk, setPlanOk] = useState(true);
@@ -257,7 +259,10 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
   const footer = selected
     ? selected
     : currentName
-      ? { title: `${currentIndex + 1}. ${currentName}`, sub: 'Tappa attuale' }
+      ? {
+          title: `${currentIndex + 1}. ${currentName}`,
+          sub: t('map.currentStop'),
+        }
       : null;
 
   const routePoints = geometry?.stops.map((s) => `${s.x},${s.y}`).join(' ');
@@ -272,12 +277,14 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
         aria-labelledby="map-title"
       >
         <header className="map-head">
-          <h2 id="map-title">Mappa{museum?.name ? ` — ${museum.name}` : ''}</h2>
+          <h2 id="map-title">
+            {t('map.title')}{museum?.name ? ` — ${museum.name}` : ''}
+          </h2>
           <button
             type="button"
             className="map-close"
             onClick={onClose}
-            aria-label="Chiudi"
+            aria-label={t('common.close')}
           >
             ×
           </button>
@@ -285,7 +292,7 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
 
         <div className="map-body">
           {!geometry || !view ? (
-            <p className="map-empty">Mappa non disponibile per questo museo.</p>
+            <p className="map-empty">{t('map.unavailable')}</p>
           ) : (
             <>
               <div className="map-plate">
@@ -294,7 +301,9 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                   className="map-svg"
                   viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
                   role="img"
-                  aria-label={`Mappa della visita con ${geometry.stops.length} tappe`}
+                  aria-label={t('map.visitAria', {
+                    count: geometry.stops.length,
+                  })}
                   onPointerDown={onPointerDown}
                   onPointerMove={onPointerMove}
                   onPointerUp={onPointerUp}
@@ -334,8 +343,8 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                       onClick={(e) => {
                         e.stopPropagation();
                         pick({
-                          title: p.label || poiMeta(p.type).label,
-                          sub: poiMeta(p.type).label,
+                          title: p.label || t(poiMeta(p.type).labelKey),
+                          sub: t(poiMeta(p.type).labelKey),
                         });
                       }}
                     >
@@ -368,8 +377,8 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                           title: `${s.index + 1}. ${s.name}`,
                           sub:
                             s.index === currentIndex
-                              ? 'Tappa attuale'
-                              : 'Tappa della visita',
+                              ? t('map.currentStop')
+                              : t('map.visitStop'),
                         });
                       }}
                     >
@@ -390,7 +399,7 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                   <button
                     type="button"
                     onClick={() => zoomBy(1 / 1.6)}
-                    aria-label="Ingrandisci"
+                    aria-label={t('map.zoomIn')}
                     disabled={view.w <= full.w * MIN_SPAN + 0.001}
                   >
                     +
@@ -398,7 +407,7 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                   <button
                     type="button"
                     onClick={() => zoomBy(1.6)}
-                    aria-label="Riduci"
+                    aria-label={t('map.zoomOut')}
                     disabled={isFitted}
                   >
                     −
@@ -413,7 +422,7 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                   onClick={() => setView(full)}
                   disabled={isFitted}
                 >
-                  Tutta la mappa
+                  {t('map.fit')}
                 </button>
                 {currentStop && (
                   <button
@@ -435,7 +444,7 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                       );
                     }}
                   >
-                    Tappa attuale
+                    {t('map.currentStop')}
                   </button>
                 )}
               </div>
@@ -452,26 +461,29 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                   <span className="map-legend-mark is-current">
                     {currentIndex + 1}
                   </span>
-                  Tappa attuale
+                  {t('map.currentStop')}
                 </li>
                 <li>
                   <span className="map-legend-mark">#</span>
-                  Tappe della visita
+                  {t('map.visitStops')}
                 </li>
-                {legendTypes.map((t) => (
-                  <li key={t}>
+                {legendTypes.map((poiType) => (
+                  <li key={poiType}>
                     <span className="map-legend-mark is-poi">
-                      {poiMeta(t).glyph}
+                      {poiMeta(poiType).glyph}
                     </span>
-                    {poiMeta(t).label}
+                    {t(poiMeta(poiType).labelKey)}
                   </li>
                 ))}
               </ul>
 
               {unlocated.length > 0 && (
                 <p className="map-note">
-                  Senza posizione:{' '}
-                  {unlocated.map((s) => `${s.index + 1}. ${s.name}`).join(', ')}
+                  {t('map.unlocated', {
+                    stops: unlocated
+                      .map((s) => `${s.index + 1}. ${s.name}`)
+                      .join(', '),
+                  })}
                 </p>
               )}
             </>

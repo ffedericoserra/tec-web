@@ -255,6 +255,64 @@
   overflow-wrap: anywhere;
 }
 
+.account-language {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.account-language h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.account-language p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.account-language-options {
+  display: flex;
+  gap: 8px;
+}
+
+.account-language-options button {
+  min-height: var(--tap);
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: transparent;
+  font-weight: 800;
+}
+
+.account-language-options button:hover,
+.account-language-options button:focus-visible,
+.account-language-options button.is-active {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--bg);
+  outline: none;
+}
+
+.account-language-options button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}
+
+.account-language .account-language-status {
+  grid-column: 1 / -1;
+  margin: -12px 0 0;
+}
+
+.account-language .account-language-status.error {
+  color: var(--accent);
+  font-weight: 800;
+}
+
 .account-modal-overlay {
   position: fixed;
   inset: 0;
@@ -397,6 +455,14 @@
   .account-details div {
     grid-template-columns: 1fr;
     gap: 5px;
+  }
+
+  .account-language {
+    grid-template-columns: 1fr;
+  }
+
+  .account-language-options button {
+    flex: 1;
   }
 
   .account-modal-actions {

@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
     <title>ArtAround</title>
     <link rel="stylesheet" href="../stylesheets/navbar.css" />
     <link rel="stylesheet" href="../stylesheets/homepage.css" />
@@ -20,40 +21,42 @@
         <div class="shape-circle circle-large"></div>
         <div class="hero-left-content">
           <div class="hero-text-inner">
-            <h1 class="hero-title">
+            <h1 class="hero-title" data-i18n-html="home.heroTitleHtml">
               <span class="font-light">LA</span> FORMA<br />
               <span class="burgundy-text">DELL'ARTE.</span>
             </h1>
-            <p class="hero-description">
+            <p class="hero-description" data-i18n="home.heroDescription">
               Crea descrizioni e percorsi museali, raccogli gli item che preferisci
               e porta la tua visita nel Navigator.
             </p>
             <div class="hero-actions">
-              <a class="primary-btn" href="visits_list.html">Le mie visite</a>
+              <a class="primary-btn" href="visits_list.html" data-i18n="nav.myVisits">Le mie visite</a>
             </div>
           </div>
         </div>
         <div class="hero-right-content">
-          <img src="../assets/artaround/image-17.png" alt="Nike di Samotracia" class="hero-statue" />
-          <p class="vertical-text right-vertical">NIKE DI SAMOTRACIA 190 a.C.</p>
+          <img src="../assets/artaround/image-17.png" alt="Nike di Samotracia" data-i18n-alt="home.statueAlt" class="hero-statue" />
+          <p class="vertical-text right-vertical" data-i18n="home.statueCaption">NIKE DI SAMOTRACIA 190 a.C.</p>
         </div>
       </section>
 
       <section id="destinazioni" class="museums-section" aria-labelledby="destinations-title">
         <div class="museums-header-editorial">
           <div class="museum-search-wrapper">
-            <label class="search-label" for="museum-search">Cerca un museo</label>
-            <input id="museum-search" type="search" placeholder="Nome, citt&agrave; o indirizzo..." />
+            <label class="search-label" for="museum-search" data-i18n="home.searchLabel">Cerca un museo</label>
+            <input id="museum-search" type="search" placeholder="Nome, citt&agrave; o indirizzo..." data-i18n-placeholder="home.searchPlaceholder" />
           </div>
           <div class="museums-title-block">
-            <span class="kicker">Scegli la destinazione</span>
-            <h2 id="destinations-title">Musei</h2>
+            <span class="kicker" data-i18n="home.destinationKicker">Scegli la destinazione</span>
+            <h2 id="destinations-title" data-i18n="home.museums">Musei</h2>
           </div>
         </div>
         <div id="museum-feedback" class="museum-feedback" aria-live="polite"></div>
         <div id="museum-list" class="museum-grid"></div>
       </section>
     </main>
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
     <script src="../scripts/navbar.js"></script>
     <script src="../scripts/homepage.js"></script>
   </body>

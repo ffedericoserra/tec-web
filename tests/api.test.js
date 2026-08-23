@@ -108,6 +108,7 @@ async function testAuthValidation() {
 async function testAuth() {
   console.log('\n🔑 Authentication');
   let allPassed = true;
+  let initialLanguage = 'it';
 
   // Login as autore1
   {
@@ -148,8 +149,14 @@ async function testAuth() {
   // Get profile
   {
     const { status, data } = await request('GET', '/auth/me', null, authToken);
-    const passed = status === 200 && data.user && data.user.username === 'autore1';
+    const hasSupportedLanguage = ['it', 'en'].includes(data.user?.language);
+    const passed =
+      status === 200 &&
+      data.user &&
+      data.user.username === 'autore1' &&
+      hasSupportedLanguage;
     log('GET /auth/me returns user profile', passed);
+    if (hasSupportedLanguage) initialLanguage = data.user.language;
     allPassed = allPassed && passed;
   }
 
@@ -158,6 +165,60 @@ async function testAuth() {
     const { status } = await request('GET', '/auth/me');
     const passed = status === 401;
     log('GET /auth/me rejects without token', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Update and persist language preference
+  {
+    const update = await request('PATCH', '/auth/language', { language: 'en' }, authToken);
+    const profile = await request('GET', '/auth/me', null, authToken);
+    const passed =
+      update.status === 200 &&
+      update.data?.language === 'en' &&
+      update.data?.user?.language === 'en' &&
+      profile.status === 200 &&
+      profile.data?.user?.language === 'en';
+
+    log('PATCH /auth/language persists the preference', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Reject unsupported or missing language values without changing the preference
+  {
+    const unsupported = await request('PATCH', '/auth/language', { language: 'es' }, authToken);
+    const missing = await request('PATCH', '/auth/language', {}, authToken);
+    const profile = await request('GET', '/auth/me', null, authToken);
+    const passed =
+      unsupported.status === 400 &&
+      unsupported.data?.error === 'Validation Error' &&
+      missing.status === 400 &&
+      missing.data?.error === 'Validation Error' &&
+      profile.data?.user?.language === 'en';
+
+    log('PATCH /auth/language validates it/en', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Update language without authentication
+  {
+    const { status } = await request('PATCH', '/auth/language', { language: 'it' });
+    const passed = status === 401;
+    log('PATCH /auth/language requires auth', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Restore the original preference so the suite does not alter account settings
+  {
+    const restore = await request(
+      'PATCH',
+      '/auth/language',
+      { language: initialLanguage },
+      authToken
+    );
+    const passed =
+      restore.status === 200 &&
+      restore.data?.user?.language === initialLanguage;
+    log('PATCH /auth/language restores the initial preference', passed);
     allPassed = allPassed && passed;
   }
 

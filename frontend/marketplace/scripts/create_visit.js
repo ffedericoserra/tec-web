@@ -4,30 +4,42 @@ const myApi = `${baseUrl}/api`;
 const token = localStorage.getItem("token") || localStorage.getItem("artaround_token");
 const CONTENT_PLACEHOLDER = "/uploads/placeholders/template-no-image.jpg";
 
-// Etichette leggibili per la scheda-opera nell'accordion della tappa.
-const CONTENT_TYPE_LABELS = {
-    Artwork: 'Opera',
-    Artist: 'Artista',
-    Movement: 'Movimento',
-    Place: 'Luogo'
+// Etichette leggibili per la scheda-opera nell'accordion della tappa —
+// tradotte a runtime tramite le chiavi i18n condivise col resto del sito,
+// non un dizionario italiano fisso.
+const CONTENT_TYPE_I18N_KEYS = {
+    Artwork: 'items.typeArtwork',
+    Artist: 'items.typeArtist',
+    Movement: 'items.typeMovement',
+    Place: 'items.typePlace'
 };
 
-const TARGET_AUDIENCE_LABELS = {
-    general: 'Generale',
-    children: 'Bambini e famiglie',
-    student: 'Studenti',
-    expert: 'Esperti',
-    tourist: 'Turisti'
+const TARGET_AUDIENCE_I18N_KEYS = {
+    general: 'itemEditor.audienceGeneral',
+    children: 'itemEditor.audienceChildren',
+    student: 'itemEditor.audienceStudents',
+    expert: 'itemEditor.audienceExperts',
+    tourist: 'itemEditor.audienceTourists'
 };
+
+function contentTypeLabel(type) {
+    const key = CONTENT_TYPE_I18N_KEYS[type];
+    return key ? marketplaceT(key) : '';
+}
+
+function targetAudienceLabel(audience) {
+    const key = TARGET_AUDIENCE_I18N_KEYS[audience];
+    return key ? marketplaceT(key) : '';
+}
 
 if (!token) {
-    alert("You must be logged in to access this page.");
+    alert(marketplaceT("errors.authRequired"));
     window.location.href = "../pages/login.html";
 }
 
 const urlParams = new URLSearchParams(window.location.search);
 const museumId = urlParams.get('museumId');
-const museumName = urlParams.get('museumName') || 'Museo';
+const museumName = urlParams.get('museumName') || marketplaceT('common.museum');
 const visitId = urlParams.get('visitId');
 const STRUCTURE_TAG = "[Struttura Blocchi Salvata: ";
 
@@ -39,7 +51,7 @@ if (backToMuseumBtn) {
 }
 
 const displayMuseumEl = document.getElementById('display-museum-name');
-if (displayMuseumEl) displayMuseumEl.innerText = museumName || "No museums";
+if (displayMuseumEl) displayMuseumEl.innerText = museumName || marketplaceT('visitEditor.noMuseum');
 
 // --- LOGICA MODALE ANNULLA / ESCI ---
 const cancelModal = document.getElementById('cancel-confirm-modal');
@@ -131,13 +143,15 @@ function setVisitVisibility(isPublic) {
     }
 
     if (visitVisibilityStatus) {
-        visitVisibilityStatus.textContent = isPublic ? "Pubblica" : "Privata";
+        visitVisibilityStatus.textContent = isPublic
+            ? marketplaceT("common.public")
+            : marketplaceT("common.private");
     }
 
     if (visitVisibilityHint) {
         visitVisibilityHint.textContent = isPublic
-            ? "Visibile nella lista pubblica del museo"
-            : "Visibile solo dal tuo account";
+            ? marketplaceT("visitEditor.publicHint")
+            : marketplaceT("visitEditor.privateHint");
     }
 }
 
@@ -153,12 +167,14 @@ function setGroupVisit(isGroup) {
     const enabled = Boolean(isGroup);
     if (visitGroupInput) visitGroupInput.checked = enabled;
     if (visitGroupStatus) {
-        visitGroupStatus.textContent = enabled ? "Visita di gruppo" : "Visita standard";
+        visitGroupStatus.textContent = enabled
+            ? marketplaceT("visitEditor.group")
+            : marketplaceT("visitEditor.standard");
     }
     if (visitGroupHint) {
         visitGroupHint.textContent = enabled
-            ? "Sessione sincronizzata abilitata"
-            : "Attiva per consentire una sessione sincronizzata";
+            ? marketplaceT("visitEditor.groupEnabled")
+            : marketplaceT("visitEditor.enableGroup");
     }
 }
 
@@ -173,7 +189,7 @@ async function loadWalletBalance() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!res.ok) throw new Error("Wallet request failed");
+        if (!res.ok) throw new Error(marketplaceT("visitEditor.walletLoadError"));
 
         const data = await res.json();
         const user = data.user || data;
@@ -236,7 +252,7 @@ function refreshModalItemAvailability() {
     Array.from(itemsContainer.querySelectorAll('.modal-artwork-item')).forEach((button) => {
         if (button.dataset.action === 'create-item') {
             button.disabled = false;
-            button.title = 'Create Item';
+            button.title = marketplaceT('visitEditor.createItemTitle');
             return;
         }
 
@@ -248,7 +264,20 @@ function refreshModalItemAvailability() {
         const canAfford = itemPrice <= remainingBalance;
 
         button.disabled = !canAfford;
-        button.title = canAfford ? "Add artwork" : "Saldo insufficiente";
+        button.title = canAfford
+            ? marketplaceT("visitEditor.addArtwork")
+            : marketplaceT("visitEditor.insufficientBalance");
+        const priceLabel = button.querySelector('.meta-pill-price');
+        if (priceLabel) {
+            const itemInfo = itemCatalog[itemId];
+            priceLabel.textContent = itemInfo?.isOwned
+                ? marketplaceT('visitEditor.owned')
+                : itemInfo?.isPurchased
+                    ? marketplaceT('visitEditor.acquired')
+                    : itemPrice > 0
+                        ? formatCurrencyAmount(itemPrice)
+                        : marketplaceT('visitEditor.free');
+        }
     });
 
     updateWalletPreview();
@@ -266,7 +295,7 @@ async function loadMuseumItemCatalog(forceReload = false) {
     ]);
 
     if (!contentsRes.ok || !itemsRes.ok) {
-        throw new Error("Impossibile caricare catalogo opere");
+        throw new Error(marketplaceT("visitEditor.catalogLoadError"));
     }
 
     const contentsData = await contentsRes.json();
@@ -310,7 +339,8 @@ function generateBlockUid() {
 function getChapterTabLabel(block, index) {
     const isQuestions = block.dataset.sectionType === 'questions';
     const titleInput = block.querySelector('.block-title-input');
-    const title = titleInput?.value?.trim() || (isQuestions ? 'Domande' : 'Nuovo capitolo');
+    const title = titleInput?.value?.trim()
+        || (isQuestions ? marketplaceT('visitEditor.questionsDefault') : marketplaceT('visitEditor.newChapter'));
     return { number: toRoman(index + 1), title };
 }
 
@@ -363,10 +393,10 @@ function createCorrectOptionControl(editor, isCorrect = false) {
     correctInput.name = `correct-option-${getQuestionEditorId(editor)}`;
     correctInput.classList.add('question-correct-option');
     correctInput.checked = isCorrect;
-    correctInput.setAttribute('aria-label', 'Set as correct answer');
+    correctInput.setAttribute('aria-label', marketplaceT('visitEditor.setCorrectAria'));
 
     const correctText = document.createElement('span');
-    correctText.textContent = 'Correct';
+    correctText.textContent = marketplaceT('visitEditor.correct');
     correctLabel.append(correctInput, correctText);
     return correctLabel;
 }
@@ -381,13 +411,13 @@ function addQuestionOption(editor, value = "", isCorrect = false) {
     const input = document.createElement('input');
     input.type = 'text';
     input.classList.add('question-option-input');
-    input.placeholder = 'Answer option';
+    input.placeholder = marketplaceT('visitEditor.answerOption');
     input.value = value;
 
     const deleteButton = document.createElement('button');
     deleteButton.type = 'button';
     deleteButton.classList.add('delete-option-btn');
-    deleteButton.setAttribute('aria-label', 'Remove option');
+    deleteButton.setAttribute('aria-label', marketplaceT('visitEditor.removeOptionAria'));
     deleteButton.textContent = '×';
     deleteButton.addEventListener('click', () => row.remove());
     deleteButton.dataset.bound = 'true';
@@ -401,13 +431,31 @@ function bindQuestionEditor(editor) {
     const optionsEditor = editor.querySelector('.question-options-editor');
 
     getQuestionEditorId(editor);
+    typeSelect.setAttribute('aria-label', marketplaceT('visitEditor.answerTypeAria'));
+    typeSelect.querySelector('option[value="open"]').textContent = marketplaceT('visitEditor.openAnswer');
+    typeSelect.querySelector('option[value="multiple-choice"]').textContent = marketplaceT('visitEditor.multipleChoice');
+    editor.querySelector('.delete-question-btn').setAttribute(
+        'aria-label',
+        marketplaceT('visitEditor.removeQuestionAria')
+    );
+    const prompt = editor.querySelector('.question-prompt');
+    prompt.placeholder = marketplaceT('visitEditor.questionPlaceholder');
+    prompt.setAttribute('aria-label', marketplaceT('visitEditor.questionAria'));
+    editor.querySelector('.add-question-option').textContent = marketplaceT('visitEditor.addOption');
     editor.querySelectorAll('.question-option-row').forEach((row) => {
         const existingControl = row.querySelector('.question-correct-option');
         if (existingControl) {
             existingControl.name = `correct-option-${getQuestionEditorId(editor)}`;
+            existingControl.setAttribute('aria-label', marketplaceT('visitEditor.setCorrectAria'));
+            row.querySelector('.question-correct-label span').textContent = marketplaceT('visitEditor.correct');
         } else {
             row.prepend(createCorrectOptionControl(editor));
         }
+        row.querySelector('.question-option-input').placeholder = marketplaceT('visitEditor.answerOption');
+        row.querySelector('.delete-option-btn').setAttribute(
+            'aria-label',
+            marketplaceT('visitEditor.removeOptionAria')
+        );
     });
 
     const syncAnswerType = () => {
@@ -441,16 +489,16 @@ function createQuestionEditor(question = {}) {
     getQuestionEditorId(editor);
     editor.innerHTML = `
         <div class="question-editor-header">
-            <select class="question-answer-type" aria-label="Answer type">
-                <option value="open">Open answer</option>
-                <option value="multiple-choice">Multiple choice</option>
+            <select class="question-answer-type" aria-label="${marketplaceT('visitEditor.answerTypeAria')}">
+                <option value="open">${marketplaceT('visitEditor.openAnswer')}</option>
+                <option value="multiple-choice">${marketplaceT('visitEditor.multipleChoice')}</option>
             </select>
-            <button type="button" class="delete-question-btn" aria-label="Remove question">&times;</button>
+            <button type="button" class="delete-question-btn" aria-label="${marketplaceT('visitEditor.removeQuestionAria')}">&times;</button>
         </div>
-        <textarea class="question-prompt" placeholder="Write the question" aria-label="Question text"></textarea>
+        <textarea class="question-prompt" placeholder="${marketplaceT('visitEditor.questionPlaceholder')}" aria-label="${marketplaceT('visitEditor.questionAria')}"></textarea>
         <div class="question-options-editor">
             <div class="question-options-list"></div>
-            <button type="button" class="add-question-option">Add option</button>
+            <button type="button" class="add-question-option">${marketplaceT('visitEditor.addOption')}</button>
         </div>
     `;
 
@@ -467,10 +515,14 @@ function createQuestionEditor(question = {}) {
 }
 
 function bindBlockDelete(block) {
-    block.querySelector('.delete-block-btn').addEventListener('click', () => {
+    const deleteButton = block.querySelector('.delete-block-btn');
+    const deleteLabel = marketplaceT('visitEditor.removeSectionAria');
+    deleteButton.title = deleteLabel;
+    deleteButton.setAttribute('aria-label', deleteLabel);
+    deleteButton.addEventListener('click', () => {
         const message = block.dataset.sectionType === 'questions'
-            ? 'Delete this question section and all its questions?'
-            : 'Delete this artwork section and all its artworks?';
+            ? marketplaceT('visitEditor.deleteQuestionSection')
+            : marketplaceT('visitEditor.deleteArtworkSection');
         if (confirm(message)) {
             const wasActive = block.classList.contains('is-active-block');
             block.remove();
@@ -493,7 +545,9 @@ function normalizeBlockAddButton(block) {
     );
     if (!button) return;
 
-    const label = isQuestionBlock ? 'Add question' : 'Add artwork';
+    const label = isQuestionBlock
+        ? marketplaceT('visitEditor.addQuestion')
+        : marketplaceT('visitEditor.addArtwork');
     button.classList.add('add-btn', 'block-add-btn');
     button.textContent = '';
     button.dataset.tooltip = label;
@@ -501,7 +555,7 @@ function normalizeBlockAddButton(block) {
     button.removeAttribute('title');
 }
 
-function createNewBlock(defaultTitle = "Nuovo capitolo", sectionType = "artwork", questions = []) {
+function createNewBlock(defaultTitle = marketplaceT("visitEditor.newChapter"), sectionType = "artwork", questions = []) {
     blockCounter++;
     const block = document.createElement('div');
     block.classList.add('visit-block');
@@ -511,19 +565,21 @@ function createNewBlock(defaultTitle = "Nuovo capitolo", sectionType = "artwork"
     const sectionBody = sectionType === 'questions'
         ? `<div class="question-list"></div>
            <div class="block-footer">
-             <button class="add-btn block-add-btn add-question-to-block" type="button" aria-label="Add question" data-tooltip="Add question"></button>
+             <button class="add-btn block-add-btn add-question-to-block" type="button" aria-label="${marketplaceT('visitEditor.addQuestion')}" data-tooltip="${marketplaceT('visitEditor.addQuestion')}"></button>
            </div>`
         : `<ul class="block-list"></ul>
            <div class="block-footer">
-             <button class="add-btn block-add-btn add-item-to-block" type="button" aria-label="Add artwork" data-tooltip="Add artwork"></button>
+             <button class="add-btn block-add-btn add-item-to-block" type="button" aria-label="${marketplaceT('visitEditor.addArtwork')}" data-tooltip="${marketplaceT('visitEditor.addArtwork')}"></button>
            </div>`;
 
     block.innerHTML = `
       <div class="block-header">
-        <span class="block-number">Capitolo ${toRoman(blockCounter)}</span>
+        <span class="block-number">${marketplaceT('visitEditor.chapter', { number: toRoman(blockCounter) })}</span>
         <input type="text" class="block-title-input" value="${escapeHTML(defaultTitle)}">
-        <span class="block-count">0 ${sectionType === 'questions' ? 'questions' : 'artworks'}</span>
-        <button class="delete-block-btn" type="button" title="Remove section" aria-label="Remove section">&times;</button>
+        <span class="block-count">${sectionType === 'questions'
+            ? marketplaceT('visitEditor.blockQuestions', { count: 0 })
+            : marketplaceT('visitEditor.blockArtworks', { count: 0 })}</span>
+        <button class="delete-block-btn" type="button" title="${marketplaceT('visitEditor.removeSectionAria')}" aria-label="${marketplaceT('visitEditor.removeSectionAria')}">&times;</button>
       </div>
       ${sectionBody}
     `;
@@ -566,7 +622,9 @@ document.querySelectorAll('[data-section-type]').forEach((button) => {
         const sectionType = button.dataset.sectionType;
         if (sectionType === 'questions') setGroupVisit(true);
         createNewBlock(
-            sectionType === 'questions' ? 'Domande' : 'Nuovo capitolo',
+            sectionType === 'questions'
+                ? marketplaceT('visitEditor.questionsDefault')
+                : marketplaceT('visitEditor.newChapter'),
             sectionType
         );
         sectionTypeModal.classList.add('hidden');
@@ -580,12 +638,16 @@ document.getElementById('close-section-type-modal').addEventListener('click', ()
 function aggiornaContatoriBlocchi() {
     const blocks = document.querySelectorAll('.visit-block');
     blocks.forEach((block, index) => {
-        block.querySelector('.block-number').textContent = `Capitolo ${toRoman(index + 1)}`;
+        block.querySelector('.block-number').textContent = marketplaceT('visitEditor.chapter', {
+            number: toRoman(index + 1)
+        });
         const isQuestions = block.dataset.sectionType === 'questions';
         const count = isQuestions
             ? block.querySelectorAll('.question-editor').length
             : block.querySelectorAll('.draggable-item').length;
-        block.querySelector('.block-count').textContent = `${count} ${isQuestions ? 'questions' : 'artworks'}`;
+        block.querySelector('.block-count').textContent = isQuestions
+            ? marketplaceT('visitEditor.blockQuestions', { count })
+            : marketplaceT('visitEditor.blockArtworks', { count });
     });
     renderChapterTabs();
     updateWalletPreview();
@@ -597,7 +659,9 @@ async function apriModaleOpere(itemToReplace = null) {
     pendingItemReplacement = itemToReplace;
     itemModal.classList.remove('hidden');
     itemsContainer.innerHTML = renderBuilderMessage(
-        itemToReplace ? "Caricamento Item alternativi..." : "Caricamento opere..."
+        itemToReplace
+            ? marketplaceT("visitEditor.loadingAlternatives")
+            : marketplaceT("visitEditor.loadingArtworks")
     );
     updateWalletPreview();
 
@@ -627,10 +691,10 @@ async function apriModaleOpere(itemToReplace = null) {
                 itemDiv.dataset.itemId = itemId;
                 const itemPrice = Number(itemInfo.adoptionPrice) || 0;
                 const priceLabel = itemInfo.isOwned
-                    ? 'Owned'
+                    ? marketplaceT('visitEditor.owned')
                     : itemInfo.isPurchased
-                        ? 'Acquired'
-                        : itemPrice > 0 ? formatCurrencyAmount(itemPrice) : 'Free';
+                        ? marketplaceT('visitEditor.acquired')
+                        : itemPrice > 0 ? formatCurrencyAmount(itemPrice) : marketplaceT('visitEditor.free');
 
                 const finalImgUrl = resolveAssetUrl(itemInfo.imageUrl);
                 const priceClass = itemPrice > 0 && !itemInfo.isOwned && !itemInfo.isPurchased ? 'is-paid' : 'is-free';
@@ -689,10 +753,10 @@ async function apriModaleOpere(itemToReplace = null) {
                 itemDiv.innerHTML = `
                     <div class="modal-artwork-media">${imgTag}</div>
                     <div class="modal-artwork-footer">
-                        <strong class="card-title">${escapeHTML(content.name || 'Opera')}</strong>
+                        <strong class="card-title">${escapeHTML(content.name || marketplaceT('visitEditor.artwork'))}</strong>
                         <div class="card-meta-row">
-                            <span class="meta-pill meta-pill-author">${escapeHTML(content.author || 'Autore Ignoto')}</span>
-                            <span class="meta-pill meta-pill-create">Crea item</span>
+                            <span class="meta-pill meta-pill-author">${escapeHTML(content.author || marketplaceT('common.authorUnknown'))}</span>
+                            <span class="meta-pill meta-pill-create">${marketplaceT('visitEditor.createItem')}</span>
                         </div>
                     </div>
                 `;
@@ -706,10 +770,10 @@ async function apriModaleOpere(itemToReplace = null) {
                         museumId,
                         museumName,
                         source: 'visit',
-                        title: content.name || 'Opera',
-                        author: content.author || 'Autore Ignoto',
+                        title: content.name || marketplaceT('visitEditor.artwork'),
+                        author: content.author || marketplaceT('common.authorUnknown'),
                         image: imageUrl,
-                        year: content.year || 'N/D',
+                        year: content.year || marketplaceT('common.notAvailable'),
                         contentId: content.universalId
                     });
                     if (visitId) params.set('visitId', visitId);
@@ -719,10 +783,10 @@ async function apriModaleOpere(itemToReplace = null) {
             });
             refreshModalItemAvailability();
         } else {
-            itemsContainer.innerHTML = renderBuilderMessage("No artworks found.");
+            itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.noArtworks"));
         }
     } catch (err) {
-        itemsContainer.innerHTML = renderBuilderMessage("Connection error.", true);
+        itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.connectionError"), true);
     }
 }
 
@@ -765,17 +829,17 @@ function renderRoutePanel(item, nextItem) {
 
     if (!nextItem) {
         panel.classList.add('is-end');
-        panel.innerHTML = '<span class="item-route-end">Fine del capitolo</span>';
+        panel.innerHTML = `<span class="item-route-end">${marketplaceT('visitEditor.endChapter')}</span>`;
         return;
     }
 
     panel.classList.remove('is-end');
-    const nextTitle = nextItem.dataset.title || 'la prossima opera';
+    const nextTitle = nextItem.dataset.title || marketplaceT('visitEditor.nextArtwork');
 
     let textarea = panel.querySelector('.direction-field');
     if (!textarea) {
         panel.innerHTML = `
-            <span class="item-route-label">Indicazioni verso</span>
+            <span class="item-route-label">${marketplaceT('visitEditor.directionsToward')}</span>
             <span class="item-route-target"></span>
             <textarea class="direction-field" rows="3"></textarea>
         `;
@@ -794,8 +858,8 @@ function renderRoutePanel(item, nextItem) {
     }
 
     panel.querySelector('.item-route-target').textContent = nextTitle;
-    textarea.placeholder = `Come raggiungere ${nextTitle}`;
-    textarea.setAttribute('aria-label', `Indicazioni per raggiungere ${nextTitle}`);
+    textarea.placeholder = marketplaceT('visitEditor.directionsPlaceholder', { title: nextTitle });
+    textarea.setAttribute('aria-label', marketplaceT('visitEditor.directionsAria', { title: nextTitle }));
 
     item.nextRouteItem = nextItem;
     nextItem.dataset.prevDirections = item.dataset.nextDirections || textarea.value || '';
@@ -820,12 +884,12 @@ function renderSectionRouteOverview(listElement, items) {
     const stops = items.map((item, index) => `
         <span class="route-overview-stop">
             <span class="route-overview-index">${index + 1}</span>
-            <span class="route-overview-name">${escapeHTML(item.dataset.title || 'Opera')}</span>
+            <span class="route-overview-name">${escapeHTML(item.dataset.title || marketplaceT('visitEditor.artwork'))}</span>
         </span>
     `).join('<span class="route-overview-arrow" aria-hidden="true">&rarr;</span>');
 
     overview.innerHTML = `
-        <span class="route-overview-label">Percorso del capitolo</span>
+        <span class="route-overview-label">${marketplaceT('visitEditor.chapterRoute')}</span>
         <div class="route-overview-path">${stops}</div>
     `;
 }
@@ -847,8 +911,8 @@ function openItemEditor(item) {
         museumId,
         museumName,
         source: 'visit',
-        title: item.dataset.title || 'Opera',
-        author: item.dataset.author || 'Autore Ignoto',
+        title: item.dataset.title || marketplaceT('visitEditor.artwork'),
+        author: item.dataset.author || marketplaceT('common.authorUnknown'),
         image: item.dataset.imageUrl || ''
     });
     if (visitId) params.set('visitId', visitId);
@@ -868,6 +932,19 @@ function bindArtworkItem(item) {
     // la "linguetta" con l'immagine intera e le indicazioni si abbassa invece
     // solo al passaggio del mouse (o al focus da tastiera), via CSS :hover.
     const header = item.querySelector('.item-accordion-header');
+    header.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
+    [
+        ['.edit-item-btn', 'visitEditor.editTexts'],
+        ['.replace-item-btn', 'visitEditor.changeArtwork'],
+        ['.drag-handle', 'visitEditor.reorder'],
+        ['.delete-btn', 'visitEditor.removeArtwork']
+    ].forEach(([selector, key]) => {
+        const button = item.querySelector(selector);
+        if (!button) return;
+        const label = marketplaceT(key);
+        button.title = label;
+        button.setAttribute('aria-label', label);
+    });
 
     header.addEventListener('click', (event) => {
         if (event.target.closest('button, input, textarea, select, a')) return;
@@ -927,7 +1004,7 @@ function creaEdAggiungiItem(
     itemId,
     targetList,
     imageUrl = null,
-    author = "Autore Ignoto",
+    author = marketplaceT("common.authorUnknown"),
     contentId = "",
     nextDirections = "",
     prevDirections = "",
@@ -953,21 +1030,21 @@ function creaEdAggiungiItem(
     const priceInfo = itemCatalog[itemId];
     const priceValue = Number(priceInfo?.price) || 0;
     const priceLabel = priceInfo?.isOwned
-        ? 'Owned'
+        ? marketplaceT('visitEditor.owned')
         : priceInfo?.isPurchased
-            ? 'Acquired'
-            : priceValue > 0 ? `${priceValue} Aα` : 'Free';
+            ? marketplaceT('visitEditor.acquired')
+            : priceValue > 0 ? `${priceValue} Aα` : marketplaceT('visitEditor.free');
     const priceClass = priceValue > 0 ? 'is-paid' : 'is-free';
 
     // Scheda-opera: sostituisce lo spazio che prima andava tutto alle
     // indicazioni con informazioni utili sul quadro stesso.
     const yearLabel = priceInfo?.year || '—';
-    const typeLabel = CONTENT_TYPE_LABELS[priceInfo?.contentType] || priceInfo?.contentType || '—';
+    const typeLabel = contentTypeLabel(priceInfo?.contentType) || priceInfo?.contentType || '—';
     const licenseLabel = priceInfo?.license || 'CC-BY';
-    const targetLabel = TARGET_AUDIENCE_LABELS[priceInfo?.targetAudience] || '—';
+    const targetLabel = targetAudienceLabel(priceInfo?.targetAudience) || '—';
 
     li.innerHTML = `
-        <div class="item-accordion-header" role="button" tabindex="0" aria-label="Modifica testi opera">
+        <div class="item-accordion-header" role="button" tabindex="0" aria-label="${marketplaceT('visitEditor.editTextsAria')}">
             <span class="item-toggle-thumb">${imgTag}</span>
             <span class="item-toggle-info">
                 <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
@@ -977,14 +1054,14 @@ function creaEdAggiungiItem(
                 </div>
             </span>
             <span class="item-toggle-actions">
-                <button type="button" class="edit-item-btn" title="Modifica testi" aria-label="Modifica testi">&#9998;</button>
-                <button type="button" class="replace-item-btn" title="Cambia opera" aria-label="Cambia opera">&#8644;</button>
-                <button type="button" class="drag-handle" title="Trascina per riordinare" aria-label="Trascina per riordinare">
+                <button type="button" class="edit-item-btn" title="${marketplaceT('visitEditor.editTexts')}" aria-label="${marketplaceT('visitEditor.editTexts')}">&#9998;</button>
+                <button type="button" class="replace-item-btn" title="${marketplaceT('visitEditor.changeArtwork')}" aria-label="${marketplaceT('visitEditor.changeArtwork')}">&#8644;</button>
+                <button type="button" class="drag-handle" title="${marketplaceT('visitEditor.reorder')}" aria-label="${marketplaceT('visitEditor.reorder')}">
                     <span class="drag-handle-dots" aria-hidden="true">
                         <span></span><span></span><span></span><span></span><span></span><span></span>
                     </span>
                 </button>
-                <button type="button" class="delete-btn" title="Rimuovi opera" aria-label="Rimuovi opera">&times;</button>
+                <button type="button" class="delete-btn" title="${marketplaceT('visitEditor.removeArtwork')}" aria-label="${marketplaceT('visitEditor.removeArtwork')}">&times;</button>
             </span>
             <span class="item-toggle-chevron" aria-hidden="true"></span>
         </div>
@@ -998,29 +1075,29 @@ function creaEdAggiungiItem(
                     </div>
                 </div>
                 <dl class="item-info-panel">
-                    <span class="item-info-heading">Scheda opera</span>
+                    <span class="item-info-heading">${marketplaceT('visitEditor.infoCardHeading')}</span>
                     <div class="item-info-row">
-                        <dt>Autore</dt>
+                        <dt>${marketplaceT('common.author')}</dt>
                         <dd>${escapeHTML(author)}</dd>
                     </div>
                     <div class="item-info-row">
-                        <dt>Anno</dt>
+                        <dt>${marketplaceT('itemEditor.year')}</dt>
                         <dd>${escapeHTML(yearLabel)}</dd>
                     </div>
                     <div class="item-info-row">
-                        <dt>Tipo</dt>
+                        <dt>${marketplaceT('visitEditor.infoType')}</dt>
                         <dd>${escapeHTML(typeLabel)}</dd>
                     </div>
                     <div class="item-info-row">
-                        <dt>Licenza</dt>
+                        <dt>${marketplaceT('itemEditor.license')}</dt>
                         <dd>${escapeHTML(licenseLabel)}</dd>
                     </div>
                     <div class="item-info-row">
-                        <dt>Target</dt>
+                        <dt>${marketplaceT('itemEditor.target')}</dt>
                         <dd>${escapeHTML(targetLabel)}</dd>
                     </div>
                     <div class="item-info-row item-info-row-price">
-                        <dt>Prezzo</dt>
+                        <dt>${marketplaceT('itemEditor.price')}</dt>
                         <dd class="${priceClass}">${escapeHTML(priceLabel)}</dd>
                     </div>
                 </dl>
@@ -1147,7 +1224,7 @@ function normalizeVisitBlocks(visit) {
     if (Array.isArray(savedBlocks) && savedBlocks.length > 0) {
         return savedBlocks.map((block, index) => ({
             type: block.type || 'artwork',
-            blockName: block.blockName || block.title || `Tappa ${index + 1}`,
+            blockName: block.blockName || block.title || marketplaceT('visitEditor.stop', { count: index + 1 }),
             items: (block.items || []).map(getItemIdFromValue).filter(Boolean),
             questions: (block.questions || []).map((question) => ({
                 prompt: question.prompt || '',
@@ -1167,12 +1244,12 @@ function normalizeVisitBlocks(visit) {
         .filter(Boolean);
 
     return sequenceItems.length > 0
-        ? [{ type: 'artwork', blockName: "Prima tappa", items: sequenceItems, questions: [] }]
+        ? [{ type: 'artwork', blockName: marketplaceT("visitEditor.firstStop"), items: sequenceItems, questions: [] }]
         : [];
 }
 
 function getItemTitle(item, relatedContent) {
-    return item?.descriptions?.[0]?.title || relatedContent?.name || "Opera";
+    return item?.descriptions?.[0]?.title || relatedContent?.name || marketplaceT("visitEditor.artwork");
 }
 
 function createItemInfo(item, museumContents) {
@@ -1180,7 +1257,7 @@ function createItemInfo(item, museumContents) {
 
     return {
         title: getItemTitle(item, relatedContent),
-        author: relatedContent?.author || "Autore Ignoto",
+        author: relatedContent?.author || marketplaceT("common.authorUnknown"),
         year: relatedContent?.year || "",
         contentType: relatedContent?.type || "",
         imageUrl: contentImagePath(relatedContent),
@@ -1231,7 +1308,7 @@ async function loadOriginalVisitBaseline(vId) {
     });
 
     if (!res.ok) {
-        throw new Error("Errore nel recupero della visita originale");
+        throw new Error(marketplaceT("visitEditor.loadOriginalError"));
     }
 
     const data = await res.json();
@@ -1247,9 +1324,9 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
         const kickerEl = document.querySelector('.visit-builder-kicker');
         const toolbarTitleEl = document.querySelector('.section-title-new');
 
-        if (titleEl) titleEl.textContent = "Edit your visit";
-        if (kickerEl) kickerEl.textContent = "Tour editor";
-        if (toolbarTitleEl) toolbarTitleEl.textContent = "Sequenza salvata";
+        if (titleEl) titleEl.textContent = marketplaceT("visitEditor.editHeading");
+        if (kickerEl) kickerEl.textContent = marketplaceT("visitEditor.kicker");
+        if (toolbarTitleEl) toolbarTitleEl.textContent = marketplaceT("visitEditor.savedSequence");
 
         // 1. Scarichiamo i dati
         const visit = preloadedVisit || await loadOriginalVisitBaseline(vId);
@@ -1265,7 +1342,7 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
         setGroupVisit(visit.type === 'synchronized');
 
         if (!structurData || structurData.length === 0) {
-            if(typeof createNewBlock === 'function') createNewBlock("Prima tappa");
+            if(typeof createNewBlock === 'function') createNewBlock(marketplaceT("visitEditor.firstStop"));
             return;
         }
 
@@ -1319,7 +1396,7 @@ async function caricaVisitaEsistente(vId, preloadedVisit = null) {
 
     } catch(err) {
         console.error("ERRORE CRITICO in caricaVisitaEsistente:", err);
-        if(typeof createNewBlock === 'function') createNewBlock("Prima tappa");
+        if(typeof createNewBlock === 'function') createNewBlock(marketplaceT("visitEditor.firstStop"));
     }
 }
 
@@ -1403,7 +1480,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             aggiornaContatoriBlocchi();
             sessionStorage.removeItem('temp_visit_state');
         } else {
-            createNewBlock("Prima tappa");
+            createNewBlock(marketplaceT("visitEditor.firstStop"));
         }
     }
 
@@ -1416,6 +1493,76 @@ window.addEventListener('DOMContentLoaded', async () => {
     updateWalletPreview();
 });
 
+window.addEventListener('marketplace:language-changed', () => {
+    setVisitVisibility(getVisitVisibility());
+    setGroupVisit(getGroupVisit());
+
+    if (visitId) {
+        const titleEl = document.querySelector('.visit-builder-title');
+        const kickerEl = document.querySelector('.visit-builder-kicker');
+        const toolbarTitleEl = document.querySelector('.section-title-new');
+        if (titleEl) titleEl.textContent = marketplaceT('visitEditor.editHeading');
+        if (kickerEl) kickerEl.textContent = marketplaceT('visitEditor.kicker');
+        if (toolbarTitleEl) toolbarTitleEl.textContent = marketplaceT('visitEditor.savedSequence');
+    }
+
+    document.querySelectorAll('.visit-block').forEach((block) => {
+        normalizeBlockAddButton(block);
+        const deleteButton = block.querySelector('.delete-block-btn');
+        const deleteLabel = marketplaceT('visitEditor.removeSectionAria');
+        deleteButton.title = deleteLabel;
+        deleteButton.setAttribute('aria-label', deleteLabel);
+        block.querySelectorAll('.question-editor').forEach((editor) => {
+            const typeSelect = editor.querySelector('.question-answer-type');
+            typeSelect.setAttribute('aria-label', marketplaceT('visitEditor.answerTypeAria'));
+            typeSelect.querySelector('option[value="open"]').textContent = marketplaceT('visitEditor.openAnswer');
+            typeSelect.querySelector('option[value="multiple-choice"]').textContent = marketplaceT('visitEditor.multipleChoice');
+            editor.querySelector('.delete-question-btn').setAttribute('aria-label', marketplaceT('visitEditor.removeQuestionAria'));
+            const prompt = editor.querySelector('.question-prompt');
+            prompt.placeholder = marketplaceT('visitEditor.questionPlaceholder');
+            prompt.setAttribute('aria-label', marketplaceT('visitEditor.questionAria'));
+            editor.querySelector('.add-question-option').textContent = marketplaceT('visitEditor.addOption');
+            editor.querySelectorAll('.question-option-row').forEach((row) => {
+                row.querySelector('.question-correct-option').setAttribute('aria-label', marketplaceT('visitEditor.setCorrectAria'));
+                row.querySelector('.question-correct-label span').textContent = marketplaceT('visitEditor.correct');
+                row.querySelector('.question-option-input').placeholder = marketplaceT('visitEditor.answerOption');
+                row.querySelector('.delete-option-btn').setAttribute('aria-label', marketplaceT('visitEditor.removeOptionAria'));
+            });
+        });
+        const list = block.querySelector('.block-list');
+        if (list) {
+            list.querySelectorAll('.draggable-item').forEach((item) => {
+                const header = item.querySelector('.item-accordion-header');
+                header.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
+                [
+                    ['.edit-item-btn', 'visitEditor.editTexts'],
+                    ['.replace-item-btn', 'visitEditor.changeArtwork'],
+                    ['.drag-handle', 'visitEditor.reorder'],
+                    ['.delete-btn', 'visitEditor.removeArtwork']
+                ].forEach(([selector, key]) => {
+                    const button = item.querySelector(selector);
+                    if (!button) return;
+                    const label = marketplaceT(key);
+                    button.title = label;
+                    button.setAttribute('aria-label', label);
+                });
+                const info = itemCatalog[item.dataset.itemId];
+                const price = Number(info?.price) || 0;
+                const priceLabel = info?.isOwned
+                    ? marketplaceT('visitEditor.owned')
+                    : info?.isPurchased
+                        ? marketplaceT('visitEditor.acquired')
+                        : price > 0 ? `${price} Aα` : marketplaceT('visitEditor.free');
+                item.querySelectorAll('.meta-pill-price').forEach((label) => {
+                    label.textContent = priceLabel;
+                });
+            });
+            refreshRouteConnectors(list);
+        }
+    });
+    aggiornaContatoriBlocchi();
+});
+
 // --- SALVATAGGIO FINALE NEL DATABASE ---
 
 document.getElementById('save-visit-btn').addEventListener('click', async () => {
@@ -1423,7 +1570,7 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     const desc = document.getElementById('v-desc').value;
 
     if (!title.trim()) {
-        alert("Inserisci un titolo per la visita.");
+        alert(marketplaceT("visitEditor.titleRequired"));
         return;
     }
 
@@ -1436,7 +1583,8 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
     document.querySelectorAll('.visit-block').forEach(block => {
         if (validationError) return;
 
-        const blockTitle = block.querySelector('.block-title-input').value.trim() || 'Section';
+        const blockTitle = block.querySelector('.block-title-input').value.trim()
+            || marketplaceT('visitEditor.sectionFallback');
         const sectionType = block.dataset.sectionType || 'artwork';
 
         if (sectionType === 'questions') {
@@ -1453,11 +1601,17 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
                 const correctIndex = optionRows.findIndex((option) => option.isCorrect);
 
                 if (!prompt) {
-                    validationError = `Write every question in section "${blockTitle}".`;
+                    validationError = marketplaceT('visitEditor.writeEveryQuestion', {
+                        section: blockTitle
+                    });
                 } else if (answerType === 'multiple-choice' && options.length < 2) {
-                    validationError = `Add at least two options to every multiple-choice question in "${blockTitle}".`;
+                    validationError = marketplaceT('visitEditor.needTwoOptions', {
+                        section: blockTitle
+                    });
                 } else if (answerType === 'multiple-choice' && correctIndex < 0) {
-                    validationError = `Select the correct option for every multiple-choice question in "${blockTitle}".`;
+                    validationError = marketplaceT('visitEditor.chooseCorrect', {
+                        section: blockTitle
+                    });
                 }
 
                 return {
@@ -1469,7 +1623,9 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
             });
 
             if (questions.length === 0) {
-                validationError = `Add at least one question to section "${blockTitle}".`;
+                validationError = marketplaceT('visitEditor.needQuestion', {
+                    section: blockTitle
+                });
             }
             structurData.push({
                 type: 'questions',
@@ -1513,12 +1669,12 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         0
     );
     if (sequenceObjects.length === 0 && questionCount === 0) {
-        alert("Aggiungi almeno un'opera o una domanda alla visita.");
+        alert(marketplaceT("visitEditor.needContent"));
         return;
     }
 
     if (questionCount > 0 && !getGroupVisit()) {
-        alert("Le sezioni-domanda richiedono di attivare Visita di gruppo.");
+        alert(marketplaceT("visitEditor.questionsRequireGroup"));
         return;
     }
 
@@ -1559,8 +1715,10 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
 
             const chargedAmount = Number(data.chargedAmount) || 0;
             const successMessage = chargedAmount > 0
-                ? `Visita salvata. Addebito effettuato: ${formatCurrencyAmount(chargedAmount)}.`
-                : "Visita salvata con successo nel database!";
+                ? marketplaceT("visitEditor.savedCharged", {
+                    amount: formatCurrencyAmount(chargedAmount)
+                })
+                : marketplaceT("visitEditor.saved");
             alert(successMessage);
 
             // Reindirizziamo al Marketplace
@@ -1568,10 +1726,14 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         } else {
             const errorData = await res.json().catch(() => ({}));
             console.error("Errore Backend:", errorData);
-            alert(errorData.error || "Impossibile salvare la visita.");
+            alert(marketplaceT(
+                errorData.error === "Insufficient balance"
+                    ? "visitEditor.insufficientBalance"
+                    : "visitEditor.saveError"
+            ));
         }
     } catch(err) {
         console.error("Errore di rete:", err);
-        alert("Errore di connessione al server.");
+        alert(marketplaceT("errors.connection"));
     }
 });

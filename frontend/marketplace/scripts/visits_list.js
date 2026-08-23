@@ -12,6 +12,8 @@ let museums = [];
 let visits = [];
 let selectedMuseum = null;
 let pendingDelete = null;
+let museumLoadFailed = false;
+let currentUserId = "";
 
 if (!token) window.location.replace("login.html");
 
@@ -31,7 +33,7 @@ async function api(path, options = {}) {
         }
     });
     const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || "Richiesta non riuscita");
+    if (!response.ok) throw new Error(data.error || marketplaceT("errors.requestFailed"));
     return data;
 }
 
@@ -44,63 +46,132 @@ function visitEditorUrl(visitId = "") {
     return `create_visits.html?${params.toString()}`;
 }
 
-function filteredVisits() {
+function entityId(value) {
+    if (!value) return "";
+    if (typeof value === "string") return value;
+    return value._id || value.id || "";
+}
+
+function isOwnVisit(visit) {
+    return entityId(visit.creatorId) === currentUserId;
+}
+
+function filteredVisits(collection) {
     const term = visitSearch.value.trim().toLowerCase();
-    if (!term) return visits;
-    return visits.filter((visit) =>
-        `${visit.title || ""} ${visit.description || ""} ${visit.type || ""}`
+    if (!term) return collection;
+    return collection.filter((visit) =>
+        `${visit.title || ""} ${visit.description || ""} ${visit.type || ""} ${visit.creatorId?.username || ""}`
             .toLowerCase()
             .includes(term)
     );
 }
 
+function visitRunUrl(visit) {
+    const museumRef = selectedMuseum.slug || selectedMuseum._id;
+    const visitRef = visit.slug || visit._id;
+    return `/${encodeURIComponent(museumRef)}/${encodeURIComponent(visitRef)}`;
+}
+
+function renderMuseumOptions() {
+    const selectedMuseumId = museumSelect.value;
+    if (museumLoadFailed) {
+        museumSelect.innerHTML = `<option value="">${marketplaceT("visits.unavailableMuseums")}</option>`;
+        return;
+    }
+    museumSelect.innerHTML = `<option value="">${marketplaceT("visits.selectMuseum")}</option>` + museums
+        .map((museum) => `<option value="${museum._id}">${escapeHTML(museum.name)}</option>`).join("");
+    museumSelect.value = selectedMuseumId;
+}
+
 function renderVisits() {
-    const visibleVisits = filteredVisits();
     visitsContainer.innerHTML = "";
-    if (visibleVisits.length === 0) {
-        const message = !selectedMuseum
-            ? "Scegli un museo per cercare tra le tue visite."
-            : visits.length === 0
-            ? `Crea il primo percorso per ${escapeHTML(selectedMuseum.name)}.`
-            : "Nessuna visita corrisponde alla ricerca.";
-        visitsContainer.innerHTML = `<div class="empty-state"><h2>Nessuna visita</h2><p>${message}</p></div>`;
+    if (!selectedMuseum) {
+        const message = marketplaceT("visits.chooseMuseumSearch");
+        visitsContainer.innerHTML = `<div class="empty-state"><h2>${marketplaceT("visits.none")}</h2><p>${message}</p></div>`;
         return;
     }
 
-    visibleVisits.forEach((visit) => {
+    const ownVisits = filteredVisits(visits.filter(isOwnVisit));
+    const publicVisits = filteredVisits(visits.filter((visit) => visit.isPublic && !isOwnVisit(visit)));
+    renderVisitCollection({
+        title: marketplaceT("visits.mineHeading"),
+        intro: marketplaceT("visits.mineIntro"),
+        collection: ownVisits,
+        emptyMessage: visitSearch.value.trim()
+            ? marketplaceT("visits.noSearchResults")
+            : marketplaceT("visits.createFirst", { museum: selectedMuseum.name }),
+        isOwn: true
+    });
+    renderVisitCollection({
+        title: marketplaceT("visits.publicHeading"),
+        intro: marketplaceT("visits.publicIntro"),
+        collection: publicVisits,
+        emptyMessage: visitSearch.value.trim()
+            ? marketplaceT("visits.noSearchResults")
+            : marketplaceT("visits.noPublic"),
+        isOwn: false
+    });
+}
+
+function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }) {
+    const section = document.createElement("section");
+    section.classList.add("visit-collection");
+    section.innerHTML = `
+        <div class="visit-collection-heading">
+            <h2>${escapeHTML(title)}</h2>
+            <p>${escapeHTML(intro)}</p>
+        </div>
+        <div class="visits-grid"></div>
+    `;
+    const grid = section.querySelector(".visits-grid");
+
+    if (collection.length === 0) {
+        grid.innerHTML = `<div class="empty-state"><h2>${marketplaceT("visits.none")}</h2><p>${escapeHTML(emptyMessage)}</p></div>`;
+        visitsContainer.appendChild(section);
+        return;
+    }
+
+    collection.forEach((visit) => {
         const card = document.createElement("article");
         card.classList.add("visit-card");
+        const author = visit.creatorId?.username || marketplaceT("visits.unknownAuthor");
         card.innerHTML = `
             <div>
-                <span class="visit-label">${visit.type === "synchronized" ? "Visita di gruppo" : "Visita standard"}</span>
-                <h2>${escapeHTML(visit.title || "Visita senza titolo")}</h2>
-                <p>${escapeHTML(visit.description || "Nessuna introduzione")}</p>
+                <span class="visit-label">${visit.type === "synchronized" ? marketplaceT("visits.group") : marketplaceT("visits.standard")}</span>
+                <h2>${escapeHTML(visit.title || marketplaceT("visits.untitled"))}</h2>
+                <p>${escapeHTML(visit.description || marketplaceT("visits.noIntroduction"))}</p>
             </div>
             <div class="visit-meta">
-                <span>${visit.sequence?.length || 0} contenuti</span>
-                <span>${visit.isPublic ? "Pubblica" : "Privata"}</span>
+                <span>${marketplaceT("visits.contents", { count: visit.sequence?.length || 0 })}</span>
+                <span>${visit.isPublic ? marketplaceT("common.public") : marketplaceT("common.private")}</span>
+                ${isOwn ? "" : `<span>${escapeHTML(marketplaceT("visits.byAuthor", { author }))}</span>`}
             </div>
             <div class="visit-actions">
-                <a class="secondary-btn" href="${visitEditorUrl(visit._id)}">Modifica</a>
-                <button class="delete-btn" type="button">Elimina</button>
+                ${isOwn
+                    ? `<a class="secondary-btn" href="${visitEditorUrl(visit._id)}">${marketplaceT("common.edit")}</a>
+                       <button class="delete-btn" type="button">${marketplaceT("common.delete")}</button>`
+                    : `<a class="secondary-btn" href="${visitRunUrl(visit)}">${marketplaceT("visits.open")}</a>`}
             </div>
         `;
-        card.querySelector(".delete-btn").addEventListener("click", () => openDeleteModal(visit));
-        visitsContainer.appendChild(card);
+        const deleteButton = card.querySelector(".delete-btn");
+        if (deleteButton) deleteButton.addEventListener("click", () => openDeleteModal(visit));
+        grid.appendChild(card);
     });
+    visitsContainer.appendChild(section);
 }
 
 async function loadVisits() {
     if (!selectedMuseum) return;
-    feedback.textContent = "Caricamento visite...";
+    feedback.textContent = marketplaceT("visits.loading");
+    feedback.classList.remove("is-error");
     visitsContainer.innerHTML = "";
     try {
-        const data = await api(`/visits/my?museumId=${encodeURIComponent(selectedMuseum._id)}`);
+        const data = await api(`/museums/${encodeURIComponent(selectedMuseum._id)}/visits`);
         visits = data.visits || [];
         renderVisits();
-        feedback.textContent = `${visits.length} ${visits.length === 1 ? "visita" : "visite"}`;
+        feedback.textContent = marketplaceT("visits.count", { count: visits.length });
     } catch (error) {
-        feedback.textContent = error.message;
+        feedback.textContent = marketplaceT("visits.loadError");
         feedback.classList.add("is-error");
     }
 }
@@ -113,16 +184,20 @@ function selectMuseum(id) {
         loadVisits();
     } else {
         visits = [];
-        visitsContainer.innerHTML = `<div class="empty-state"><h2>Scegli un museo</h2><p>Le tue visite verranno filtrate per museo.</p></div>`;
+        visitsContainer.innerHTML = `<div class="empty-state"><h2>${marketplaceT("visits.chooseMuseum")}</h2><p>${marketplaceT("visits.filteredByMuseum")}</p></div>`;
     }
 }
 
 async function loadMuseums() {
     try {
-        const data = await api("/museums");
+        const [meData, data] = await Promise.all([
+            api("/auth/me"),
+            api("/museums")
+        ]);
+        currentUserId = entityId(meData.user || meData);
         museums = data.museums || data || [];
-        museumSelect.innerHTML = `<option value="">Seleziona un museo</option>` + museums
-            .map((museum) => `<option value="${museum._id}">${escapeHTML(museum.name)}</option>`).join("");
+        museumLoadFailed = false;
+        renderMuseumOptions();
         const requested = new URLSearchParams(window.location.search).get("museumId");
         const saved = localStorage.getItem("marketplace_v2_museum");
         const initial = museums.some((museum) => museum._id === requested) ? requested
@@ -130,15 +205,18 @@ async function loadMuseums() {
         museumSelect.value = initial;
         selectMuseum(initial);
     } catch (error) {
-        museumSelect.innerHTML = `<option value="">Musei non disponibili</option>`;
-        feedback.textContent = error.message;
+        museumLoadFailed = true;
+        renderMuseumOptions();
+        feedback.textContent = marketplaceT("visits.museumLoadError");
         feedback.classList.add("is-error");
     }
 }
 
 function openDeleteModal(visit) {
     pendingDelete = visit;
-    document.getElementById("delete-modal-text").textContent = `“${visit.title}” verrà eliminata definitivamente.`;
+    document.getElementById("delete-modal-text").textContent = marketplaceT("visits.willBeDeleted", {
+        title: visit.title || marketplaceT("visits.untitled")
+    });
     document.getElementById("delete-confirm-modal").classList.remove("hidden");
 }
 
@@ -157,7 +235,7 @@ document.getElementById("confirm-delete-btn").addEventListener("click", async ()
         pendingDelete = null;
         await loadVisits();
     } catch (error) {
-        alert(error.message);
+        alert(marketplaceT("visits.deleteError"));
     } finally {
         button.disabled = false;
     }
@@ -167,5 +245,13 @@ museumSelect.addEventListener("change", () => selectMuseum(museumSelect.value));
 visitSearch.addEventListener("input", renderVisits);
 addButton.addEventListener("click", () => {
     if (selectedMuseum) window.location.href = visitEditorUrl();
+});
+window.addEventListener("marketplace:language-changed", () => {
+    renderMuseumOptions();
+    renderVisits();
+    if (selectedMuseum && !feedback.classList.contains("is-error")) {
+        feedback.textContent = marketplaceT("visits.count", { count: visits.length });
+    }
+    if (pendingDelete) openDeleteModal(pendingDelete);
 });
 loadMuseums();
