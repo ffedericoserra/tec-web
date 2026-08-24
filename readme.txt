@@ -7,7 +7,7 @@
 # READ ME DEL PROGETTO ARTAROUND
 
 ## Nome del gruppo: 
-------------------------------------------------------------???
+MSZ
 
 
 ## Membri del gruppo   
@@ -15,7 +15,7 @@
 * Nome e cognome: `Matteo Mazzetti`, matricola: `1161552`, mail: `matteo.mazzetti13@studio.unibo.it`
 * Nome e cognome: ` `, matricola: ` `, mail: ` `
 * Nome e cognome: ` `, matricola: ` `, mail: ` `
-* LLM (nome e versione e licenza): Gemini 3.1 Pro, Codex 5.4
+* LLM (nome e versione e licenza): Gemini 3.1 Pro, Codex 5.4, Claude 4.5
 
 _Il primo membro della lista verrà considerato come punto di contatto primario. Sarà la persona 
 incaricata di spedire mail (sempre e solo dall'indirizzo studio.unibo.it) e tenere contatti con i docenti. Ogni mail deve sempre includere tutti i componenti del gruppo in cc, e deve essere indirizzata a tutti i docenti del corso:_ 
@@ -29,7 +29,7 @@ incaricata di spedire mail (sempre e solo dall'indirizzo studio.unibo.it) e tene
 18-27 
 
 ## Data di disponibilità delle applicazioni
-12 Settembre 2026 ------------------------------------------------------------???
+12 Settembre 2026 
 
 ## Locazione del progetto:
 
@@ -42,6 +42,7 @@ incaricata di spedire mail (sempre e solo dall'indirizzo studio.unibo.it) e tene
 * _Cambiare i permessi di accesso a questi file a 755 e 644_
 * _Creare una directory per applicazione più una directory per la applicazione server-side_
 * _Descrivere qui l'organizzazione interna di queste directory_
+------------------------------------------------------------???
 
   
 ## Tecnologie utilizzate
@@ -60,12 +61,5 @@ React
 #### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimengo delle domande e trasmissione dei dati in tempo reale allhost. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. 
 #### Federico Serra: xxxxxx
 #### Andrea Ziccone: xxxxxx
-
-
-
-
-
-
-
-#### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en)??????????? del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
+#### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en) del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
 
