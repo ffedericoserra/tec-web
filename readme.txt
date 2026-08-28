@@ -12,8 +12,8 @@ MSZ
 
 ## Membri del gruppo   
 
-* Nome e cognome: `Matteo Mazzetti`, matricola: `1161552`, mail: `matteo.mazzetti13@studio.unibo.it`
-* Nome e cognome: ` `, matricola: ` `, mail: ` `
+* Nome e cognome: `Matteo Mazzetti`, matricola: `0001161552`, mail: `matteo.mazzetti13@studio.unibo.it`
+* Nome e cognome: `Andrea Ziccone`, matricola: `0001161895 `, mail: `andrea.ziccone@studio.unibo.it `
 * Nome e cognome: ` `, matricola: ` `, mail: ` `
 * LLM (nome e versione e licenza): Gemini 3.1 Pro, Codex 5.4, Claude 4.5
 
@@ -58,8 +58,8 @@ Javascript
 React
 
 ## Contributo individuale
-#### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimengo delle domande e trasmissione dei dati in tempo reale allhost. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. 
+#### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimento delle domande e trasmissione dei dati in tempo reale allhost. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. 
 #### Federico Serra: xxxxxx
-#### Andrea Ziccone: xxxxxx
+#### Andrea Ziccone: Sviluppo dell'intera grafica del sito (marketplace e navigator) e della struttura generale del marketplace, con homepage per la scelta del museo e flusso di selezione/creazione della visita. Sviluppo (HTML, CSS, JS) delle pagine homepage, create_items, create_visits e my_items.
 #### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en) del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
 
