@@ -83,9 +83,38 @@ function renderVisitCollection(containerId, visits, isFavorite = false) {
         const link = document.createElement("a");
         link.href = accountVisitUrl(visit, isFavorite);
         link.textContent = isFavorite ? marketplaceT("account.open") : marketplaceT("account.manage");
-        row.append(copy, link);
+        const actions = document.createElement("div");
+        actions.classList.add("account-list-actions");
+        if (isFavorite) {
+            const favoriteButton = document.createElement("button");
+            favoriteButton.classList.add("account-favorite-btn");
+            favoriteButton.type = "button";
+            favoriteButton.setAttribute("aria-label", marketplaceT("account.removeFavorite"));
+            favoriteButton.title = marketplaceT("account.removeFavorite");
+            favoriteButton.innerHTML = '<span aria-hidden="true">★</span>';
+            favoriteButton.addEventListener("click", () => removeFavoriteVisit(visit, favoriteButton));
+            actions.appendChild(favoriteButton);
+        }
+        actions.appendChild(link);
+        row.append(copy, actions);
         container.appendChild(row);
     });
+}
+
+async function removeFavoriteVisit(visit, button) {
+    if (!user) return;
+    const visitId = entityId(visit);
+    if (!visitId) return;
+    button.disabled = true;
+    try {
+        await api(`/auth/favorites/visits/${encodeURIComponent(visitId)}`, { method: "POST" });
+        user.savedVisits = (user.savedVisits || []).filter((savedVisit) => entityId(savedVisit) !== visitId);
+        renderVisitCollection("account-favorites", user.savedVisits || [], true);
+        document.getElementById("account-feedback").textContent = marketplaceT("account.favoriteRemoved");
+    } catch (error) {
+        document.getElementById("account-feedback").textContent = marketplaceT("account.favoriteRemoveError");
+        button.disabled = false;
+    }
 }
 
 async function loadAccount() {

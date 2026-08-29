@@ -14,6 +14,7 @@ let selectedMuseum = null;
 let pendingDelete = null;
 let museumLoadFailed = false;
 let currentUserId = "";
+let savedVisitIds = new Set();
 
 if (!token) window.location.replace("login.html");
 
@@ -56,6 +57,10 @@ function isOwnVisit(visit) {
     return entityId(visit.creatorId) === currentUserId;
 }
 
+function isVisitSaved(visit) {
+    return savedVisitIds.has(entityId(visit));
+}
+
 function filteredVisits(collection) {
     const term = visitSearch.value.trim().toLowerCase();
     if (!term) return collection;
@@ -70,6 +75,16 @@ function visitRunUrl(visit) {
     const museumRef = selectedMuseum.slug || selectedMuseum._id;
     const visitRef = visit.slug || visit._id;
     return `/${encodeURIComponent(museumRef)}/${encodeURIComponent(visitRef)}`;
+}
+
+function favoriteButtonHTML(visit) {
+    const saved = isVisitSaved(visit);
+    const label = saved ? marketplaceT("visits.removeFavorite") : marketplaceT("visits.addFavorite");
+    return `
+        <button class="favorite-btn${saved ? " is-saved" : ""}" type="button" aria-label="${escapeHTML(label)}" aria-pressed="${saved}" title="${escapeHTML(label)}">
+            <span aria-hidden="true">${saved ? "★" : "☆"}</span>
+        </button>
+    `;
 }
 
 function renderMuseumOptions() {
@@ -136,6 +151,7 @@ function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }
         card.classList.add("visit-card");
         const author = visit.creatorId?.username || marketplaceT("visits.unknownAuthor");
         card.innerHTML = `
+            ${isOwn ? "" : favoriteButtonHTML(visit)}
             <div>
                 <span class="visit-label">${visit.type === "synchronized" ? marketplaceT("visits.group") : marketplaceT("visits.standard")}</span>
                 <h2>${escapeHTML(visit.title || marketplaceT("visits.untitled"))}</h2>
@@ -155,9 +171,31 @@ function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }
         `;
         const deleteButton = card.querySelector(".delete-btn");
         if (deleteButton) deleteButton.addEventListener("click", () => openDeleteModal(visit));
+        const favoriteButton = card.querySelector(".favorite-btn");
+        if (favoriteButton) favoriteButton.addEventListener("click", () => toggleFavoriteVisit(visit, favoriteButton));
         grid.appendChild(card);
     });
     visitsContainer.appendChild(section);
+}
+
+async function toggleFavoriteVisit(visit, button) {
+    const visitId = entityId(visit);
+    if (!visitId) return;
+    button.disabled = true;
+    feedback.classList.remove("is-error");
+    try {
+        const data = await api(`/auth/favorites/visits/${encodeURIComponent(visitId)}`, { method: "POST" });
+        if (data.isSaved) savedVisitIds.add(visitId);
+        else savedVisitIds.delete(visitId);
+        renderVisits();
+        feedback.textContent = data.isSaved
+            ? marketplaceT("visits.favoriteAdded")
+            : marketplaceT("visits.favoriteRemoved");
+    } catch (error) {
+        feedback.textContent = marketplaceT("visits.favoriteError");
+        feedback.classList.add("is-error");
+        button.disabled = false;
+    }
 }
 
 async function loadVisits() {
@@ -194,7 +232,9 @@ async function loadMuseums() {
             api("/auth/me"),
             api("/museums")
         ]);
-        currentUserId = entityId(meData.user || meData);
+        const currentUser = meData.user || meData;
+        currentUserId = entityId(currentUser);
+        savedVisitIds = new Set((currentUser.savedVisits || []).map(entityId).filter(Boolean));
         museums = data.museums || data || [];
         museumLoadFailed = false;
         renderMuseumOptions();

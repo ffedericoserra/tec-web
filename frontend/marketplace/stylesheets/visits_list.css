@@ -18,6 +18,9 @@
 .primary-btn:disabled { opacity: .4; cursor: not-allowed; }
 .secondary-btn { background: transparent; color: var(--ink); }
 .delete-btn, .danger-btn { background: transparent; border-color: var(--burgundy); color: var(--burgundy); }
+.favorite-btn { position: absolute; top: 18px; right: 18px; display: grid; place-items: center; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 50%; background: rgba(242,241,237,.88); color: var(--burgundy); font: inherit; font-size: 1.45rem; line-height: 1; cursor: pointer; }
+.favorite-btn:hover:not(:disabled), .favorite-btn.is-saved { border-color: var(--burgundy); background: var(--burgundy); color: var(--cream); }
+.favorite-btn:disabled { opacity: .55; cursor: wait; }
 .feedback { min-height: 38px; padding: 14px 0; color: rgba(22,22,22,.62); }
 .feedback.is-error { color: var(--burgundy); }
 .visits-collections { display: grid; gap: 52px; }
@@ -27,7 +30,7 @@
 .visit-collection-heading p { max-width: 560px; margin: 0; color: rgba(22,22,22,.62); line-height: 1.5; text-align: right; }
 .visits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 22px; }
 .visit-card, .empty-state { min-height: 250px; padding: 28px; border: 1px solid var(--line); background: rgba(255,255,255,.25); }
-.visit-card { display: flex; flex-direction: column; justify-content: space-between; gap: 24px; }
+.visit-card { position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: 24px; }
 .visit-card h2 { margin: 12px 0; font-size: 1.7rem; }
 .visit-card p { color: rgba(22,22,22,.65); line-height: 1.55; }
 .visit-meta, .visit-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }

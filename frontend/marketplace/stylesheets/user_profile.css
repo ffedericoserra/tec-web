@@ -39,5 +39,9 @@
 .account-list-item strong { display:block; margin-bottom:5px; }
 .account-list-item span { color:rgba(22,22,22,.58); font-size:.78rem; }
 .account-list-item a { color:var(--burgundy); font-size:.7rem; font-weight:800; letter-spacing:1px; text-decoration:none; text-transform:uppercase; }
+.account-list-actions { display:flex; align-items:center; gap:12px; }
+.account-favorite-btn { display:grid; place-items:center; width:42px; height:42px; border:1px solid var(--line); border-radius:50%; background:rgba(242,241,237,.88); color:var(--burgundy); font:inherit; font-size:1.45rem; line-height:1; cursor:pointer; }
+.account-favorite-btn:hover,.account-favorite-btn:focus-visible { border-color:var(--burgundy); background:var(--burgundy); color:var(--cream); outline:none; }
+.account-favorite-btn:disabled { cursor:wait; opacity:.55; }
 .account-empty { margin:0; padding:20px 0; color:rgba(22,22,22,.58); }
-@media(max-width:720px){#artaround-account{padding-top:128px}.account-heading,.account-workspace{padding-left:22px;padding-right:22px}.account-workspace,.account-library-grid{grid-template-columns:1fr}#wallet-form{align-items:stretch;flex-direction:column}.account-library-heading{align-items:stretch;flex-direction:column}.account-list-item{align-items:flex-start;flex-direction:column}}
+@media(max-width:720px){#artaround-account{padding-top:128px}.account-heading,.account-workspace{padding-left:22px;padding-right:22px}.account-workspace,.account-library-grid{grid-template-columns:1fr}#wallet-form{align-items:stretch;flex-direction:column}.account-library-heading{align-items:stretch;flex-direction:column}.account-list-item{align-items:flex-start;flex-direction:column}.account-list-actions{width:100%;justify-content:space-between}}
