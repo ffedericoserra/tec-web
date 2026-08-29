@@ -48,6 +48,9 @@
     "searchLabel": "Search",
     "searchPlaceholder": "Search for a museum…",
     "searchAria": "Search museums",
+    "imageAlt": "Image of {{name}}",
+    "city": "City",
+    "address": "Address",
     "loadError": "Unable to load the museums.",
     "empty": "No museums available.",
     "notFound": "No museums found."

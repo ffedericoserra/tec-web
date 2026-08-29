@@ -123,7 +123,7 @@ Defined in `src/main.jsx`, plus a `*` fallback that bounces to `/`.
 | Path | Component | Auth | Notes |
 |------|-----------|------|-------|
 | `/` | `HomeNoLogin` | public | Auto-redirects to `/museums` if already authed; otherwise opens the AuthDialog on user action |
-| `/museums` | `Museums` | required | List of museums with search and a profile menu |
+| `/museums` | `Museums` | required | List of museums with search, preview cards and a profile menu |
 | `/account` | `Account` | required | Profile data, language setting, wallet recharge, created visits and saved visits |
 | `/session/:sessionCode` | `VisitRun` | required | **The same runner in group-visit mode.** Declared before the slug routes so a code can't be read as a museum slug |
 | `/:museumSlug` | `VisitSelect` | required | Museum landing — pick a visit |
@@ -230,7 +230,8 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Single effect runs `Promise.all([api('/auth/me'), api('/museums')])`. A `cancelled` flag drops late responses if the user navigates away mid-fetch.
 - 401 from either call → `logout()`.
 - Search filters client-side (case-insensitive `includes` on `name`). The dataset is small (~2 museums seeded), so server-side query isn't worth it.
-- Sorted alphabetically by name. Click a row → `navigate('/${m.slug}')`.
+- Sorted alphabetically by name. Hovering a row (or moving focus to it with the keyboard) expands a preview with its image, name, city and full address; the city is derived from the locality segment of the existing `address` field, so no extra API data is fetched.
+- Click a row → `navigate('/${m.slug}')`.
 - Right slot of the header is the `ProfileMenu` (the only place to log out from authed pages).
 
 ### Account (`/account`)

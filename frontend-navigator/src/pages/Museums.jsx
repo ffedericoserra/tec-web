@@ -8,6 +8,19 @@ import ProfileMenu from '../components/ProfileMenu.jsx';
 import { localeForLanguage } from '../i18n.js';
 import '../styles/museums.css';
 
+function cityFromAddress(address) {
+  const parts = (address || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const locality = parts[parts.length - 1] || '';
+
+  return locality
+    .replace(/^\d{5}\s+/, '')
+    .replace(/\s+[A-Z]{2}$/, '')
+    .trim();
+}
+
 export default function Museums() {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -77,8 +90,11 @@ export default function Museums() {
         {error && !loading && <p className="status error">{t(error)}</p>}
         {!loading && !error && (
           <ul className="museum-list">
-            {filtered.map((m) => (
-              <li key={m._id || m.slug}>
+            {filtered.map((m) => {
+              const city = cityFromAddress(m.address);
+
+              return (
+              <li key={m._id || m.slug} className="museum-list-item">
                 <button
                   type="button"
                   className="museum-row"
@@ -89,8 +105,35 @@ export default function Museums() {
                     ›
                   </span>
                 </button>
+                <div className="museum-preview">
+                  <div className="museum-preview-content">
+                    {m.imageUrl && (
+                      <img
+                        className="museum-preview-image"
+                        src={m.imageUrl}
+                        alt={t('museums.imageAlt', { name: m.name })}
+                      />
+                    )}
+                    <div className="museum-preview-details">
+                      <h2>{m.name}</h2>
+                      {city && (
+                        <p>
+                          <span>{t('museums.city')}</span>
+                          {city}
+                        </p>
+                      )}
+                      {m.address && (
+                        <p>
+                          <span>{t('museums.address')}</span>
+                          {m.address}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </li>
-            ))}
+              );
+            })}
             {filtered.length === 0 && (
               <li className="empty">
                 {museums.length === 0
@@ -100,11 +143,6 @@ export default function Museums() {
             )}
           </ul>
         )}
-        {/* Plain <a>, not a Link: the marketplace is served by Express, not
-         * the SPA router, so it needs a real page load. */}
-        <a className="marketplace-link is-footer" href="/marketplace">
-          {t('home.marketplace')}
-        </a>
       </main>
     </div>
   );

@@ -48,6 +48,9 @@
     "searchLabel": "Cerca",
     "searchPlaceholder": "Cerca un museo…",
     "searchAria": "Cerca museo",
+    "imageAlt": "Immagine di {{name}}",
+    "city": "Città",
+    "address": "Indirizzo",
     "loadError": "Impossibile caricare i musei.",
     "empty": "Nessun museo disponibile.",
     "notFound": "Nessun museo trovato."
