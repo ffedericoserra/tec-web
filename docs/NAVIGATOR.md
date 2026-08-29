@@ -250,12 +250,11 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 
 - Parallel-fetches `/auth/me`, `/museums/:slug`, `/museums/:slug/visits`, `/museums/:slug/contents`.
 - 404 on the museum → redirects back to `/museums`.
-- Lists public visits plus the authenticated user's own private visits. Private
-  entries are labelled in the list and remain hidden from other accounts.
+- Lists public visits plus the authenticated user's own private visits. Each visit card is enlarged; opening its detail chevron reveals the description and an explore area with the ordered stops on the left and a carousel of the corresponding artwork images on the right. The carousel is resolved from the already-fetched contents map, needs no extra request and is omitted only when no stop has an image. On narrow screens the two panels stack vertically. Private entries are labelled in the list and remain hidden from other accounts.
 - Re-fetches visits when the browser tab becomes visible or receives focus, so
   returning from the marketplace shows a newly-created visit without a reload.
 - Backend already sorts by `viewCount` desc; client doesn't re-sort.
-- Each card has a top row (title, author, length, `Start Visit` button) and a centered chevron that expands a description block (`max-height: 200px`, internally scrollable) **plus a numbered stop list** (`N STOPS` heading, then `[# | content name | content type]` rows, `max-height: 220px`, internally scrollable). The chevron is hidden only when a card has *neither* a non-empty `description` nor any sequence entries.
+- Each card has a top row (title, author, length, `Start Visit` button) and a centered chevron that opens a fixed-height 400px detail panel. Its description is internally scrollable and capped at 72px; the remaining space is shared by the numbered stop list (`N STOPS` heading, then `[# | content name | content type]` rows) and the image carousel. The carousel images use `contain` and never upscale a small source file. The chevron is hidden only when a card has *neither* a non-empty `description` nor any sequence entries.
 - The stop list is why `getVisits` populates `sequence.itemId` with `select: 'contentId'` — the list endpoint used to return bare item ObjectIds, so nothing client-side could name a stop. Only `contentId` is selected; full Item docs (9 texts each) would be dead weight on a list screen. Names and types then come from the `contents` map, because `Item.contentId` is a `universalId` string that populate can't follow (same reason as §8.4).
 - An entry whose content can't be resolved renders as `Contenuto non disponibile` rather than being dropped, so the numbering always matches the runner's stop numbers.
 - `Start Visit` → `navigate('/${museumSlug}/${v.slug}')`.

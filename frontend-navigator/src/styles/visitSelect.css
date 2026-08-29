@@ -87,26 +87,107 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  gap: 18px;
 }
 
 .visit-card {
-  border-top: 1px solid var(--line-soft);
-  border-radius: 0;
-  background: transparent;
-  padding: 20px 4px 12px;
+  overflow: hidden;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 0 0 12px;
   display: flex;
   flex-direction: column;
-  transition: background 0.2s ease, padding 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.visit-list li:last-child .visit-card {
-  border-bottom: 1px solid var(--line-soft);
+.visit-card:focus-within {
+  border-color: rgba(113, 0, 20, 0.45);
+  box-shadow: 0 8px 24px rgba(22, 22, 22, 0.08);
+}
+
+.visit-card-carousel {
+  position: relative;
+  height: clamp(180px, 45vw, 240px);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  background: var(--surface-alt);
+}
+
+.visit-card-carousel-image {
+  /* Keep small source files at their native size instead of upscaling them. */
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.visit-card-carousel-caption {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  left: 12px;
+  margin: 0;
+  padding: 7px 9px;
+  color: var(--surface);
+  background: rgba(22, 22, 22, 0.78);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.visit-card-carousel-control {
+  position: absolute;
+  top: 50%;
+  width: 40px;
+  height: 40px;
+  padding: 0 0 3px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  color: var(--ink);
+  background: rgba(242, 241, 237, 0.9);
+  font-size: 32px;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.visit-card-carousel-control:hover,
+.visit-card-carousel-control:focus-visible {
+  color: var(--bg);
+  border-color: var(--accent);
+  background: var(--accent);
+  outline: none;
+}
+
+.visit-card-carousel-control.is-previous {
+  left: 12px;
+}
+
+.visit-card-carousel-control.is-next {
+  right: 12px;
+}
+
+.visit-card-carousel-count {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 7px;
+  border-radius: var(--radius-pill);
+  color: var(--surface);
+  background: rgba(22, 22, 22, 0.78);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .visit-card-head {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  padding: 20px 20px 0;
 }
 
 .visit-card-info {
@@ -116,7 +197,7 @@
 
 .visit-card-title {
   margin: 0 0 10px;
-  font-size: 19px;
+  font-size: 21px;
   font-weight: 800;
   letter-spacing: -0.3px;
   line-height: 1.25;
@@ -159,10 +240,10 @@
 }
 
 .visit-card-desc {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line-soft);
-  max-height: 200px;
+  margin: 0;
+  padding: 0;
+  flex: 0 1 72px;
+  max-height: 72px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -175,10 +256,33 @@
   white-space: pre-wrap;
 }
 
-.visit-card-stops {
-  margin-top: 14px;
+.visit-card-expanded-content {
+  margin: 18px 20px 0;
   padding-top: 14px;
   border-top: 1px solid var(--line-soft);
+  height: 400px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.visit-card-explore {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+  flex: 1;
+  min-height: 0;
+}
+
+.visit-card-explore.has-carousel {
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.visit-card-stops {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .visit-card-stops-title {
@@ -194,7 +298,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  max-height: 220px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -239,7 +344,7 @@
   background: transparent;
   border: 0;
   padding: 8px 16px;
-  margin-top: 4px;
+  margin-top: 8px;
   color: var(--ink);
   min-height: 32px;
   cursor: pointer;
@@ -257,4 +362,17 @@
 
 .visit-card.is-expanded .chevron {
   transform: rotate(180deg);
+}
+
+.visit-card-explore .visit-card-carousel {
+  height: 100%;
+  min-height: 0;
+}
+
+@media (min-width: 640px) {
+  .visit-card-explore.has-carousel {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.9fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
 }

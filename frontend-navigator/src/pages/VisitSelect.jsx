@@ -29,6 +29,62 @@ function Chevron() {
   );
 }
 
+function VisitImageCarousel({ images, visitTitle, t }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const currentIndex = Math.min(activeIndex, images.length - 1);
+  const current = images[currentIndex];
+
+  if (!current) return null;
+
+  function showPrevious() {
+    setActiveIndex((index) => (index - 1 + images.length) % images.length);
+  }
+
+  function showNext() {
+    setActiveIndex((index) => (index + 1) % images.length);
+  }
+
+  return (
+    <section
+      className="visit-card-carousel"
+      aria-label={t('visitSelect.carouselAria', { title: visitTitle })}
+    >
+      <img
+        className="visit-card-carousel-image"
+        src={current.imageUrl}
+        alt={t('visitSelect.artworkImageAlt', { name: current.name })}
+      />
+      <p className="visit-card-carousel-caption">{current.name}</p>
+      {images.length > 1 && (
+        <>
+          <button
+            type="button"
+            className="visit-card-carousel-control is-previous"
+            onClick={showPrevious}
+            aria-label={t('visitSelect.previousImage')}
+          >
+            &lsaquo;
+          </button>
+          <button
+            type="button"
+            className="visit-card-carousel-control is-next"
+            onClick={showNext}
+            aria-label={t('visitSelect.nextImage')}
+          >
+            &rsaquo;
+          </button>
+        </>
+      )}
+      <span className="visit-card-carousel-count" aria-live="polite">
+        {t('visitSelect.imagePosition', {
+          current: currentIndex + 1,
+          total: images.length,
+        })}
+      </span>
+    </section>
+  );
+}
+
 export default function VisitSelect() {
   const { t } = useTranslation();
   const { museumSlug } = useParams();
@@ -173,6 +229,7 @@ export default function VisitSelect() {
                 (entry) => contents[entry.itemId?.contentId] || null
               );
               const hasStops = stops.length > 0;
+              const imageStops = stops.filter((stop) => stop?.imageUrl);
               return (
                 <li key={v._id}>
                   <article
@@ -209,13 +266,20 @@ export default function VisitSelect() {
                         {t('visitSelect.start')}
                       </button>
                     </div>
-                    {isOpen && hasDesc && (
+                    {isOpen && (hasDesc || hasStops) && (
+                      <div className="visit-card-expanded-content">
+                    {hasDesc && (
                       <div className="visit-card-desc">
                         <p>{v.description}</p>
                       </div>
                     )}
-                    {isOpen && hasStops && (
-                      <div className="visit-card-stops">
+                    {hasStops && (
+                      <div
+                        className={`visit-card-explore${
+                          imageStops.length ? ' has-carousel' : ''
+                        }`}
+                      >
+                        <div className="visit-card-stops">
                         <h3 className="visit-card-stops-title">
                           {t('visitSelect.stops', { count: stops.length })}
                         </h3>
@@ -238,6 +302,14 @@ export default function VisitSelect() {
                             </li>
                           ))}
                         </ol>
+                        </div>
+                        <VisitImageCarousel
+                          images={imageStops}
+                          visitTitle={v.title}
+                          t={t}
+                        />
+                      </div>
+                    )}
                       </div>
                     )}
                     {(hasDesc || hasStops) && (
