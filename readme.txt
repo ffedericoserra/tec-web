@@ -42,12 +42,64 @@ incaricata di spedire mail (sempre e solo dall'indirizzo studio.unibo.it) e tene
 * _Cambiare i permessi di accesso a questi file a 755 e 644_
 * _Creare una directory per applicazione più una directory per la applicazione server-side_
 * _Descrivere qui l'organizzazione interna di queste directory_
-------------------------------------------------------------???
+
+
+.env                          
+data/
+└── museums/                  // file di configurazione per i musei
+    ├── uffizi.json
+    └── mambo.json
+uploads/                       // dir contenente tutte le immagini utilizzate per item, musei, movimenti artistici, ecc
+├── artists/                   
+├── contents/                  
+├── maps/                      
+├── movements/                
+├── museums/                   
+├── placeholders/             
+├── profiles/                 
+└── visits/                    
+src/                           // Backend (Node + Express + Mongoose)
+├── index.js                   
+├── config/                    
+├── models/                    
+├── controllers/                
+├── routes/                    
+├── schemas/                   
+├── middleware/                
+└── services/                  
+frontend/marketplace/          // Marketplace (Javascript + CSS + HTML)
+├── pages/                     
+├── scripts/                   
+├── stylesheets/
+└── assets/
+frontend-navigator/            // Navigator SPA (React + Vite) 
+├── src/                       
+├── vite.config.js             
+└── dist/                      
+scripts/
+├── seed.js                    
+└── load-museum.js             
 
   
 ## Tecnologie utilizzate
-_Inserire qui il linguaggio utilizzato, il o i framework utilizzati e ogni pacchetto NPM installato a parte quelli preinstallati_
-------------------------------------------------------------???
+
+#### Pacchetti NPM
+
+- bcryptjs: per gestire l'hashing delle password
+- cors: per abilitare le richieste cross-origin
+- dotenv: per caricare le variabili d'ambiente
+- Express: per creare la API REST
+- i18next: per la gestione delle traduzioni
+- jsonwebtoken: per fornire stateless authentication
+- MongoDB + Mongoose: per gestire il database
+- multer: per gestire l'upload dei file
+- Socket.io: per sincronizzare le visite su più dispositivi
+- Zod: per validare il body delle richieste
+
+#### Pacchetti NPM di sviluppo
+
+- vite: per il build system e il server di sviluppo del navigator
+
 #### Server-side
 Javascript
 
@@ -60,6 +112,6 @@ React
 ## Contributo individuale
 #### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimento delle domande e trasmissione dei dati in tempo reale allhost. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. 
 #### Federico Serra: xxxxxx
-#### Andrea Ziccone: Sviluppo dell'intera grafica del sito (marketplace e navigator) e della struttura generale del marketplace, con homepage per la scelta del museo e flusso di selezione/creazione della visita. Sviluppo (HTML, CSS, JS) delle pagine homepage, create_items, create_visits e my_items.
+#### Andrea Ziccone: Sviluppo della grafica del sito (marketplace e navigator) e della struttura generale del marketplace, con homepage per la scelta del museo e flusso di selezione/creazione della visita. Sviluppo (HTML, CSS, JS) delle pagine homepage, create_items, create_visits e my_items.
 #### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en) del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
 
