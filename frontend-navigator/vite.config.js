@@ -3,7 +3,9 @@ import react from "@vitejs/plugin-react"
 
 export default defineConfig({
     plugins: [react()],
-    base: "./",
+    // Navigator routes are deep links, so bundle assets must always resolve
+    // from the site root rather than from the current museum/visit URL.
+    base: "/",
     server: {
         port: 5173,
         proxy: {

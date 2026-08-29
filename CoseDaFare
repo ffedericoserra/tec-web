@@ -1,7 +1,5 @@
 Migliora URI marketplace e navigator e aggiorna README
 
-Tasto APRI in visite Pubbliche marketplace non funziona
-
 Finire traduzione descizione item in inglese
 
 Controlla funzionamento di ASSOCIATED CONTENTS in create_items.html e in Navigator
@@ -9,10 +7,6 @@ Controlla funzionamento di ASSOCIATED CONTENTS in create_items.html e in Navigat
 Aggiungere mappa uffizi
 
 Aggiornare pagine stile bolle (cerchi rossi)
-
-Rimuovi "vai al marketplace" come footer del navigator
-
-Aggiungi immagini dei musei nel navigator
 
 Feauture più interessanti del sito nel readme, magari lo spieghiamo nella struttura della directory
 

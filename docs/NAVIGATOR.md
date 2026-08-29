@@ -23,7 +23,7 @@ Design tokens live in `src/styles/base.css` (cream `#f6f3ee`, near-black `#1a1a1
 ```
 frontend-navigator/
 ├── package.json              # React, Router, Socket.io, i18next/react-i18next, Vite
-├── vite.config.js            # /api + /uploads proxy to :8000, outDir 'dist'
+├── vite.config.js            # /api + /uploads proxy to :8000, root-relative assets, outDir 'dist'
 ├── index.html                # mounts #root + /src/main.jsx
 ├── src/
 │   ├── main.jsx              # BrowserRouter + Routes
@@ -112,7 +112,7 @@ app.get(/^\/(?!api|marketplace|uploads|frontend-navigator)[^.]*$/, (req, res) =>
 })
 ```
 
-The block is mounted **after** `/api`, both marketplace prefixes, and `/uploads`, so those owners always win. The catch-all matches any extensionless path that doesn't start with one of those prefixes — that's how React Router's deep links (`/museums`, `/<slug>`, `/<slug>/<visit-slug>`, `/session/<code>`) survive a hard refresh. The `[^.]*` clause means file requests like `/foo.png` still 404 instead of getting the SPA shell.
+The block is mounted **after** `/api`, both marketplace prefixes, and `/uploads`, so those owners always win. Vite's `base` is `/`, which makes the built CSS and JS root-relative (`/assets/...`) rather than relative to the current URL; this is required when a marketplace link opens a deep route such as `/<museum>/<visit>`. The catch-all matches any extensionless path that doesn't start with one of those prefixes — that's how React Router's deep links (`/museums`, `/<slug>`, `/<slug>/<visit-slug>`, `/session/<code>`) survive a hard refresh. The `[^.]*` clause means file requests like `/foo.png` still 404 instead of getting the SPA shell.
 
 ---
 
