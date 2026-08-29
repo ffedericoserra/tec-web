@@ -14,16 +14,9 @@ MSZ
 
 * Nome e cognome: `Matteo Mazzetti`, matricola: `0001161552`, mail: `matteo.mazzetti13@studio.unibo.it`
 * Nome e cognome: `Andrea Ziccone`, matricola: `0001161895 `, mail: `andrea.ziccone@studio.unibo.it `
-* Nome e cognome: ` `, matricola: ` `, mail: ` `
+* Nome e cognome: `Federico Serra`, matricola: `0001161283`, mail: `federico.serra7@studio.unibo.it`
 * LLM (nome e versione e licenza): Gemini 3.1 Pro, Codex 5.4, Claude 4.5
 
-_Il primo membro della lista verrà considerato come punto di contatto primario. Sarà la persona 
-incaricata di spedire mail (sempre e solo dall'indirizzo studio.unibo.it) e tenere contatti con i docenti. Ogni mail deve sempre includere tutti i componenti del gruppo in cc, e deve essere indirizzata a tutti i docenti del corso:_ 
-
-* fabio.vitali@unibo.it
-* andrea.schimmenti2@unibo.it
-* gianmarco.spinaci2@unibo.it
-* remo.grillo@unibo.it
 
 ## Tipo progetto
 18-27 
@@ -35,14 +28,9 @@ incaricata di spedire mail (sempre e solo dall'indirizzo studio.unibo.it) e tene
 
 * URI del marketplace: https://site242557.tw.cs.unibo.it/marketplace/pages/homepage.html
 * URI del navigator: https://site242557.tw.cs.unibo.it/
-* Altri URI rilevanti: ------------------------------------------------------------???
+* Altri URI rilevanti: 
 
 ## Organizzazione dei sorgenti
-* _creare una directory source all'interno della directory html_
-* _Cambiare i permessi di accesso a questi file a 755 e 644_
-* _Creare una directory per applicazione più una directory per la applicazione server-side_
-* _Descrivere qui l'organizzazione interna di queste directory_
-
 
 .env                          
 data/
