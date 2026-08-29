@@ -39,12 +39,19 @@ function visitMuseum(visit) {
         : { _id: visit.museumId };
 }
 
-function accountVisitUrl(visit, isFavorite) {
+function navigatorVisitUrl(visit) {
     const museum = visitMuseum(visit);
-    if (isFavorite && museum.slug && visit.slug) {
+    if (museum.slug && visit.slug) {
         return `/${encodeURIComponent(museum.slug)}/${encodeURIComponent(visit.slug)}`;
     }
+    return "";
+}
 
+function accountVisitUrl(visit) {
+    const navigatorUrl = navigatorVisitUrl(visit);
+    if (navigatorUrl) return navigatorUrl;
+
+    const museum = visitMuseum(visit);
     const params = new URLSearchParams();
     const museumId = entityId(museum);
     if (museumId) params.set("museumId", museumId);
@@ -81,8 +88,11 @@ function renderVisitCollection(containerId, visits, isFavorite = false) {
         copy.append(title, meta);
 
         const link = document.createElement("a");
-        link.href = accountVisitUrl(visit, isFavorite);
-        link.textContent = isFavorite ? marketplaceT("account.open") : marketplaceT("account.manage");
+        const canOpenInNavigator = Boolean(navigatorVisitUrl(visit));
+        link.href = accountVisitUrl(visit);
+        link.textContent = canOpenInNavigator
+            ? marketplaceT("account.open")
+            : marketplaceT("account.manage");
         const actions = document.createElement("div");
         actions.classList.add("account-list-actions");
         if (isFavorite) {

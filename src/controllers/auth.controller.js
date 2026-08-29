@@ -104,7 +104,11 @@ exports.getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id)
       .populate('savedMuseums', 'name imageUrl')
-      .populate('myVisits', 'title museumId')
+      .populate({
+        path: 'myVisits',
+        select: 'title slug museumId',
+        populate: { path: 'museumId', select: 'name slug' },
+      })
       .populate({
         path: 'savedVisits',
         select: 'title slug type length isPublic museumId',

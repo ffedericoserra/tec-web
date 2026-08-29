@@ -164,7 +164,8 @@ function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }
             </div>
             <div class="visit-actions">
                 ${isOwn
-                    ? `<a class="secondary-btn" href="${visitEditorUrl(visit._id)}">${marketplaceT("common.edit")}</a>
+                    ? `<a class="secondary-btn" href="${visitRunUrl(visit)}">${marketplaceT("visits.open")}</a>
+                       <a class="secondary-btn" href="${visitEditorUrl(visit._id)}">${marketplaceT("common.edit")}</a>
                        <button class="delete-btn" type="button">${marketplaceT("common.delete")}</button>`
                     : `<a class="secondary-btn" href="${visitRunUrl(visit)}">${marketplaceT("visits.open")}</a>`}
             </div>

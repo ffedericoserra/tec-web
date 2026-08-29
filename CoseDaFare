@@ -14,6 +14,8 @@ Rinominare frontend/marketplace in fontend-marketplace
 
 Eliminare file come AGENTS.md, .env.example, old/, docs/
 
+Acquisto item separatamente dalle visite(?), item pubblici o privati(?), non sono visualizzabili
+
 Controllo rispetto specs
 
 --------PER ULTIMO--------------

@@ -97,9 +97,16 @@ balance (it does not set it) and responds:
 {
   "message": "Wallet recharged successfully",
   "walletBalance": 150,
-  "user": { "...": "full user, passwordHash stripped" }
+  "user": {
+    "...": "full user, passwordHash stripped",
+    "myVisits": [{ "title": "...", "slug": "...", "museumId": { "name": "...", "slug": "..." } }],
+    "savedVisits": [{ "title": "...", "slug": "...", "museumId": { "name": "...", "slug": "..." } }]
+  }
 }
 ```
+
+`myVisits` and `savedVisits` include each visit and its museum slug so the Marketplace
+profile can open either collection directly in the Navigator.
 
 **Toggle favourite** — `POST /auth/favorites/visits/:visitId` takes no body and flips
 membership in `user.savedVisits`, responding with the resulting state (`isSaved`).
