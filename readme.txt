@@ -110,8 +110,8 @@ Javascript
 React
 
 ## Contributo individuale
-#### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimento delle domande e trasmissione dei dati in tempo reale allhost. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. 
-#### Federico Serra: xxxxxx
+#### Matteo Mazzetti: Sviluppo della logica di esecuzione della visita sincronizzata, gestione dell'inserimento delle domande e trasmissione dei dati in tempo reale all'host. Sviluppo della griglia di navigazione dei musei, delle pagine relative ad account, login, register, about e della visits list. Implementazione dell'opzione multilingua.
+#### Federico Serra: Sviluppo del backend, degli script di test per l'API e per l'ambiente di sviluppo locale. Creazione delle pagine principali del Navigator. Popolamento del database con i dati necessari per le visite e i musei.
 #### Andrea Ziccone: Sviluppo della grafica del sito (marketplace e navigator) e della struttura generale del marketplace, con homepage per la scelta del museo e flusso di selezione/creazione della visita. Sviluppo (HTML, CSS, JS) delle pagine homepage, create_items, create_visits e my_items.
-#### LLM: Supporto nella coerenza dello stile del sito. Implementazione dell'opzione multilingua(it-en) del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
+#### LLM: Supporto nella coerenza dello stile del sito. Aiuto nell'implementazione dell'opzione multilingua(it-en) del sito. Supporto nella strutturazione del backend per creare una REST API. Risoluzione di errori e problemi vari, ad esempio legati all'ambiente di sviluppo.
 
