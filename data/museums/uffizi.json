@@ -18,9 +18,9 @@
     "imageUrl": "/uploads/museums/uffizi.jpg",
     "floorPlans": [
       {
-        "floor": 0,
-        "label": "Piano Terra",
-        "imageUrl": "/uploads/maps/uffizi-map-piano0.png",
+        "floor": 1,
+        "label": "Primo Piano",
+        "imageUrl": "/uploads/maps/uffizi-map-piano1.png",
         "bounds": {
           "north": 43.7688,
           "south": 43.7676,
@@ -33,9 +33,9 @@
         }
       },
       {
-        "floor": 1,
-        "label": "Primo Piano",
-        "imageUrl": "/uploads/maps/uffizi-map-piano1.png",
+        "floor": 2,
+        "label": "Secondo Piano",
+        "imageUrl": "/uploads/maps/uffizi-map-piano2.png",
         "bounds": {
           "north": 43.7688,
           "south": 43.7676,
@@ -52,26 +52,17 @@
       {
         "type": "entrance",
         "coordinates": {
-          "lat": 43.7677,
-          "lng": 11.2554
+          "lat": 43.7687,
+          "lng": 11.2549
         },
         "label": "Ingresso principale",
-        "floor": 0
+        "floor": 1
       },
       {
         "type": "toilet",
         "coordinates": {
-          "lat": 43.768,
-          "lng": 11.2558
-        },
-        "label": "Bagni Piano Terra",
-        "floor": 0
-      },
-      {
-        "type": "toilet",
-        "coordinates": {
-          "lat": 43.7685,
-          "lng": 11.255
+          "lat": 43.7680,
+          "lng": 11.2559
         },
         "label": "Bagni Primo Piano",
         "floor": 1
@@ -79,38 +70,38 @@
       {
         "type": "bar",
         "coordinates": {
-          "lat": 43.7687,
-          "lng": 11.2555
+          "lat": 43.7677,
+          "lng": 11.2549
         },
         "label": "Caffetteria Terrazza",
-        "floor": 1
+        "floor": 2
       },
       {
         "type": "shop",
         "coordinates": {
-          "lat": 43.7678,
-          "lng": 11.2552
+          "lat": 43.7687,
+          "lng": 11.2559
         },
         "label": "Bookshop",
-        "floor": 0
+        "floor": 1
       },
       {
         "type": "exit",
         "coordinates": {
-          "lat": 43.7686,
-          "lng": 11.2548
+          "lat": 43.7688,
+          "lng": 11.2559
         },
-        "label": "Uscita secondaria",
+        "label": "Uscita",
         "floor": 1
       },
       {
         "type": "stairs",
         "coordinates": {
-          "lat": 43.7681,
-          "lng": 11.2556
+          "lat": 43.7687,
+          "lng": 11.2559
         },
-        "label": "Scale principali",
-        "floor": 0
+        "label": "Scale",
+        "floor": 1
       }
     ]
   },
@@ -122,12 +113,12 @@
       "author": "Sandro Botticelli",
       "year": "1485",
       "coordinates": {
-        "lat": 43.7683,
-        "lng": 11.2553
+        "lat": 43.7682,
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/venere-botticelli.png",
       "qrCode": "QR-uffizi-botticelli-venere",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artwork",
@@ -136,12 +127,12 @@
       "author": "Sandro Botticelli",
       "year": "1482",
       "coordinates": {
-        "lat": 43.7683,
-        "lng": 11.2555
+        "lat": 43.7681,
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/Botticelli-primavera.jpg",
       "qrCode": "QR-uffizi-botticelli-primavera",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artwork",
@@ -150,12 +141,12 @@
       "author": "Leonardo da Vinci",
       "year": "1472",
       "coordinates": {
-        "lat": 43.7684,
-        "lng": 11.2551
+        "lat": 43.7683,
+        "lng": 11.2549
       },
       "imageUrl": "/uploads/contents/leonardo-annunciazione.jpg",
       "qrCode": "QR-uffizi-leonardo-annunciazione",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artwork",
@@ -164,12 +155,12 @@
       "author": "Michelangelo Buonarroti",
       "year": "1507",
       "coordinates": {
-        "lat": 43.7685,
-        "lng": 11.2554
+        "lat": 43.7684,
+        "lng": 11.2549
       },
       "imageUrl": "/uploads/contents/Tondo_Doni_2021.jpg",
       "qrCode": "QR-uffizi-michelangelo-tondodoni",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artwork",
@@ -178,12 +169,12 @@
       "author": "Raffaello Sanzio",
       "year": "1506",
       "coordinates": {
-        "lat": 43.7682,
-        "lng": 11.2552
+        "lat": 43.7685,
+        "lng": 11.2549
       },
       "imageUrl": "/uploads/contents/madonna-cardellino.jpeg",
       "qrCode": "QR-uffizi-raffaello-cardellino",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artwork",
@@ -193,7 +184,7 @@
       "year": "1538",
       "coordinates": {
         "lat": 43.7681,
-        "lng": 11.2556
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/Tizian_-_Venus_von_Urbino.jpg",
       "qrCode": "QR-uffizi-tiziano-venere",
@@ -206,8 +197,8 @@
       "author": "Caravaggio",
       "year": "1597",
       "coordinates": {
-        "lat": 43.768,
-        "lng": 11.2553
+        "lat": 43.7685,
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/Baco,_por_Caravaggio.jpg",
       "qrCode": "QR-uffizi-caravaggio-bacco",
@@ -220,8 +211,8 @@
       "author": "Caravaggio",
       "year": "1597",
       "coordinates": {
-        "lat": 43.768,
-        "lng": 11.2555
+        "lat": 43.7686,
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/Medusa_by_Caravaggio.jpg",
       "qrCode": "QR-uffizi-caravaggio-medusa",
@@ -235,11 +226,11 @@
       "year": "1423",
       "coordinates": {
         "lat": 43.7684,
-        "lng": 11.2557
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/Gentile_da_Fabriano_-_Adorazione_dei_Magi_-_Google_Art_Project.jpg",
       "qrCode": "QR-uffizi-gentile-magi",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artwork",
@@ -249,11 +240,11 @@
       "year": "1310",
       "coordinates": {
         "lat": 43.7686,
-        "lng": 11.2551
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/GiottoMaesta.jpg",
       "qrCode": "QR-uffizi-giotto-maesta",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artist",
@@ -261,12 +252,12 @@
       "name": "Sandro Botticelli",
       "year": "1445-1510",
       "coordinates": {
-        "lat": 43.7683,
-        "lng": 11.2554
+        "lat": 43.76815,
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/artists/botticelli.jpeg",
       "qrCode": "QR-uffizi-artist-botticelli",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Artist",
@@ -274,12 +265,12 @@
       "name": "Leonardo da Vinci",
       "year": "1452-1519",
       "coordinates": {
-        "lat": 43.7684,
-        "lng": 11.2552
+        "lat": 43.76835,
+        "lng": 11.2549
       },
       "imageUrl": "/uploads/artists/daVinci.jpeg",
       "qrCode": "QR-uffizi-artist-leonardo",
-      "floor": 1
+      "floor": 2
     },
     {
       "type": "Movement",
@@ -287,12 +278,12 @@
       "name": "Rinascimento Fiorentino",
       "year": "XV-XVI secolo",
       "coordinates": {
-        "lat": 43.7682,
-        "lng": 11.2554
+        "lat": 43.76825,
+        "lng": 11.2559
       },
       "imageUrl": "/uploads/movements/rinascimento.jpeg",
       "qrCode": "QR-uffizi-movement-rinascimento",
-      "floor": 1
+      "floor": 2
     }
   ]
 }
