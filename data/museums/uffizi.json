@@ -52,8 +52,8 @@
       {
         "type": "entrance",
         "coordinates": {
-          "lat": 43.7687,
-          "lng": 11.2549
+          "lat": 43.7679,
+          "lng": 11.25575
         },
         "label": "Ingresso principale",
         "floor": 1
@@ -61,8 +61,8 @@
       {
         "type": "toilet",
         "coordinates": {
-          "lat": 43.7680,
-          "lng": 11.2559
+          "lat": 43.76787,
+          "lng": 11.25535
         },
         "label": "Bagni Primo Piano",
         "floor": 1
@@ -70,8 +70,8 @@
       {
         "type": "bar",
         "coordinates": {
-          "lat": 43.7677,
-          "lng": 11.2549
+          "lat": 43.7679,
+          "lng": 11.2548
         },
         "label": "Caffetteria Terrazza",
         "floor": 2
@@ -79,8 +79,8 @@
       {
         "type": "shop",
         "coordinates": {
-          "lat": 43.7687,
-          "lng": 11.2559
+          "lat": 43.768440,
+          "lng": 11.25551
         },
         "label": "Bookshop",
         "floor": 1
@@ -88,8 +88,8 @@
       {
         "type": "exit",
         "coordinates": {
-          "lat": 43.7688,
-          "lng": 11.2559
+          "lat": 43.768495,
+          "lng": 11.25551
         },
         "label": "Uscita",
         "floor": 1
@@ -97,8 +97,8 @@
       {
         "type": "stairs",
         "coordinates": {
-          "lat": 43.7687,
-          "lng": 11.2559
+          "lat": 43.76787,
+          "lng": 11.25478
         },
         "label": "Scale",
         "floor": 1
@@ -113,8 +113,8 @@
       "author": "Sandro Botticelli",
       "year": "1485",
       "coordinates": {
-        "lat": 43.7682,
-        "lng": 11.2559
+        "lat": 43.7686,
+        "lng": 11.25543
       },
       "imageUrl": "/uploads/contents/venere-botticelli.png",
       "qrCode": "QR-uffizi-botticelli-venere",
@@ -127,8 +127,8 @@
       "author": "Sandro Botticelli",
       "year": "1482",
       "coordinates": {
-        "lat": 43.7681,
-        "lng": 11.2559
+        "lat": 43.76845,
+        "lng": 11.25543
       },
       "imageUrl": "/uploads/contents/Botticelli-primavera.jpg",
       "qrCode": "QR-uffizi-botticelli-primavera",
@@ -141,8 +141,8 @@
       "author": "Leonardo da Vinci",
       "year": "1472",
       "coordinates": {
-        "lat": 43.7683,
-        "lng": 11.2549
+        "lat": 43.76805,
+        "lng": 11.25573
       },
       "imageUrl": "/uploads/contents/leonardo-annunciazione.jpg",
       "qrCode": "QR-uffizi-leonardo-annunciazione",
@@ -155,8 +155,8 @@
       "author": "Michelangelo Buonarroti",
       "year": "1507",
       "coordinates": {
-        "lat": 43.7684,
-        "lng": 11.2549
+        "lat": 43.76802,
+        "lng": 11.25555
       },
       "imageUrl": "/uploads/contents/Tondo_Doni_2021.jpg",
       "qrCode": "QR-uffizi-michelangelo-tondodoni",
@@ -169,8 +169,8 @@
       "author": "Raffaello Sanzio",
       "year": "1506",
       "coordinates": {
-        "lat": 43.7685,
-        "lng": 11.2549
+        "lat": 43.76808, 
+        "lng": 11.25555
       },
       "imageUrl": "/uploads/contents/madonna-cardellino.jpeg",
       "qrCode": "QR-uffizi-raffaello-cardellino",
@@ -183,7 +183,7 @@
       "author": "Tiziano Vecellio",
       "year": "1538",
       "coordinates": {
-        "lat": 43.7681,
+        "lat": 43.7678,
         "lng": 11.2559
       },
       "imageUrl": "/uploads/contents/Tizian_-_Venus_von_Urbino.jpg",
@@ -197,8 +197,8 @@
       "author": "Caravaggio",
       "year": "1597",
       "coordinates": {
-        "lat": 43.7685,
-        "lng": 11.2559
+        "lat": 43.768465,
+        "lng": 11.25573
       },
       "imageUrl": "/uploads/contents/Baco,_por_Caravaggio.jpg",
       "qrCode": "QR-uffizi-caravaggio-bacco",
@@ -211,8 +211,8 @@
       "author": "Caravaggio",
       "year": "1597",
       "coordinates": {
-        "lat": 43.7686,
-        "lng": 11.2559
+        "lat": 43.768465,
+        "lng": 11.25578
       },
       "imageUrl": "/uploads/contents/Medusa_by_Caravaggio.jpg",
       "qrCode": "QR-uffizi-caravaggio-medusa",
@@ -225,8 +225,8 @@
       "author": "Gentile da Fabriano",
       "year": "1423",
       "coordinates": {
-        "lat": 43.7684,
-        "lng": 11.2559
+        "lat": 43.76851,
+        "lng": 11.255938
       },
       "imageUrl": "/uploads/contents/Gentile_da_Fabriano_-_Adorazione_dei_Magi_-_Google_Art_Project.jpg",
       "qrCode": "QR-uffizi-gentile-magi",
@@ -239,8 +239,8 @@
       "author": "Giotto",
       "year": "1310",
       "coordinates": {
-        "lat": 43.7686,
-        "lng": 11.2559
+        "lat": 43.76849,
+        "lng": 11.25522
       },
       "imageUrl": "/uploads/contents/GiottoMaesta.jpg",
       "qrCode": "QR-uffizi-giotto-maesta",
