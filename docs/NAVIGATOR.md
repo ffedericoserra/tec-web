@@ -58,7 +58,7 @@ frontend-navigator/
 │   │   ├── QuizScreen.jsx              # student questions / guide live results
 │   │   ├── CommandSheet.jsx            # "Ask me anything": mic + tappable command list
 │   │   ├── MuseumMap.jsx               # "Map" modal: SVG floor plan of stops + facilities
-│   │   └── AssociatedContentsModal.jsx # opened by the `+` icon during a visit
+│   │   └── AssociatedContentsModal.jsx # opened by the `?` icon during a visit
 │   └── pages/
 │       ├── Account.jsx
 │       ├── HomeNoLogin.jsx
@@ -211,7 +211,7 @@ remain in their authored language; there is no runtime machine translation.
 - **`PageHeader`** — sticky top bar used on authenticated pages, with a minimal Back control, the `ArtAround` brand, and a `GO TO MARKETPLACE` link immediately before the profile or contextual action. Returns `null` when not authenticated. Props: `subtitle` (renders `ArtAround | <subtitle>` muted), `right` (slot for profile / End Visit / etc.), and `brandTo` (optional route — wraps the brand word in a `<Link>`; the subtitle stays inert since it names the museum you're already in). `brandTo` is **opt-in**: `VisitSelect` passes `/museums`, but `VisitRun` deliberately leaves the brand dead so `End Visit` stays the only way out of a visit. The brand cell ellipsizes long museum names so all controls stay visible.
 - **`ProfileMenu`** — circular profile image from `user.avatarUrl`, with the default avatar as fallback. Click toggles a dropdown showing username, wallet balance, a link to `/account`, and Logout. Closes on outside-mousedown or `Escape`. Uses `aria-expanded` for hover/active styling.
 - **`AuthDialog`** — overlay-style login/register modal. Registration sends `username`, `email`, and `password`, matching the marketplace and backend schema; login sends `username` (or email) and `password`. Closes on Escape and backdrop click. Errors render under the form.
-- **`AssociatedContentsModal`** — bottom-sheet/modal opened by VisitRun's `+` icon. Renders associated contents (image / type / name / author / year). See §8.4 for the lazy-fetch detail.
+- **`AssociatedContentsModal`** — bottom-sheet/modal opened by VisitRun's `?` icon. Renders associated contents (image / type / name / author / year). See §8.4 for the lazy-fetch detail.
 
 Header + ProfileMenu styles live in `styles/header.css`; everything else is page-scoped.
 
@@ -321,7 +321,7 @@ Transitions:
 - Switching tone **keeps `lengthIdx`** (you switch tone to re-hear the same depth differently), clamped down if the new tone carries fewer lengths.
 - Dismissal mirrors `ProfileMenu`: outside-mousedown or Escape.
 
-**`+` button → AssociatedContentsModal** — the visit fetch returns items but does **not** populate `associatedContents`; only `GET /items/:id` does. So the modal lazily fetches the populated item on first open and caches by `_id` (`assocCache`). Subsequent opens are synchronous. The modal renders each associated `Content` with image / type / name / author / year. Closes on backdrop mousedown or Escape.
+**`?` button / `associated` command → AssociatedContentsModal** — the visit fetch returns the associated Content IDs on each item but does **not** populate them; only `GET /items/:id` does. Both entry points call the same `openAssociated()` handler, which lazily fetches the populated item on first open and caches it by `_id` (`assocCache`). The command-sheet row is disabled when the current item has no associated contents. Subsequent opens are synchronous. The modal renders each associated `Content` with image / type / name / author / year. Closes on backdrop mousedown or Escape.
 
 **`End Visit`** lives in the header's right slot (plain underlined text → `navigate('/${museumSlug}')`). Intentionally no profile dropdown during a visit — the user has to End Visit before logging out, matching the mockup.
 
@@ -370,8 +370,8 @@ text and voice metadata must never drift.
 `src/voice.js` + `components/CommandSheet.jsx` satisfy the base-tier "controlled vocabulary" requirement (SPECS §5). The translated command action opens `CommandSheet`, which holds **both** ways of issuing a command so they can't drift: a push-to-talk mic and a tappable list, both dispatching the same ids through `VisitRun`'s `runCommand(id)`.
 
 - **The bilingual registry in `voice.js` is the single source of truth.** Italian
-  and English expose the same eight stable ids: `more` / `simpler` / `next` /
-  `previous` / `author` / `year` / `exit` / `map`. Labels and hints shown by the
+  and English expose the same nine stable ids: `more` / `simpler` / `next` /
+  `previous` / `author` / `year` / `exit` / `map` / `associated`. Labels and hints shown by the
   sheet come from the UI catalogues; spoken phrases are selected for the current
   language. Adding a command means adding the same id and copy for both locales.
 - **Recognition follows the UI locale:** `it` uses `it-IT`, `en` uses `en-US`.

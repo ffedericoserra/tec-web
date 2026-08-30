@@ -227,7 +227,8 @@
       "author": { "label": "Who is the author?", "hint": "who is the author" },
       "year": { "label": "What year is it from?", "hint": "what year is it from" },
       "exit": { "label": "Where is the exit?", "hint": "where is the exit" },
-      "map": { "label": "Show the map", "hint": "show the map" }
+      "map": { "label": "Show the map", "hint": "show the map" },
+      "associated": { "label": "Show associated content", "hint": "show associated content" }
     }
   },
   "associated": {

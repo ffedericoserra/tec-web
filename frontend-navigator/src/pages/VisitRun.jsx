@@ -715,6 +715,9 @@ export default function VisitRun() {
       case 'map':
         setMapOpen(true);
         break;
+      case 'associated':
+        openAssociated();
+        break;
       default:
         break;
     }
@@ -733,6 +736,7 @@ export default function VisitRun() {
     simpler: mode !== 'describe' || lengthIdx === 0,
     next: isLast || studentInSession,
     previous: isFirst || studentInSession,
+    associated: !item?.associatedContents?.length,
   };
 
   async function handleEndVisit() {
@@ -980,7 +984,7 @@ export default function VisitRun() {
           aria-label={t('visitRun.showAssociated')}
           disabled={!item}
         >
-          +
+          ?
         </button>
       </div>
 

@@ -87,6 +87,22 @@ export const COMMANDS = [
       ],
     },
   },
+  {
+    id: 'associated',
+    phrases: {
+      it: [
+        'mostra contenuti associati',
+        'apri contenuti associati',
+        'contenuti associati',
+      ],
+      en: [
+        'show associated content',
+        'open associated content',
+        'associated content',
+        'related content',
+      ],
+    },
+  },
 ];
 
 /* Flattened {phrase, id} pairs sorted longest-first, computed per language and

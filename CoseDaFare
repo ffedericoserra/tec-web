@@ -2,17 +2,11 @@ Migliora URI marketplace e navigator e aggiorna README
 
 Finire traduzione descizione item in inglese
 
-Controlla funzionamento di ASSOCIATED CONTENTS in create_items.html e in Navigator
-
-Aggiungere mappa uffizi
-
-Aggiornare pagine stile bolle (cerchi rossi)
-
-Feauture più interessanti del sito nel readme, magari lo spieghiamo nella struttura della directory
+Feauture più interessanti del sito, magari lo spieghiamo in docs specifici
 
 Rinominare frontend/marketplace in fontend-marketplace
 
-Eliminare file come AGENTS.md, .env.example, old/, docs/
+Eliminare file come AGENTS.md, .env.example, docs/
 
 Acquisto item separatamente dalle visite(?), item pubblici o privati(?), non sono visualizzabili
 
