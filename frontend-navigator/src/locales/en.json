@@ -60,7 +60,7 @@
     "searchLabel": "Search",
     "searchPlaceholder": "Search for a visit…",
     "searchAria": "Search visits",
-    "groupAction": "or join or create a group visit",
+    "groupAction": "join or create a group visit",
     "author": "Author: {{author}}",
     "length": "Duration: {{length}}",
     "visibilityPrivate": "Visibility: private",
