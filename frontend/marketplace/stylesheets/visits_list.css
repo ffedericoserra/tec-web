@@ -3,7 +3,14 @@
 #artaround-visits { margin: 0; padding-top: 80px; min-height: 100vh; background: var(--cream); color: var(--ink); font-family: Helvetica, Arial, sans-serif; }
 .hidden { display: none !important; }
 .visits-shell { min-height: calc(100vh - 80px); }
-.visits-heading { padding: 90px 10vw 70px; border-bottom: 1px solid var(--line); background: linear-gradient(110deg, transparent 60%, rgba(113,0,20,.1)); }
+.visits-heading { position: relative; overflow: hidden; padding: 90px 10vw 70px; border-bottom: 1px solid var(--line); background: linear-gradient(110deg, transparent 60%, rgba(113,0,20,.1)); }
+.visits-heading .page-grid-lines { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.visits-heading .grid-line { position: absolute; top: 0; bottom: 0; border-right: 1px solid rgba(22,22,22,.15); }
+.visits-heading .line-25 { left: 25%; } .visits-heading .line-50 { left: 50%; } .visits-heading .line-75 { left: 75%; }
+.visits-heading .shape-circle { position: absolute; z-index: 1; border-radius: 50%; background-color: rgba(113,0,20,.14); mix-blend-mode: multiply; }
+.visits-heading .circle-small { top: 15%; left: 5%; width: 9vw; height: 9vw; }
+.visits-heading .circle-large { top: 50%; right: -4%; width: 26vw; height: 26vw; transform: translateY(-50%); }
+.visits-heading > .kicker, .visits-heading > h1, .visits-heading > p { position: relative; z-index: 2; }
 .kicker, .visits-toolbar label span, .visit-label { color: var(--burgundy); font-size: .72rem; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
 .visits-heading h1 { max-width: 900px; margin: 12px 0 20px; font-size: clamp(3rem, 7vw, 6rem); line-height: .95; }
 .visits-heading p { max-width: 620px; margin: 0; color: rgba(22,22,22,.68); font-size: 1.1rem; line-height: 1.6; }

@@ -2,7 +2,14 @@
 * { box-sizing:border-box; }
 #artaround-my-items { margin:0; padding-top:80px; min-height:100vh; background:var(--cream); color:var(--ink); font-family:Helvetica,Arial,sans-serif; }
 .hidden { display:none !important; }
-.items-heading { padding:85px 10vw 65px; border-bottom:1px solid var(--line); background:linear-gradient(115deg,transparent 58%,rgba(113,0,20,.1)); }
+.items-heading { position:relative; overflow:hidden; padding:85px 10vw 65px; border-bottom:1px solid var(--line); background:linear-gradient(115deg,transparent 58%,rgba(113,0,20,.1)); }
+.items-heading .page-grid-lines { position:absolute; inset:0; z-index:0; pointer-events:none; }
+.items-heading .grid-line { position:absolute; top:0; bottom:0; border-right:1px solid rgba(22,22,22,.15); }
+.items-heading .line-25 { left:25%; } .items-heading .line-50 { left:50%; } .items-heading .line-75 { left:75%; }
+.items-heading .shape-circle { position:absolute; z-index:1; border-radius:50%; background-color:rgba(113,0,20,.14); mix-blend-mode:multiply; }
+.items-heading .circle-small { top:15%; left:5%; width:9vw; height:9vw; }
+.items-heading .circle-large { top:50%; right:-4%; width:26vw; height:26vw; transform:translateY(-50%); }
+.items-heading > .kicker, .items-heading > h1, .items-heading > p { position:relative; z-index:2; }
 .kicker,.items-toolbar label span { color:var(--burgundy); font-size:.7rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
 .items-heading h1 { margin:10px 0 18px; font-size:clamp(3rem,7vw,5.8rem); line-height:.95; }
 .items-heading p { max-width:650px; margin:0; color:rgba(22,22,22,.65); font-size:1.05rem; line-height:1.6; }

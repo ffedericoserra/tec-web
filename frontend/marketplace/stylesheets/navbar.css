@@ -37,13 +37,13 @@ header.editorial-nav .brand {
     text-decoration: none;
 }
 
-header.editorial-nav .logo-text { 
-    font-size: 2.4rem !important; 
+header.editorial-nav .logo-text {
+    font-size: 2.4rem !important;
     font-weight: 700 !important;
     color: #161616 !important;
-    font-family: "Playfair Display", "Georgia", serif !important;
+    font-family: 'Helvetica', Arial, sans-serif !important;
     letter-spacing: -1px !important;
-    text-transform: none !important; 
+    text-transform: none !important;
 }
 
 /* Link principali */

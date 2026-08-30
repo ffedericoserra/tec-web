@@ -1,7 +1,14 @@
 :root { --cream:#f2f1ed; --ink:#161616; --burgundy:#710014; --line:rgba(22,22,22,.18); }
 * { box-sizing:border-box; }
 #artaround-account { margin:0; padding-top:80px; min-height:100vh; background:var(--cream); color:var(--ink); font-family:Helvetica,Arial,sans-serif; }
-.account-heading { padding:85px 10vw 65px; border-bottom:1px solid var(--line); background:linear-gradient(115deg,transparent 58%,rgba(113,0,20,.1)); }
+.account-heading { position:relative; overflow:hidden; padding:85px 10vw 65px; border-bottom:1px solid var(--line); background:linear-gradient(115deg,transparent 58%,rgba(113,0,20,.1)); }
+.account-heading .page-grid-lines { position:absolute; inset:0; z-index:0; pointer-events:none; }
+.account-heading .grid-line { position:absolute; top:0; bottom:0; border-right:1px solid rgba(22,22,22,.15); }
+.account-heading .line-25 { left:25%; } .account-heading .line-50 { left:50%; } .account-heading .line-75 { left:75%; }
+.account-heading .shape-circle { position:absolute; z-index:1; border-radius:50%; background-color:rgba(113,0,20,.14); mix-blend-mode:multiply; }
+.account-heading .circle-small { top:15%; left:5%; width:9vw; height:9vw; }
+.account-heading .circle-large { top:50%; right:-4%; width:26vw; height:26vw; transform:translateY(-50%); }
+.account-heading > .kicker, .account-heading > h1, .account-heading > p { position:relative; z-index:2; }
 .kicker,.label { color:var(--burgundy); font-size:.7rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
 .account-heading h1 { margin:10px 0 18px; font-size:clamp(3rem,7vw,5.8rem); line-height:.95; }
 .account-heading p { max-width:650px; margin:0; color:rgba(22,22,22,.65); line-height:1.6; }
