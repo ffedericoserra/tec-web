@@ -43,7 +43,7 @@ exports.getById = async (req, res, next) => {
  */
 exports.create = async (req, res, next) => {
   try {
-    const { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, floorPlans, pointsOfInterest, imageUrl } = req.body;
 
     const museum = new Museum({
       name,
@@ -53,7 +53,7 @@ exports.create = async (req, res, next) => {
       email,
       phone,
       openingHours,
-      mapData,
+      floorPlans,
       pointsOfInterest,
       imageUrl,
     });
@@ -71,11 +71,11 @@ exports.create = async (req, res, next) => {
  */
 exports.update = async (req, res, next) => {
   try {
-    const { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl } = req.body;
+    const { name, address, description, website, email, phone, openingHours, floorPlans, pointsOfInterest, imageUrl } = req.body;
 
     const museum = await Museum.findByIdAndUpdate(
       req.params.id,
-      { name, address, description, website, email, phone, openingHours, mapData, pointsOfInterest, imageUrl },
+      { name, address, description, website, email, phone, openingHours, floorPlans, pointsOfInterest, imageUrl },
       { new: true, runValidators: true }
     );
 
@@ -171,6 +171,7 @@ exports.createContent = async (req, res, next) => {
       imgPath,
       imageRecognitionUrl,
       coordinates,
+      floor,
       qrCode,
     } = req.body;
 
@@ -191,6 +192,7 @@ exports.createContent = async (req, res, next) => {
       imgPath,
       imageRecognitionUrl,
       coordinates,
+      floor,
       qrCode,
     });
     await content.save();

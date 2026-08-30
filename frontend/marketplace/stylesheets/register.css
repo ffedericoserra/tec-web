@@ -108,6 +108,11 @@
     font-weight: 800;
     line-height: 0.92;
     letter-spacing: -1px;
+    /* "ARTAROUND" is a single unbreakable word: at the largest mobile clamp
+       sizes it can be wider than the available column even after the grid
+       fix above. This is the last-resort safety net so it wraps instead of
+       overflowing the viewport. */
+    overflow-wrap: break-word;
 }
 
 #artaround-register .font-light {
@@ -271,7 +276,11 @@
     }
 
     #artaround-register .register-layout {
-        grid-template-columns: 1fr;
+        /* minmax(0, 1fr), not bare 1fr: a plain 1fr track's minimum size
+           defaults to its content's min-content width, which for a large
+           hero heading is the width of its longest word — wider than the
+           viewport on narrow phones. That silently overflowed the page. */
+        grid-template-columns: minmax(0, 1fr);
         gap: 48px;
         min-height: 0;
     }

@@ -6,9 +6,15 @@ import { buildGeometry, expandToAspect, isFiniteNumber } from '../mapGeometry.js
  * Museum map — visualization without user positioning (SPECS §5, Base tier).
  *
  * Everything here is drawn from data the visit fetch already carried: getVisit
- * populates museumId unselected, so `mapData` and `pointsOfInterest` are on the
- * museum doc, and the stop coordinates come from the contents map VisitRun
- * already built. No request is made — the map opens instantly.
+ * populates museumId unselected, so `floorPlans` and `pointsOfInterest` are on
+ * the museum doc, and the stop coordinates (and floor) come from the contents
+ * map VisitRun already built. No request is made — the map opens instantly.
+ *
+ * Floor handling: the map opens on the floor of the artwork the visitor is
+ * currently viewing, and only that floor's stops/POIs are drawn on it — a
+ * museum with several floors would otherwise conflate them onto one plan.
+ * Single-floor museums (today's common case) are unaffected: everything
+ * defaults to floor 0, so nothing is ever filtered out.
  *
  * There is deliberately no "you are here" marker: the Base tier is explicitly a
  * map *without* positioning, and inventing one would be a lie. The current stop
@@ -91,7 +97,15 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const mapData = museum?.mapData;
+  // One floor plan per physical level; museums with a single floor (or not
+  // yet migrated to floorPlans) fall back to a synthetic single entry so the
+  // rest of the component never has to special-case "no floors".
+  const floorPlans = useMemo(() => {
+    if (museum?.floorPlans?.length) return museum.floorPlans;
+    if (museum?.mapData) return [{ floor: 0, ...museum.mapData }];
+    return [];
+  }, [museum]);
+
   const pois = useMemo(
     () =>
       (museum?.pointsOfInterest || []).map((p, i) => ({
@@ -100,13 +114,42 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
         label: p.label,
         lat: p.coordinates?.lat,
         lng: p.coordinates?.lng,
+        floor: isFiniteNumber(p.floor) ? p.floor : 0,
       })),
     [museum]
   );
 
+  // Which floor the map opens on: the floor of the artwork the visitor is
+  // currently looking at. Mount-time only, like the view centring below — the
+  // modal unmounts on close, so it re-resolves on every open rather than
+  // jumping under the visitor while they're panning around a floor.
+  const currentStopRaw = stops.find((s) => s.index === currentIndex);
+  const [activeFloor] = useState(() =>
+    isFiniteNumber(currentStopRaw?.floor)
+      ? currentStopRaw.floor
+      : floorPlans[0]?.floor ?? 0
+  );
+
+  const activeFloorPlan =
+    floorPlans.find((fp) => fp.floor === activeFloor) || floorPlans[0] || null;
+  const mapData = activeFloorPlan;
+
+  // Only this floor's stops and points of interest belong on this floor's
+  // plan. Stops without floor data default to 0, so single-floor museums
+  // (today's common case) are entirely unaffected by this filter.
+  const floorStops = useMemo(
+    () =>
+      stops.filter((s) => (isFiniteNumber(s.floor) ? s.floor : 0) === activeFloor),
+    [stops, activeFloor]
+  );
+  const floorPois = useMemo(
+    () => pois.filter((p) => p.floor === activeFloor),
+    [pois, activeFloor]
+  );
+
   const geometry = useMemo(
-    () => buildGeometry(mapData, stops, pois),
-    [mapData, stops, pois]
+    () => buildGeometry(mapData, floorStops, floorPois),
+    [mapData, floorStops, floorPois]
   );
 
   // The fit view: the plan's extent grown to the plate's aspect ratio.
@@ -241,19 +284,20 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
   }
 
   // Stops the map can't place — listed under the map so they aren't silently
-  // dropped from a visit the user is actually walking.
-  const unlocated = stops.filter(
+  // dropped from a visit the user is actually walking. Scoped to this floor:
+  // a stop on another floor isn't "unlocated", it's just not on this plan.
+  const unlocated = floorStops.filter(
     (s) => !isFiniteNumber(s.lat) || !isFiniteNumber(s.lng)
   );
 
-  // Legend covers only the facility types this museum actually has.
+  // Legend covers only the facility types present on this floor.
   const legendTypes = useMemo(() => {
     const seen = [];
-    for (const p of pois) {
+    for (const p of floorPois) {
       if (!seen.includes(p.type)) seen.push(p.type);
     }
     return seen;
-  }, [pois]);
+  }, [floorPois]);
 
   const currentName = stops.find((s) => s.index === currentIndex)?.name;
   const footer = selected
@@ -277,9 +321,17 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
         aria-labelledby="map-title"
       >
         <header className="map-head">
-          <h2 id="map-title">
-            {t('map.title')}{museum?.name ? ` — ${museum.name}` : ''}
-          </h2>
+          <div className="map-head-titles">
+            <h2 id="map-title">
+              {t('map.title')}{museum?.name ? ` — ${museum.name}` : ''}
+            </h2>
+            {floorPlans.length > 1 && (
+              <p className="map-floor-label">
+                {activeFloorPlan?.label ||
+                  t('map.floorFallback', { floor: activeFloor })}
+              </p>
+            )}
+          </div>
           <button
             type="button"
             className="map-close"

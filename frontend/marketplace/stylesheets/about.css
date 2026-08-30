@@ -105,6 +105,8 @@
     font-weight: 800;
     line-height: 0.92;
     letter-spacing: -1px;
+    /* Safety net for large mobile clamp sizes — see register.css. */
+    overflow-wrap: break-word;
 }
 
 #artaround-about .font-light {
@@ -260,7 +262,10 @@
     }
 
     #artaround-about .about-hero-layout {
-        grid-template-columns: 1fr;
+        /* minmax(0, 1fr), not bare 1fr — see register.css/login.css for why:
+           a plain 1fr track can't shrink below its content's min-content
+           width and silently overflows narrow viewports. */
+        grid-template-columns: minmax(0, 1fr);
         gap: 42px;
         min-height: 420px;
     }
@@ -285,7 +290,8 @@
     }
 
     #artaround-about .about-grid {
-        grid-template-columns: 1fr;
+        /* minmax(0, 1fr) for the same min-content overflow reason as above. */
+        grid-template-columns: minmax(0, 1fr);
         gap: 52px;
     }
 

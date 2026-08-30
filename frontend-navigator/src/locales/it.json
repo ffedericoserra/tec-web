@@ -243,6 +243,7 @@
   "map": {
     "title": "Mappa",
     "unavailable": "Mappa non disponibile per questo museo.",
+    "floorFallback": "Piano {{floor}}",
     "visitAria_one": "Mappa della visita con {{count}} tappa",
     "visitAria_other": "Mappa della visita con {{count}} tappe",
     "zoomIn": "Ingrandisci",

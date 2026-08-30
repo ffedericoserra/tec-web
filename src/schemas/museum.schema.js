@@ -13,6 +13,7 @@ const pointOfInterestSchema = z.object({
   type: z.enum(['toilet', 'exit', 'bar', 'stairs', 'entrance', 'shop']),
   coordinates: coordinatesSchema,
   label: z.string().min(1, 'Label is required'),
+  floor: z.number().optional(),
 });
 
 const openingHoursSchema = z.object({
@@ -25,7 +26,9 @@ const openingHoursSchema = z.object({
   sun: z.string().optional(),
 });
 
-const mapDataSchema = z.object({
+const floorPlanSchema = z.object({
+  floor: z.number(),
+  label: z.string().trim().optional(),
   imageUrl: z.string().url().optional(),
   bounds: z.object({
     north: z.number(),
@@ -34,7 +37,7 @@ const mapDataSchema = z.object({
     west: z.number(),
   }).optional(),
   center: coordinatesSchema.optional(),
-}).optional();      // Revisit when testing with actual maps
+});
 
 const createMuseumSchema = z.object({
   name: z.string().min(1, 'Museum name is required').trim(),
@@ -44,7 +47,7 @@ const createMuseumSchema = z.object({
   email: z.string().email('Inserisci un email valida').optional().or(z.literal('')),
   phone: z.string().trim().optional(),
   openingHours: openingHoursSchema.optional(),
-  mapData: mapDataSchema,
+  floorPlans: z.array(floorPlanSchema).optional(),
   pointsOfInterest: z.array(pointOfInterestSchema).optional(),
   imageUrl: z.string().url().optional().or(z.literal('')),
 });
@@ -61,6 +64,7 @@ const createContentSchema = z.object({
   imgPath: z.string().optional(),
   imageRecognitionUrl: z.string().url().optional(),
   coordinates: coordinatesSchema.optional(),
+  floor: z.number().optional(),
   qrCode: z.string().optional(),
 });
 

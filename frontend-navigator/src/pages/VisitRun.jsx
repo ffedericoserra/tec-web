@@ -422,10 +422,12 @@ export default function VisitRun() {
    * claims a tone the text isn't in. */
   const effectiveTone = description?.tone || tone;
 
-  /* One entry per sequence position for the map. Coordinates live on the
-   * Content, not the Item, so they're resolved through the same contents map the
-   * image and the details modal use. Entries keep their index even when they
-   * have no coordinates — the map lists those separately rather than renumbering. */
+  /* One entry per sequence position for the map. Coordinates (and floor) live
+   * on the Content, not the Item, so they're resolved through the same contents
+   * map the image and the details modal use. Entries keep their index even when
+   * they have no coordinates — the map lists those separately rather than
+   * renumbering. `floor` defaults to 0 so museums without floor data (the
+   * common case today) still resolve to a single, unfiltered floor. */
   const mapStops = useMemo(
     () =>
       sequence.map((seqEntry, i) => {
@@ -439,6 +441,7 @@ export default function VisitRun() {
             t('visitRun.stopFallback', { count: i + 1 }),
           lat: seqContent?.coordinates?.lat,
           lng: seqContent?.coordinates?.lng,
+          floor: seqContent?.floor ?? 0,
         };
       }),
     [sequence, contents, t]

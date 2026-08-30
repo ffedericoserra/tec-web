@@ -16,19 +16,38 @@
       "sun": "08:15 - 18:30"
     },
     "imageUrl": "/uploads/museums/uffizi.jpg",
-    "mapData": {
-      "imageUrl": "/uploads/maps/uffizi-map.png",
-      "bounds": {
-        "north": 43.7688,
-        "south": 43.7676,
-        "east": 11.2562,
-        "west": 11.2546
+    "floorPlans": [
+      {
+        "floor": 0,
+        "label": "Piano Terra",
+        "imageUrl": "/uploads/maps/uffizi-map-piano0.png",
+        "bounds": {
+          "north": 43.7688,
+          "south": 43.7676,
+          "east": 11.2562,
+          "west": 11.2546
+        },
+        "center": {
+          "lat": 43.7682,
+          "lng": 11.2554
+        }
       },
-      "center": {
-        "lat": 43.7682,
-        "lng": 11.2554
+      {
+        "floor": 1,
+        "label": "Primo Piano",
+        "imageUrl": "/uploads/maps/uffizi-map-piano1.png",
+        "bounds": {
+          "north": 43.7688,
+          "south": 43.7676,
+          "east": 11.2562,
+          "west": 11.2546
+        },
+        "center": {
+          "lat": 43.7682,
+          "lng": 11.2554
+        }
       }
-    },
+    ],
     "pointsOfInterest": [
       {
         "type": "entrance",
@@ -36,7 +55,8 @@
           "lat": 43.7677,
           "lng": 11.2554
         },
-        "label": "Ingresso principale"
+        "label": "Ingresso principale",
+        "floor": 0
       },
       {
         "type": "toilet",
@@ -44,7 +64,8 @@
           "lat": 43.768,
           "lng": 11.2558
         },
-        "label": "Bagni Piano Terra"
+        "label": "Bagni Piano Terra",
+        "floor": 0
       },
       {
         "type": "toilet",
@@ -52,7 +73,8 @@
           "lat": 43.7685,
           "lng": 11.255
         },
-        "label": "Bagni Primo Piano"
+        "label": "Bagni Primo Piano",
+        "floor": 1
       },
       {
         "type": "bar",
@@ -60,7 +82,8 @@
           "lat": 43.7687,
           "lng": 11.2555
         },
-        "label": "Caffetteria Terrazza"
+        "label": "Caffetteria Terrazza",
+        "floor": 1
       },
       {
         "type": "shop",
@@ -68,7 +91,8 @@
           "lat": 43.7678,
           "lng": 11.2552
         },
-        "label": "Bookshop"
+        "label": "Bookshop",
+        "floor": 0
       },
       {
         "type": "exit",
@@ -76,7 +100,8 @@
           "lat": 43.7686,
           "lng": 11.2548
         },
-        "label": "Uscita secondaria"
+        "label": "Uscita secondaria",
+        "floor": 1
       },
       {
         "type": "stairs",
@@ -84,7 +109,8 @@
           "lat": 43.7681,
           "lng": 11.2556
         },
-        "label": "Scale principali"
+        "label": "Scale principali",
+        "floor": 0
       }
     ]
   },
@@ -100,7 +126,8 @@
         "lng": 11.2553
       },
       "imageUrl": "/uploads/contents/venere-botticelli.png",
-      "qrCode": "QR-uffizi-botticelli-venere"
+      "qrCode": "QR-uffizi-botticelli-venere",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -113,7 +140,8 @@
         "lng": 11.2555
       },
       "imageUrl": "/uploads/contents/Botticelli-primavera.jpg",
-      "qrCode": "QR-uffizi-botticelli-primavera"
+      "qrCode": "QR-uffizi-botticelli-primavera",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -126,7 +154,8 @@
         "lng": 11.2551
       },
       "imageUrl": "/uploads/contents/leonardo-annunciazione.jpg",
-      "qrCode": "QR-uffizi-leonardo-annunciazione"
+      "qrCode": "QR-uffizi-leonardo-annunciazione",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -139,7 +168,8 @@
         "lng": 11.2554
       },
       "imageUrl": "/uploads/contents/Tondo_Doni_2021.jpg",
-      "qrCode": "QR-uffizi-michelangelo-tondodoni"
+      "qrCode": "QR-uffizi-michelangelo-tondodoni",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -152,7 +182,8 @@
         "lng": 11.2552
       },
       "imageUrl": "/uploads/contents/madonna-cardellino.jpeg",
-      "qrCode": "QR-uffizi-raffaello-cardellino"
+      "qrCode": "QR-uffizi-raffaello-cardellino",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -165,7 +196,8 @@
         "lng": 11.2556
       },
       "imageUrl": "/uploads/contents/Tizian_-_Venus_von_Urbino.jpg",
-      "qrCode": "QR-uffizi-tiziano-venere"
+      "qrCode": "QR-uffizi-tiziano-venere",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -178,7 +210,8 @@
         "lng": 11.2553
       },
       "imageUrl": "/uploads/contents/Baco,_por_Caravaggio.jpg",
-      "qrCode": "QR-uffizi-caravaggio-bacco"
+      "qrCode": "QR-uffizi-caravaggio-bacco",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -191,7 +224,8 @@
         "lng": 11.2555
       },
       "imageUrl": "/uploads/contents/Medusa_by_Caravaggio.jpg",
-      "qrCode": "QR-uffizi-caravaggio-medusa"
+      "qrCode": "QR-uffizi-caravaggio-medusa",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -204,7 +238,8 @@
         "lng": 11.2557
       },
       "imageUrl": "/uploads/contents/Gentile_da_Fabriano_-_Adorazione_dei_Magi_-_Google_Art_Project.jpg",
-      "qrCode": "QR-uffizi-gentile-magi"
+      "qrCode": "QR-uffizi-gentile-magi",
+      "floor": 1
     },
     {
       "type": "Artwork",
@@ -217,7 +252,8 @@
         "lng": 11.2551
       },
       "imageUrl": "/uploads/contents/GiottoMaesta.jpg",
-      "qrCode": "QR-uffizi-giotto-maesta"
+      "qrCode": "QR-uffizi-giotto-maesta",
+      "floor": 1
     },
     {
       "type": "Artist",
@@ -229,7 +265,8 @@
         "lng": 11.2554
       },
       "imageUrl": "/uploads/artists/botticelli.jpeg",
-      "qrCode": "QR-uffizi-artist-botticelli"
+      "qrCode": "QR-uffizi-artist-botticelli",
+      "floor": 1
     },
     {
       "type": "Artist",
@@ -241,7 +278,8 @@
         "lng": 11.2552
       },
       "imageUrl": "/uploads/artists/daVinci.jpeg",
-      "qrCode": "QR-uffizi-artist-leonardo"
+      "qrCode": "QR-uffizi-artist-leonardo",
+      "floor": 1
     },
     {
       "type": "Movement",
@@ -253,7 +291,8 @@
         "lng": 11.2554
       },
       "imageUrl": "/uploads/movements/rinascimento.jpeg",
-      "qrCode": "QR-uffizi-movement-rinascimento"
+      "qrCode": "QR-uffizi-movement-rinascimento",
+      "floor": 1
     }
   ]
 }

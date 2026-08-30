@@ -15,7 +15,11 @@
 .visits-heading h1 { max-width: 900px; margin: 12px 0 20px; font-size: clamp(3rem, 7vw, 6rem); line-height: .95; }
 .visits-heading p { max-width: 620px; margin: 0; color: rgba(22,22,22,.68); font-size: 1.1rem; line-height: 1.6; }
 .visits-workspace { padding: 55px 10vw 90px; }
-.visits-toolbar { display: flex; justify-content: space-between; align-items: end; gap: 30px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
+/* flex-wrap: wrap — between the 720px column breakpoint and roughly 900px,
+   the two 290px-min filter fields plus the button no longer fit in one row
+   (10vw of side padding eats into the available width) and were pushed past
+   the viewport instead of wrapping. */
+.visits-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 30px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
 .visits-toolbar label { display: grid; gap: 9px; min-width: min(290px, 100%); flex:1; }
 .visits-toolbar select,.visits-toolbar input { width:100%; border:0; border-bottom:1px solid var(--ink); padding:10px 0; background:transparent; color:var(--ink); font:inherit; font-size:1.05rem; }
 .visits-toolbar select:focus,.visits-toolbar input:focus { border-color:var(--burgundy); outline:0; }

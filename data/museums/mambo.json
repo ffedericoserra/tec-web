@@ -16,19 +16,23 @@
       "sun": "10:00 - 18:00"
     },
     "imageUrl": "/uploads/museums/mambo.jpg",
-    "mapData": {
-      "imageUrl": "/uploads/maps/mambo-map.png",
-      "bounds": {
-        "north": 44.5001158,
-        "south": 44.4996842,
-        "east": 11.3395186,
-        "west": 11.3378814
-      },
-      "center": {
-        "lat": 44.4999,
-        "lng": 11.3387
+    "floorPlans": [
+      {
+        "floor": 0,
+        "label": "Piano Terra",
+        "imageUrl": "/uploads/maps/mambo-map.png",
+        "bounds": {
+          "north": 44.5001158,
+          "south": 44.4996842,
+          "east": 11.3395186,
+          "west": 11.3378814
+        },
+        "center": {
+          "lat": 44.4999,
+          "lng": 11.3387
+        }
       }
-    },
+    ],
     "pointsOfInterest": [
       {
         "type": "entrance",

@@ -108,6 +108,8 @@
     font-weight: 800;
     line-height: 0.92;
     letter-spacing: -1px;
+    /* Safety net for large mobile clamp sizes — see register.css. */
+    overflow-wrap: break-word;
 }
 
 #artaround-login .font-light {
@@ -269,7 +271,11 @@
     }
 
     #artaround-login .login-layout {
-        grid-template-columns: 1fr;
+        /* minmax(0, 1fr), not bare 1fr: a plain 1fr track's minimum size
+           defaults to its content's min-content width, which for a large
+           hero heading is the width of its longest word — wider than the
+           viewport on narrow phones. Kept consistent with register.css. */
+        grid-template-columns: minmax(0, 1fr);
         gap: 48px;
         min-height: 0;
     }

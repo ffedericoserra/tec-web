@@ -33,6 +33,44 @@ const pointOfInterestSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    // Which floor plan this point of interest belongs to. Defaults to 0 so
+    // museums with a single floor (the common case) need no extra data.
+    floor: {
+      type: Number,
+      default: 0,
+    },
+  },
+  { _id: false }
+);
+
+// One floor plan per physical level of the museum. Museums with a single
+// floor need only one entry (floor: 0), keeping today's single-map museums
+// unchanged.
+const floorPlanSchema = new mongoose.Schema(
+  {
+    floor: {
+      type: Number,
+      required: true,
+    },
+    // Display label, e.g. "Piano Terra", "Primo Piano" — shown above the map
+    // when the visit is currently on this floor.
+    label: {
+      type: String,
+      trim: true,
+    },
+    imageUrl: String,
+    // For geo-referenced maps (lat/lng)
+    bounds: {
+      north: Number,
+      south: Number,
+      east: Number,
+      west: Number,
+    },
+    // Center coordinates for this floor
+    center: {
+      lat: Number,
+      lng: Number,
+    },
   },
   { _id: false }
 );
@@ -74,21 +112,9 @@ const museumSchema = new mongoose.Schema(
       type: openingHoursSchema,
       default: () => ({}),
     },
-    mapData: {      // Refine when testing with actual maps
-      imageUrl: String,
-      // For geo-referenced maps (lat/lng)
-      bounds: {
-        north: Number,
-        south: Number,
-        east: Number,
-        west: Number,
-      },
-      // Center coordinates for the museum
-      center: {
-        lat: Number,
-        lng: Number,
-      },
-    },
+    // One entry per physical floor. Single-floor museums use a one-item
+    // array (floor: 0), so nothing else has to special-case "no floors".
+    floorPlans: [floorPlanSchema],
     pointsOfInterest: [pointOfInterestSchema],
     imageUrl: {
       type: String,

@@ -1600,6 +1600,12 @@
        altezza dall'aspect-ratio, altrimenti la riga della griglia a
        comparsa (0fr → 1fr) non riesce a determinare un'altezza da animare. */
     align-items: flex-start;
+    /* wrap: tra i 640px (sotto ai quali la regola dedicata impila tutto in
+       colonna) e circa 850px, artwork-card (260px fissa) + item-info-panel
+       (200px fissa, ma spesso più larga per via del contenuto) non lasciano
+       più i 160px minimi richiesti da item-route-panel: senza wrap la riga
+       sfondava silenziosamente la larghezza della pagina. */
+    flex-wrap: wrap;
     gap: 14px;
     overflow: hidden;
     min-height: 0;
@@ -2238,7 +2244,11 @@
 
     #artaround-visit-builder .visit-builder-hero-layout,
     #artaround-visit-builder .visit-meta-form {
-        grid-template-columns: 1fr;
+        /* minmax(0, 1fr), not bare 1fr: a plain 1fr track can't shrink below
+           its content's min-content width (the hero heading's longest word),
+           which silently overflows narrow viewports — see register.css for
+           the case where this actually broke. */
+        grid-template-columns: minmax(0, 1fr);
         gap: 42px;
     }
 
@@ -2311,11 +2321,11 @@
     }
 
     #artaround-visit-builder .visit-wallet-panel {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     #artaround-visit-builder .section-type-options {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     #artaround-visit-builder .section-type-option {

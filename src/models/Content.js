@@ -50,6 +50,12 @@ const contentSchema = new mongoose.Schema(
       lat: Number,
       lng: Number,
     },
+    // Which floor plan (Museum.floorPlans) this item's location belongs to.
+    // Defaults to 0 so existing single-floor museums need no migration.
+    floor: {
+      type: Number,
+      default: 0,
+    },
     // QR code data for positioning
     qrCode: {
       type: String,

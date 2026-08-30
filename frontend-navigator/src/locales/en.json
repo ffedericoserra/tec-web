@@ -243,6 +243,7 @@
   "map": {
     "title": "Map",
     "unavailable": "The map is not available for this museum.",
+    "floorFallback": "Floor {{floor}}",
     "visitAria_one": "Visit map with {{count}} stop",
     "visitAria_other": "Visit map with {{count}} stops",
     "zoomIn": "Zoom in",

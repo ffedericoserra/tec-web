@@ -835,10 +835,23 @@
   border-bottom: 1px solid var(--line-soft);
 }
 
+.map-head-titles {
+  min-width: 0;
+}
+
 .map-head h2 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-floor-label {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
