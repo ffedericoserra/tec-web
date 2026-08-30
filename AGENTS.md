@@ -106,7 +106,7 @@ tests/api.test.js        # end-to-end API tests
 ## 8. Gotchas that have bitten us
 
 - **`Item.contentId` is a `Content.universalId` *string*, not an ObjectId ref.** Mongoose `populate` cannot resolve it. Both frontends build a `Map(universalId → content)` from `GET /museums/:id/contents` instead. This is the single most common source of confusion in this codebase.
-- **The seed only runs on an empty database.** `src/index.js` counts museums and calls `runSeed()` only when the count is 0, so restarts preserve user data. Running `node scripts/seed.js` by hand *does* wipe everything.
+- **Every server start destructively reseeds the database.** `src/index.js` calls `runSeed()` after connecting, wiping and recreating all demo collections. This is intentional for the disposable university deployment; users, visits, sessions, and other UI-created data do not survive a restart. Running `node scripts/seed.js` by hand performs the same reset.
 - **Content images are matched by filename, not configured.** Drop `uploads/contents/<universalId>.<ext>` (jpg/jpeg/png/webp) and the next loader run sets `Content.imageUrl`. The field is assigned unconditionally including `null`, so deleting a file clears it.
 - **A visit carries both `sequence` (flat, ordered items) and `blocks` (grouping + question sections).** The step list a synchronized session walks is rebuilt from `blocks` in *two* places — `frontend-navigator/src/pages/VisitRun.jsx` and `src/controllers/session.controller.js`. Change one, change the other.
 - **Saving a visit can charge the wallet.** `adoptItems()` in `src/services/itemPurchaseService.js` purchases any item in the payload the user doesn't already own.

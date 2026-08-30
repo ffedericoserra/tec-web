@@ -24,8 +24,8 @@
 
 ## Running
 
-*Note: demo data is seeded automatically only when the database has no museums.
-Normal server restarts preserve users, visits, and sessions.*
+*Note: every server start destructively reseeds the demo database. Users,
+visits, sessions, and other changes made through the UI are not preserved.*
 
 **Development (local Docker):**
 ```bash
@@ -93,7 +93,7 @@ Node.js 22 + Express REST API with MongoDB persistence and real-time sync via So
 - **JWT (jsonwebtoken)** — stateless authentication. Token issued on login, verified by `requireAuth` middleware. No roles — authorization is creator-ownership checks in controllers
 - **Zod** — request body validation via `validate` middleware, before controllers run
 - **Socket.io** — real-time session sync (teacher advances/navigates, participants receive state updates). Auth via JWT handshake token
-- **Seed script** — bootstraps an empty database at server startup. Running `npm run seed` explicitly wipes and recreates the demo users, museums, items, and visits
+- **Seed script** — wipes and recreates the demo users, museums, items, visits, and sessions at every server startup. Running `npm run seed` performs the same reset explicitly
 
 Request flow: `route → validate(zodSchema) → requireAuth → controller → model`
 
@@ -148,6 +148,6 @@ frontend-navigator/            # Navigator SPA (React + Vite) — served at /, /
 ├── vite.config.js             # /api + /uploads proxy to :8000
 └── dist/                      # vite build output (gitignored — rebuild before deploy)
 scripts/
-├── seed.js                    # Destructive demo seed; auto-runs only on an empty DB
+├── seed.js                    # Destructive demo seed; runs at every server start
 └── load-museum.js             # Idempotent museum config loader
 ```

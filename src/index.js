@@ -12,7 +12,6 @@ const env = require("./config/env")
 const apiRoutes = require("./routes")
 const errorHandler = require("./middleware/errorHandler")
 const { initSocket } = require("./services/socketService")
-const Museum = require("./models/Museum")
 
 const runSeed = require("../scripts/seed")
 
@@ -90,12 +89,9 @@ const startServer = async () => {
     try {
         await connectDB()
 
-        // Bootstrap demo data only for an empty database. Re-seeding on every
-        // restart used to delete users and visits created through the UI.
-        const museumCount = await Museum.countDocuments()
-        if (museumCount === 0) {
-            await runSeed()
-        }
+        // This is a disposable university demo: every restart restores the
+        // canonical fixture data and removes changes made through the UI.
+        await runSeed()
 
         server.listen(env.PORT, () => {
             console.log(
