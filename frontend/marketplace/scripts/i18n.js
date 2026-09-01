@@ -176,6 +176,7 @@
                     loadingContents: "Caricamento contenuti...",
                     loadError: "Impossibile caricare i contenuti.",
                     closeAria: "Chiudi",
+                    detailSectionsAria: "Sezioni Item",
                     mineTab: "I miei Item",
                     purchasedTab: "Item acquistati",
                     noFilteredContent:
@@ -189,8 +190,6 @@
                     noneCreated:
                         "Non hai ancora creato Item per questo Content.",
                     purchased: "Item acquistati",
-                    hideAvailable: "Nascondi disponibili",
-                    showAvailable: "Vedi tutti i disponibili",
                     nonePurchased:
                         "Non hai ancora acquistato Item per questo Content.",
                     marketplace: "Marketplace",
@@ -746,6 +745,7 @@
                     loadingContents: "Loading Content...",
                     loadError: "Unable to load Content.",
                     closeAria: "Close",
+                    detailSectionsAria: "Item sections",
                     mineTab: "My Items",
                     purchasedTab: "Purchased Items",
                     noFilteredContent:
@@ -759,8 +759,6 @@
                     noneCreated:
                         "You have not created any Items for this Content yet.",
                     purchased: "Purchased Items",
-                    hideAvailable: "Hide available",
-                    showAvailable: "Show all available",
                     nonePurchased:
                         "You have not purchased any Items for this Content yet.",
                     marketplace: "Marketplace",

@@ -39,11 +39,12 @@
           <div><span class="kicker" id="detail-museum"></span><h2 id="detail-title">Content</h2><p id="detail-author"></p></div>
           <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi" data-i18n-aria-label="items.closeAria">&times;</button>
         </div>
-        <div class="detail-tabs" role="tablist">
-          <button class="tab-btn active" data-tab="mine" type="button" data-i18n="items.mineTab">I miei Item</button>
-          <button class="tab-btn" data-tab="purchased" type="button" data-i18n="items.purchasedTab">Item acquistati</button>
+        <div class="detail-tabs" role="tablist" aria-label="Sezioni Item" data-i18n-aria-label="items.detailSectionsAria">
+          <button class="tab-btn active" data-tab="marketplace" type="button" role="tab" aria-selected="true" data-i18n="items.marketplace">Marketplace</button>
+          <button class="tab-btn" data-tab="mine" type="button" role="tab" aria-selected="false" data-i18n="items.mineTab">I miei Item</button>
+          <button class="tab-btn" data-tab="purchased" type="button" role="tab" aria-selected="false" data-i18n="items.purchasedTab">Item acquistati</button>
         </div>
-        <div id="items-detail-list" class="items-detail-list"></div>
+        <div id="items-detail-list" class="items-detail-list" role="tabpanel"></div>
       </section>
     </div>
 

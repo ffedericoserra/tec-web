@@ -7,8 +7,7 @@ let museums = [];
 let contents = [];
 let currentContent = null;
 let currentItems = [];
-let activeTab = "mine";
-let showAvailable = false;
+let activeTab = "marketplace";
 let initializationStatus = "loading";
 
 if (!token) window.location.replace("login.html");
@@ -133,9 +132,25 @@ function renderItemRow(item, actions) {
 
 function renderDetail() {
     const list = document.getElementById("items-detail-list");
-    document.querySelectorAll(".tab-btn").forEach((button) => button.classList.toggle("active", button.dataset.tab === activeTab));
+    document.querySelectorAll(".tab-btn").forEach((button) => {
+        const isActive = button.dataset.tab === activeTab;
+        button.classList.toggle("active", isActive);
+        button.setAttribute("aria-selected", String(isActive));
+    });
+
+    const mine = currentItems.filter((item) => item.isOwned);
+    const purchased = currentItems.filter((item) => item.isPurchased && !item.isOwned);
+    const available = currentItems.filter((item) => item.isPublic && !item.isOwned && !item.isPurchased);
+
+    if (activeTab === "marketplace") {
+        list.innerHTML = available.length
+            ? available.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.details")}</a><button class="primary-btn" data-buy-id="${item._id}" type="button">${marketplaceT("items.buy")}</button>`)).join("")
+            : `<div class="empty-state">${marketplaceT("items.noneAvailable")}</div>`;
+        list.querySelectorAll("[data-buy-id]").forEach((button) => button.addEventListener("click", () => purchaseItem(button.dataset.buyId)));
+        return;
+    }
+
     if (activeTab === "mine") {
-        const mine = currentItems.filter((item) => item.isOwned);
         list.innerHTML = `
             <div class="available-heading"><h3>${marketplaceT("items.myItems")}</h3><a class="primary-btn" href="${itemEditorUrl()}">${marketplaceT("items.createNew")}</a></div>
             ${mine.length ? mine.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.edit")}</a><button class="danger-btn" data-delete-id="${item._id}" type="button">${marketplaceT("common.delete")}</button>`)).join("") : `<div class="empty-state">${marketplaceT("items.noneCreated")}</div>`}
@@ -144,15 +159,10 @@ function renderDetail() {
         return;
     }
 
-    const purchased = currentItems.filter((item) => item.isPurchased && !item.isOwned);
-    const available = currentItems.filter((item) => item.isPublic && !item.isOwned && !item.isPurchased);
     list.innerHTML = `
-        <div class="available-heading"><h3>${marketplaceT("items.purchased")}</h3><button id="toggle-available" class="secondary-btn" type="button">${showAvailable ? marketplaceT("items.hideAvailable") : marketplaceT("items.showAvailable")}</button></div>
+        <div class="available-heading"><h3>${marketplaceT("items.purchased")}</h3></div>
         ${purchased.length ? purchased.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.view")}</a>`)).join("") : `<div class="empty-state">${marketplaceT("items.nonePurchased")}</div>`}
-        ${showAvailable ? `<div class="available-heading"><h3>${marketplaceT("items.marketplace")}</h3></div>${available.length ? available.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.details")}</a><button class="primary-btn" data-buy-id="${item._id}" type="button">${marketplaceT("items.buy")}</button>`)).join("") : `<div class="empty-state">${marketplaceT("items.noneAvailable")}</div>`}` : ""}
     `;
-    document.getElementById("toggle-available")?.addEventListener("click", () => { showAvailable = !showAvailable; renderDetail(); });
-    list.querySelectorAll("[data-buy-id]").forEach((button) => button.addEventListener("click", () => purchaseItem(button.dataset.buyId)));
 }
 
 async function openContent() {
@@ -161,8 +171,7 @@ async function openContent() {
     document.getElementById("detail-author").textContent = currentContent.author || marketplaceT("items.authorMissing");
     document.getElementById("detail-museum").textContent = currentContent.museum.name;
     document.getElementById("items-detail-list").innerHTML = `<div class="empty-state">${marketplaceT("items.loadingItems")}</div>`;
-    activeTab = "mine";
-    showAvailable = false;
+    activeTab = "marketplace";
     try {
         const data = await api(`/items?contentId=${encodeURIComponent(currentContent.universalId)}`);
         currentItems = data.items || [];
@@ -187,6 +196,7 @@ async function purchaseItem(itemId) {
     try {
         await api(`/items/${itemId}/purchase`, { method:"POST" });
         item.isPurchased = true;
+        activeTab = "purchased";
         renderDetail();
     } catch (error) {
         alert(marketplaceT(
@@ -225,7 +235,7 @@ async function initialize() {
 museumSelect.addEventListener("change", renderContents);
 search.addEventListener("input", renderContents);
 document.getElementById("close-detail").addEventListener("click", () => document.getElementById("content-detail").classList.add("hidden"));
-document.querySelectorAll(".tab-btn").forEach((button) => button.addEventListener("click", () => { activeTab = button.dataset.tab; showAvailable = false; renderDetail(); }));
+document.querySelectorAll(".tab-btn").forEach((button) => button.addEventListener("click", () => { activeTab = button.dataset.tab; renderDetail(); }));
 window.addEventListener("marketplace:language-changed", () => {
     renderMuseumOptions();
     renderContents();
