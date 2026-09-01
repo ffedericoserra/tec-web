@@ -133,8 +133,8 @@ function buildTextPlaceholder(audienceId, duration) {
     const length = DURATION_WRITING_GUIDE[lang][duration];
     if (!tone || !length) return '';
     return lang === 'en'
-        ? `Describe "${urlTitle}" using ${tone.lexicon}: ${tone.voice}. Aim for ${length.words} (${length.shape}).`
-        : `Descrivi "${urlTitle}" con ${tone.lexicon}: ${tone.voice}. Punta a ${length.words} (${length.shape}).`;
+        ? `Here you can describe "${urlTitle}" using ${tone.lexicon}: ${tone.voice}. Aim for ${length.words} (${length.shape}). \nRemember to save the item before leaving the page.`
+        : `Qui puoi descrivere "${urlTitle}" con ${tone.lexicon}: ${tone.voice}. Punta a ${length.words} (${length.shape}). \nRicorda di salvare l'item prima di cambiare pagina.`;
 }
 
 function applyTailoredPlaceholders() {
