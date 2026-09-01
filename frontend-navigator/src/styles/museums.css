@@ -129,7 +129,7 @@
 .museum-preview-content {
   min-height: 0;
   display: grid;
-  grid-template-columns: 116px minmax(0, 1fr);
+  grid-template-columns: 116px minmax(0, 1fr) auto;
   gap: 14px;
   margin: 0 4px 16px;
   padding: 12px;
@@ -170,9 +170,55 @@
   text-transform: uppercase;
 }
 
+.museum-preview-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: center;
+}
+
+.museum-preview-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 10px 14px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.museum-preview-action:hover,
+.museum-preview-action:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent);
+  outline: none;
+}
+
+.museum-preview-marketplace {
+  border-color: var(--line-soft);
+  background: transparent;
+  color: var(--ink);
+}
+
+.museum-preview-marketplace:hover,
+.museum-preview-marketplace:focus-visible {
+  border-color: var(--accent);
+  background: transparent;
+  color: var(--accent);
+}
+
 @media (max-width: 380px) {
   .museum-preview-content {
-    grid-template-columns: 88px minmax(0, 1fr);
+    grid-template-columns: 88px minmax(0, 1fr) auto;
   }
 
   .museum-preview-image {

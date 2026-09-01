@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, setToken, setCachedUser } from '../api.js';
 import { currentLanguage } from '../i18n.js';
+import openEyeIcon from '../../../frontend/marketplace/assets/artaround/open-eye-icon.png';
+import closedEyeIcon from '../../../frontend/marketplace/assets/artaround/closed-eye-icon.png';
 
 export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }) {
   const { t } = useTranslation();
@@ -9,6 +11,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const usernameRef = useRef(null);
@@ -119,14 +122,29 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
           )}
           <label>
             {t('auth.password')}
-            <input
-              type="password"
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              required
-            />
+            <span className="auth-password-field">
+              <input
+                type={passwordVisible ? 'text' : 'password'}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
+              />
+              <button
+                type="button"
+                className="auth-password-toggle"
+                onClick={() => setPasswordVisible(!passwordVisible)}
+                aria-label={t(passwordVisible ? 'auth.hidePassword' : 'auth.showPassword')}
+                aria-pressed={passwordVisible}
+              >
+                <img
+                  src={passwordVisible ? openEyeIcon : closedEyeIcon}
+                  alt=""
+                  aria-hidden="true"
+                />
+              </button>
+            </span>
           </label>
           {error && (
             <p className="auth-error" role="alert">
@@ -148,6 +166,7 @@ export default function AuthDialog({ initialMode = 'login', onClose, onSuccess }
             type="button"
             onClick={() => {
               setError(null);
+              setPasswordVisible(false);
               setMode(mode === 'register' ? 'login' : 'register');
             }}
           >

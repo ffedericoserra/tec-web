@@ -924,7 +924,7 @@ export default function VisitRun() {
               )}
             </button>
           )}
-          <span className="session-code">{sessionCode}</span>
+          <span className="session-code">{t('visitRun.groupCode', { code: sessionCode })}</span>
         </div>
       )}
 

@@ -5,6 +5,24 @@ const myApi = `${baseUrl}/api`;
 const registerForm = document.getElementById("register-form");
 const errorMsg = document.getElementById("error-msg");
 
+function setupPasswordVisibilityToggle() {
+    const toggle = document.querySelector("[data-password-visibility-toggle]");
+    const passwordInput = document.getElementById("reg-pwd");
+    if (!toggle || !passwordInput) return;
+
+    toggle.addEventListener("click", () => {
+        const isVisible = passwordInput.type === "text";
+        passwordInput.type = isVisible ? "password" : "text";
+        toggle.querySelector("img").src = isVisible
+            ? "../assets/artaround/closed-eye-icon.png"
+            : "../assets/artaround/open-eye-icon.png";
+        const labelKey = isVisible ? "common.showPassword" : "common.hidePassword";
+        toggle.setAttribute("data-i18n-aria-label", labelKey);
+        toggle.setAttribute("aria-label", marketplaceT(labelKey));
+        toggle.setAttribute("aria-pressed", String(!isVisible));
+    });
+}
+
 function setRegisterMessage(message = "", type = "error") {
     errorMsg.textContent = message;
     errorMsg.classList.toggle("is-visible", Boolean(message));
@@ -80,3 +98,5 @@ if (registerForm) {
         }
     });
 }
+
+document.addEventListener("DOMContentLoaded", setupPasswordVisibilityToggle);

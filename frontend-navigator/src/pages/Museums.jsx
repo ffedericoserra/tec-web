@@ -129,6 +129,21 @@ export default function Museums() {
                         </p>
                       )}
                     </div>
+                    <div className="museum-preview-actions">
+                      <button
+                        type="button"
+                        className="museum-preview-action"
+                        onClick={() => navigate(`/${m.slug}`)}
+                      >
+                        {t('museums.discoverVisits')}
+                      </button>
+                      <a
+                        className="museum-preview-action museum-preview-marketplace"
+                        href={`/marketplace/pages/visits_list.html?museumId=${encodeURIComponent(m._id)}`}
+                      >
+                        {t('museums.openInMarketplace')}
+                      </a>
+                    </div>
                   </div>
                 </div>
               </li>

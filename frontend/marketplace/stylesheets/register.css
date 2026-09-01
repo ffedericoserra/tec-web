@@ -174,6 +174,17 @@
     text-align: left;
 }
 
+#artaround-register .password-field {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(22, 22, 22, 0.3);
+    transition: border-color 0.3s ease;
+}
+
+#artaround-register .password-field:focus-within {
+    border-color: #710014;
+}
+
 #artaround-register .input-slot {
     width: 100%;
     box-sizing: border-box;
@@ -193,6 +204,44 @@
     border-color: #710014;
     background: transparent;
     box-shadow: none;
+}
+
+#artaround-register .password-field .input-slot {
+    flex: 1;
+    min-width: 0;
+    border-bottom: none;
+}
+
+#artaround-register .password-field .input-slot:focus {
+    border-color: transparent;
+}
+
+#artaround-register .password-toggle {
+    display: grid;
+    place-items: center;
+    flex: 0 0 44px;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+#artaround-register .password-toggle:hover {
+    background: rgba(113, 0, 20, 0.1);
+}
+
+#artaround-register .password-toggle:focus-visible {
+    outline: 2px solid #710014;
+    outline-offset: -2px;
+}
+
+#artaround-register .password-toggle img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
 }
 
 #artaround-register .main-btn {

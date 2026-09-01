@@ -58,14 +58,26 @@
 
               <div class="input-group">
                 <label for="login-password" class="text-label" data-i18n="common.password">Password</label>
-                <input
-                  id="login-password"
-                  class="input-slot"
-                  name="pwd"
-                  type="password"
-                  autocomplete="current-password"
-                  required
-                />
+                <div class="password-field">
+                  <input
+                    id="login-password"
+                    class="input-slot"
+                    name="pwd"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                  />
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    data-password-visibility-toggle
+                    aria-label="Mostra password"
+                    data-i18n-aria-label="common.showPassword"
+                    aria-pressed="false"
+                  >
+                    <img src="../assets/artaround/closed-eye-icon.png" alt="" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
 
               <button class="main-btn" type="submit" data-i18n="login.submit">Accedi</button>

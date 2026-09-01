@@ -180,6 +180,54 @@
   border-color: var(--accent);
 }
 
+.auth-password-field {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid rgba(22, 22, 22, 0.3);
+  transition: border-color 0.2s ease;
+}
+
+.auth-password-field:focus-within {
+  border-color: var(--accent);
+}
+
+.auth-password-field input {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+}
+
+.auth-password-field input:focus {
+  border-color: transparent;
+}
+
+.auth-password-toggle {
+  display: grid;
+  place-items: center;
+  flex: 0 0 var(--tap);
+  width: var(--tap);
+  min-height: var(--tap);
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+}
+
+.auth-password-toggle:hover {
+  background: rgba(179, 74, 58, 0.1);
+}
+
+.auth-password-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.auth-password-toggle img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
 .auth-error {
   margin: 4px 0 0;
   color: var(--accent);
