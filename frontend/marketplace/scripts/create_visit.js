@@ -83,9 +83,12 @@ const visitGroupStatus = document.getElementById('visit-group-status');
 const visitGroupHint = document.getElementById('visit-group-hint');
 let activeBlockList = null;
 let pendingItemReplacement = null;
+let itemModalReturnFocus = null;
+let itemModalRequestId = 0;
 let currentWalletBalance = 0;
 let itemCatalog = {};
 let museumContentsCache = [];
+let itemCatalogReady = false;
 let originalVisitItemCounts = {};
 
 if (visitVisibilityInput) {
@@ -211,8 +214,7 @@ function countVisitItemsFromDom() {
     }, {});
 }
 
-function calculatePendingVisitCost() {
-    const currentCounts = countVisitItemsFromDom();
+function calculatePendingVisitCostForCounts(currentCounts) {
     let total = 0;
 
     Object.entries(currentCounts).forEach(([itemId, currentCount]) => {
@@ -223,6 +225,10 @@ function calculatePendingVisitCost() {
     });
 
     return total;
+}
+
+function calculatePendingVisitCost() {
+    return calculatePendingVisitCostForCounts(countVisitItemsFromDom());
 }
 
 function updateWalletPreview() {
@@ -237,50 +243,64 @@ function updateWalletPreview() {
     }
 }
 
-function canAffordItemAddition(itemId) {
+function canAffordItemSelection(itemNode, itemId) {
     const currentCounts = countVisitItemsFromDom();
-    const itemPrice = currentCounts[itemId] || originalVisitItemCounts[itemId]
-        ? 0
-        : Number(itemCatalog[itemId]?.adoptionPrice) || 0;
-    const remainingBalance = currentWalletBalance - calculatePendingVisitCost();
-    return itemPrice <= remainingBalance;
+    const currentItemId = itemNode?.dataset.itemId || '';
+
+    if (currentItemId && currentCounts[currentItemId]) {
+        currentCounts[currentItemId]--;
+        if (currentCounts[currentItemId] <= 0) delete currentCounts[currentItemId];
+    }
+    if (itemId) currentCounts[itemId] = (currentCounts[itemId] || 0) + 1;
+
+    return calculatePendingVisitCostForCounts(currentCounts) <= currentWalletBalance;
 }
 
 function refreshModalItemAvailability() {
-    const remainingBalance = currentWalletBalance - calculatePendingVisitCost();
-
-    Array.from(itemsContainer.querySelectorAll('.modal-artwork-item')).forEach((button) => {
-        if (button.dataset.action === 'create-item') {
-            button.disabled = false;
-            button.title = marketplaceT('visitEditor.createItemTitle');
-            return;
-        }
-
-        const itemId = button.dataset.itemId;
-        const currentCounts = countVisitItemsFromDom();
-        const itemPrice = currentCounts[itemId] || originalVisitItemCounts[itemId]
-            ? 0
-            : Number(itemCatalog[itemId]?.adoptionPrice) || 0;
-        const canAfford = itemPrice <= remainingBalance;
-
-        button.disabled = !canAfford;
-        button.title = canAfford
-            ? marketplaceT("visitEditor.addArtwork")
-            : marketplaceT("visitEditor.insufficientBalance");
-        const priceLabel = button.querySelector('.meta-pill-price');
-        if (priceLabel) {
-            const itemInfo = itemCatalog[itemId];
-            priceLabel.textContent = itemInfo?.isOwned
-                ? marketplaceT('visitEditor.owned')
-                : itemInfo?.isPurchased
-                    ? marketplaceT('visitEditor.acquired')
-                    : itemPrice > 0
-                        ? formatCurrencyAmount(itemPrice)
-                        : marketplaceT('visitEditor.free');
-        }
-    });
-
+    document.querySelectorAll('.draggable-item').forEach(populateItemChoiceSelect);
     updateWalletPreview();
+}
+
+function getContentByUniversalId(contentId) {
+    return museumContentsCache.find((content) => content.universalId === contentId) || null;
+}
+
+function getItemChoicesForContent(contentId) {
+    const ownershipRank = (itemInfo) => itemInfo.isOwned ? 0 : itemInfo.isPurchased ? 1 : 2;
+    return Object.entries(itemCatalog)
+        .filter(([, itemInfo]) => itemInfo.contentId === contentId)
+        .sort(([, left], [, right]) => {
+            const rankDifference = ownershipRank(left) - ownershipRank(right);
+            if (rankDifference !== 0) return rankDifference;
+            return (Number(left.adoptionPrice) || 0) - (Number(right.adoptionPrice) || 0);
+        });
+}
+
+function itemPricePresentation(itemInfo) {
+    const price = Number(itemInfo?.adoptionPrice ?? itemInfo?.price) || 0;
+    if (!itemInfo) {
+        return { label: marketplaceT('visitEditor.chooseItem'), className: 'is-free' };
+    }
+    if (itemInfo.isOwned) {
+        return { label: marketplaceT('visitEditor.owned'), className: 'is-free' };
+    }
+    if (itemInfo.isPurchased) {
+        return { label: marketplaceT('visitEditor.acquired'), className: 'is-free' };
+    }
+    return {
+        label: price > 0 ? formatCurrencyAmount(price) : marketplaceT('visitEditor.free'),
+        className: price > 0 ? 'is-paid' : 'is-free'
+    };
+}
+
+function itemChoiceLabel(itemInfo) {
+    const price = itemPricePresentation(itemInfo).label;
+    return [
+        itemInfo.creatorName,
+        targetAudienceLabel(itemInfo.targetAudience || 'general'),
+        itemInfo.license,
+        price
+    ].filter(Boolean).join(' · ');
 }
 
 async function loadMuseumItemCatalog(forceReload = false) {
@@ -316,6 +336,7 @@ async function loadMuseumItemCatalog(forceReload = false) {
         .forEach((item) => {
             itemCatalog[item._id] = createItemInfo(item, museumContents);
         });
+    itemCatalogReady = true;
 
     return itemCatalog;
 }
@@ -547,7 +568,7 @@ function normalizeBlockAddButton(block) {
 
     const label = isQuestionBlock
         ? marketplaceT('visitEditor.addQuestion')
-        : marketplaceT('visitEditor.addArtwork');
+        : marketplaceT('visitEditor.addContent');
     button.classList.add('add-btn', 'block-add-btn');
     button.textContent = '';
     button.dataset.tooltip = label;
@@ -569,7 +590,7 @@ function createNewBlock(defaultTitle = marketplaceT("visitEditor.newChapter"), s
            </div>`
         : `<ul class="block-list"></ul>
            <div class="block-footer">
-             <button class="add-btn block-add-btn add-item-to-block" type="button" aria-label="${marketplaceT('visitEditor.addArtwork')}" data-tooltip="${marketplaceT('visitEditor.addArtwork')}"></button>
+             <button class="add-btn block-add-btn add-item-to-block" type="button" aria-label="${marketplaceT('visitEditor.addContent')}" data-tooltip="${marketplaceT('visitEditor.addContent')}"></button>
            </div>`;
 
     block.innerHTML = `
@@ -654,109 +675,54 @@ function aggiornaContatoriBlocchi() {
     refreshModalItemAvailability();
 }
 
-// --- LOGICA RECUPERO OPERE ED INCROCIO CON I CONTENTS ---
+// --- PICKER CONTENT: l'Item viene scelto dopo, nella riga della visita ---
 async function apriModaleOpere(itemToReplace = null) {
+    const requestId = ++itemModalRequestId;
+    const wasClosed = itemModal.classList.contains('hidden');
+    if (wasClosed) itemModalReturnFocus = document.activeElement;
     pendingItemReplacement = itemToReplace;
     itemModal.classList.remove('hidden');
-    itemsContainer.innerHTML = renderBuilderMessage(
-        itemToReplace
-            ? marketplaceT("visitEditor.loadingAlternatives")
-            : marketplaceT("visitEditor.loadingArtworks")
-    );
+    itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("items.loadingContents"));
     updateWalletPreview();
+    const modalPanel = itemModal.querySelector('.visit-builder-modal');
+    if (wasClosed) modalPanel?.focus();
 
     try {
-        const catalog = await loadMuseumItemCatalog(true);
-        const requestedContentId = itemToReplace?.dataset.contentId || '';
-        const museumItems = Object.entries(catalog).filter(([, itemInfo]) =>
-            !requestedContentId || itemInfo.contentId === requestedContentId
-        );
-        const representedContentIds = new Set(
-            museumItems.map(([, itemInfo]) => itemInfo.contentId).filter(Boolean)
-        );
-        const contentsWithoutItems = museumContentsCache.filter(
-            (content) =>
-                !itemToReplace &&
-                content.type === 'Artwork' &&
-                content.universalId &&
-                !representedContentIds.has(content.universalId)
-        );
+        await loadMuseumItemCatalog(true);
+        if (requestId !== itemModalRequestId || itemModal.classList.contains('hidden')) return;
+        hydrateVisitItemChoices();
 
         itemsContainer.innerHTML = '';
-        if (museumItems.length > 0 || contentsWithoutItems.length > 0) {
-            museumItems.forEach(([itemId, itemInfo]) => {
+        if (museumContentsCache.length > 0) {
+            museumContentsCache.forEach((content) => {
+                if (!content.universalId) return;
+
                 const itemDiv = document.createElement('button');
                 itemDiv.type = 'button';
                 itemDiv.classList.add('modal-artwork-item');
-                itemDiv.dataset.itemId = itemId;
-                const itemPrice = Number(itemInfo.adoptionPrice) || 0;
-                const priceLabel = itemInfo.isOwned
-                    ? marketplaceT('visitEditor.owned')
-                    : itemInfo.isPurchased
-                        ? marketplaceT('visitEditor.acquired')
-                        : itemPrice > 0 ? formatCurrencyAmount(itemPrice) : marketplaceT('visitEditor.free');
-
-                const finalImgUrl = resolveAssetUrl(itemInfo.imageUrl);
-                const priceClass = itemPrice > 0 && !itemInfo.isOwned && !itemInfo.isPurchased ? 'is-paid' : 'is-free';
-                const imgTag = finalImgUrl
-                    ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(itemInfo.title)}" class="modal-artwork-image">`
-                    : '<span class="image-fallback">IMG</span>';
-
-                itemDiv.innerHTML = `
-                    <div class="modal-artwork-media">${imgTag}</div>
-                    <div class="modal-artwork-footer">
-                        <strong class="card-title">${escapeHTML(itemInfo.title)}</strong>
-                        <div class="card-meta-row">
-                            <span class="meta-pill meta-pill-author">${escapeHTML(itemInfo.author)}</span>
-                            <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
-                        </div>
-                    </div>
-                `;
-
-                itemDiv.querySelectorAll('.modal-artwork-image').forEach((img) => {
-                    img.addEventListener('error', () => img.classList.add('is-hidden'));
+                itemDiv.dataset.contentId = content.universalId;
+                const contentTitle = content.name || marketplaceT('common.content');
+                const addContentLabel = marketplaceT('visitEditor.addContentToVisit', {
+                    title: contentTitle
                 });
-
-                itemDiv.disabled = !canAffordItemAddition(itemId);
-
-                itemDiv.onclick = () => {
-                    const replacement = pendingItemReplacement;
-                    creaEdAggiungiItem(
-                        itemInfo.title,
-                        itemId,
-                        activeBlockList,
-                        itemInfo.imageUrl,
-                        itemInfo.author,
-                        itemInfo.contentId,
-                        replacement?.dataset.nextDirections || '',
-                        replacement?.dataset.prevDirections || '',
-                        replacement
-                    );
-                    pendingItemReplacement = null;
-                    itemModal.classList.add('hidden');
-                };
-                itemsContainer.appendChild(itemDiv);
-            });
-
-            contentsWithoutItems.forEach((content) => {
-                const itemDiv = document.createElement('button');
-                itemDiv.type = 'button';
-                itemDiv.classList.add('modal-artwork-item', 'create-content-item');
-                itemDiv.dataset.action = 'create-item';
+                itemDiv.title = addContentLabel;
+                itemDiv.setAttribute('aria-label', addContentLabel);
 
                 const imageUrl = contentImagePath(content);
                 const finalImgUrl = resolveAssetUrl(imageUrl);
                 const imgTag = finalImgUrl
-                    ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(content.name)}" class="modal-artwork-image">`
+                    ? `<img src="${escapeHTML(finalImgUrl)}" alt="" class="modal-artwork-image">`
                     : '<span class="image-fallback">IMG</span>';
+                const itemCount = getItemChoicesForContent(content.universalId).length;
 
                 itemDiv.innerHTML = `
                     <div class="modal-artwork-media">${imgTag}</div>
                     <div class="modal-artwork-footer">
-                        <strong class="card-title">${escapeHTML(content.name || marketplaceT('visitEditor.artwork'))}</strong>
+                        <strong class="card-title">${escapeHTML(content.name || marketplaceT('common.content'))}</strong>
+                        <span class="modal-content-author">${escapeHTML(content.author || marketplaceT('common.authorUnknown'))}</span>
                         <div class="card-meta-row">
-                            <span class="meta-pill meta-pill-author">${escapeHTML(content.author || marketplaceT('common.authorUnknown'))}</span>
-                            <span class="meta-pill meta-pill-create">${marketplaceT('visitEditor.createItem')}</span>
+                            <span class="meta-pill meta-pill-author">${escapeHTML(contentTypeLabel(content.type))}</span>
+                            <span class="meta-pill meta-pill-count">${escapeHTML(marketplaceT('visitEditor.availableItems', { count: itemCount }))}</span>
                         </div>
                     </div>
                 `;
@@ -764,41 +730,67 @@ async function apriModaleOpere(itemToReplace = null) {
                 itemDiv.querySelectorAll('.modal-artwork-image').forEach((img) => {
                     img.addEventListener('error', () => img.classList.add('is-hidden'));
                 });
-                itemDiv.addEventListener('click', () => {
-                    salvaStatoTemporaneo();
-                    const params = new URLSearchParams({
-                        museumId,
-                        museumName,
-                        source: 'visit',
-                        title: content.name || marketplaceT('visitEditor.artwork'),
-                        author: content.author || marketplaceT('common.authorUnknown'),
-                        image: imageUrl,
-                        year: content.year || marketplaceT('common.notAvailable'),
-                        contentId: content.universalId
-                    });
-                    if (visitId) params.set('visitId', visitId);
-                    window.location.href = `create_items.html?${params.toString()}`;
-                });
+
+                itemDiv.onclick = () => {
+                    const replacement = pendingItemReplacement;
+                    const selectedItemId = replacement?.dataset.contentId === content.universalId
+                        ? replacement.dataset.itemId || ''
+                        : '';
+                    const visitItem = creaEdAggiungiItem(
+                        content.name || marketplaceT('common.content'),
+                        selectedItemId,
+                        activeBlockList,
+                        imageUrl,
+                        content.author || marketplaceT('common.authorUnknown'),
+                        content.universalId,
+                        replacement?.dataset.nextDirections || '',
+                        replacement?.dataset.prevDirections || '',
+                        replacement
+                    );
+                    const itemSelect = visitItem.querySelector('.item-choice-select');
+                    closeItemPicker(itemSelect?.disabled
+                        ? visitItem.querySelector('.edit-item-btn')
+                        : itemSelect);
+                };
                 itemsContainer.appendChild(itemDiv);
             });
-            refreshModalItemAvailability();
+            if (!itemModal.contains(document.activeElement) || document.activeElement === modalPanel) {
+                itemsContainer.querySelector('.modal-artwork-item')?.focus();
+            }
         } else {
-            itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.noArtworks"));
+            itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.noContents"));
+            document.getElementById('close-item-modal')?.focus();
         }
     } catch (err) {
+        if (requestId !== itemModalRequestId || itemModal.classList.contains('hidden')) return;
         itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.connectionError"), true);
+        document.getElementById('close-item-modal')?.focus();
     }
 }
 
-document.getElementById('close-item-modal').addEventListener('click', () => {
+function closeItemPicker(nextFocus = null) {
+    const focusTarget = nextFocus || itemModalReturnFocus;
+    itemModalRequestId++;
     pendingItemReplacement = null;
     itemModal.classList.add('hidden');
+    itemModalReturnFocus = null;
+    if (focusTarget?.isConnected) {
+        requestAnimationFrame(() => focusTarget.focus());
+    }
+}
+
+document.getElementById('close-item-modal').addEventListener('click', () => closeItemPicker());
+itemModal.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    closeItemPicker();
 });
 
 // --- DRAG & DROP INCROCIATO & CREAZIONE CARTA ---
 let draggedItem = null;
 let dragSourceList = null;
 const boundArtworkItems = new WeakSet();
+const boundItemChoiceSelects = new WeakSet();
 let placeholder = document.createElement('li');
 placeholder.classList.add('placeholder');
 
@@ -903,11 +895,196 @@ function refreshRouteConnectors(listElement) {
     renderSectionRouteOverview(listElement, items);
 }
 
+function ensureItemChoiceControl(item) {
+    let select = item.querySelector('.item-choice-select');
+    if (select) return select;
+
+    const actions = item.querySelector('.item-toggle-actions');
+    if (!actions) return null;
+
+    const label = document.createElement('label');
+    label.classList.add('item-choice-control');
+    label.setAttribute('draggable', 'false');
+    label.innerHTML = `
+        <span class="item-choice-label">${marketplaceT('visitEditor.itemLabel')}</span>
+        <select class="item-choice-select"></select>
+    `;
+    actions.prepend(label);
+    select = label.querySelector('.item-choice-select');
+    return select;
+}
+
+function populateItemChoiceSelect(item) {
+    const select = ensureItemChoiceControl(item);
+    if (!select) return;
+
+    if (!itemCatalogReady) {
+        if (select.options.length === 0) {
+            const loadingOption = document.createElement('option');
+            loadingOption.value = '';
+            loadingOption.textContent = marketplaceT('visitEditor.loadingItems');
+            select.appendChild(loadingOption);
+        }
+        select.disabled = true;
+        select.required = false;
+        select.setAttribute('aria-required', 'false');
+        select.setAttribute('aria-busy', 'true');
+        return;
+    }
+    select.removeAttribute('aria-busy');
+
+    const selectedItemId = item.dataset.itemId || '';
+    const choices = getItemChoicesForContent(item.dataset.contentId || '');
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = choices.length > 0
+        ? marketplaceT('visitEditor.chooseItem')
+        : marketplaceT('visitEditor.noAvailableItems');
+    placeholder.disabled = choices.length > 0;
+    select.replaceChildren(placeholder);
+
+    const baseLabels = choices.map(([, itemInfo]) => itemChoiceLabel(itemInfo));
+    const labelTotals = baseLabels.reduce((totals, label) => {
+        totals.set(label, (totals.get(label) || 0) + 1);
+        return totals;
+    }, new Map());
+    const labelOccurrences = new Map();
+
+    choices.forEach(([itemId, itemInfo], index) => {
+        const option = document.createElement('option');
+        const baseLabel = baseLabels[index];
+        const labelOccurrence = (labelOccurrences.get(baseLabel) || 0) + 1;
+        labelOccurrences.set(baseLabel, labelOccurrence);
+        option.value = itemId;
+        option.textContent = labelTotals.get(baseLabel) > 1
+            ? `${baseLabel} · ${marketplaceT('visitEditor.itemVariant', {
+                count: labelOccurrence
+            })}`
+            : baseLabel;
+        const canAfford = canAffordItemSelection(item, itemId);
+        option.disabled = itemId !== selectedItemId && !canAfford;
+        if (option.disabled) {
+            option.textContent += ` · ${marketplaceT('visitEditor.insufficientBalance')}`;
+        }
+        select.appendChild(option);
+    });
+
+    select.value = selectedItemId;
+    if (itemCatalogReady && select.value !== selectedItemId) {
+        item.dataset.itemId = '';
+        select.value = '';
+        updateItemSpecificRow(item);
+    }
+    select.disabled = choices.length === 0;
+    select.required = choices.length > 0;
+    select.setAttribute('aria-required', choices.length > 0 ? 'true' : 'false');
+    select.setAttribute('aria-label', marketplaceT('visitEditor.chooseItemForContent', {
+        title: item.dataset.title || marketplaceT('common.content')
+    }));
+    select.title = choices.length === 0
+        ? marketplaceT('visitEditor.createItemFirst')
+        : marketplaceT('visitEditor.chooseItemForContent', {
+            title: item.dataset.title || marketplaceT('common.content')
+        });
+}
+
+function updateItemSpecificRow(item) {
+    const itemInfo = itemCatalog[item.dataset.itemId] || null;
+    const price = itemPricePresentation(itemInfo);
+    const contentTitle = item.dataset.title || marketplaceT('common.content');
+
+    item.querySelectorAll('.meta-pill-price, .item-info-price').forEach((element) => {
+        element.textContent = price.label;
+        element.classList.toggle('is-paid', price.className === 'is-paid');
+        element.classList.toggle('is-free', price.className === 'is-free');
+    });
+
+    const creator = item.querySelector('.item-info-creator');
+    if (creator) creator.textContent = itemInfo?.creatorName || '—';
+    const license = item.querySelector('.item-info-license');
+    if (license) license.textContent = itemInfo?.license || '—';
+    const target = item.querySelector('.item-info-target');
+    if (target) {
+        target.textContent = itemInfo
+            ? targetAudienceLabel(itemInfo.targetAudience || 'general')
+            : '—';
+    }
+
+    const editorLabel = marketplaceT(
+        itemInfo ? 'visitEditor.editItemForContent' : 'visitEditor.createItemForContent',
+        { title: contentTitle }
+    );
+    [item.querySelector('.item-open-editor'), item.querySelector('.edit-item-btn')]
+        .filter(Boolean)
+        .forEach((control) => {
+            control.title = editorLabel;
+            control.setAttribute('aria-label', editorLabel);
+        });
+
+    const replaceButton = item.querySelector('.replace-item-btn');
+    if (replaceButton) {
+        const replaceLabel = marketplaceT('visitEditor.changeContentFor', { title: contentTitle });
+        replaceButton.title = replaceLabel;
+        replaceButton.setAttribute('aria-label', replaceLabel);
+    }
+    const deleteButton = item.querySelector('.delete-btn');
+    if (deleteButton) {
+        const deleteLabel = marketplaceT('visitEditor.removeContentFromVisit', {
+            title: contentTitle
+        });
+        deleteButton.title = deleteLabel;
+        deleteButton.setAttribute('aria-label', deleteLabel);
+    }
+}
+
+function bindItemChoiceControl(item) {
+    const select = ensureItemChoiceControl(item);
+    if (!select) return;
+
+    populateItemChoiceSelect(item);
+    if (boundItemChoiceSelects.has(select)) return;
+    boundItemChoiceSelects.add(select);
+    select.removeAttribute('data-bound');
+
+    select.addEventListener('mousedown', (event) => event.stopPropagation());
+    select.addEventListener('pointerdown', () => {
+        item.dataset.suppressDrag = 'true';
+    });
+    ['pointerup', 'pointercancel', 'blur'].forEach((eventName) => {
+        select.addEventListener(eventName, () => delete item.dataset.suppressDrag);
+    });
+    select.addEventListener('dragstart', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    });
+    select.addEventListener('change', () => {
+        delete item.dataset.suppressDrag;
+        const previousItemId = item.dataset.itemId || '';
+        const nextItemId = select.value;
+        if (nextItemId && !canAffordItemSelection(item, nextItemId)) {
+            alert(marketplaceT('visitEditor.insufficientBalance'));
+            select.value = previousItemId;
+            return;
+        }
+
+        item.dataset.itemId = nextItemId;
+        updateItemSpecificRow(item);
+        refreshModalItemAvailability();
+    });
+}
+
+function hydrateVisitItemChoices() {
+    document.querySelectorAll('.draggable-item').forEach((item) => {
+        bindItemChoiceControl(item);
+        if (itemCatalogReady) updateItemSpecificRow(item);
+    });
+    refreshModalItemAvailability();
+}
+
 function openItemEditor(item) {
     salvaStatoTemporaneo();
 
     const params = new URLSearchParams({
-        itemId: item.dataset.itemId,
         museumId,
         museumName,
         source: 'visit',
@@ -915,6 +1092,7 @@ function openItemEditor(item) {
         author: item.dataset.author || marketplaceT('common.authorUnknown'),
         image: item.dataset.imageUrl || ''
     });
+    if (item.dataset.itemId) params.set('itemId', item.dataset.itemId);
     if (visitId) params.set('visitId', visitId);
     if (item.dataset.contentId) params.set('contentId', item.dataset.contentId);
     window.location.href = `create_items.html?${params.toString()}`;
@@ -932,12 +1110,13 @@ function bindArtworkItem(item) {
     // la "linguetta" con l'immagine intera e le indicazioni si abbassa invece
     // solo al passaggio del mouse (o al focus da tastiera), via CSS :hover.
     const header = item.querySelector('.item-accordion-header');
-    header.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
+    const openControl = item.querySelector('.item-open-editor') || header;
+    openControl.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
     [
         ['.edit-item-btn', 'visitEditor.editTexts'],
-        ['.replace-item-btn', 'visitEditor.changeArtwork'],
+        ['.replace-item-btn', 'visitEditor.changeContent'],
         ['.drag-handle', 'visitEditor.reorder'],
-        ['.delete-btn', 'visitEditor.removeArtwork']
+        ['.delete-btn', 'visitEditor.removeContent']
     ].forEach(([selector, key]) => {
         const button = item.querySelector(selector);
         if (!button) return;
@@ -946,17 +1125,23 @@ function bindArtworkItem(item) {
         button.setAttribute('aria-label', label);
     });
 
-    header.addEventListener('click', (event) => {
-        if (event.target.closest('button, input, textarea, select, a')) return;
-        openItemEditor(item);
-    });
-
-    header.addEventListener('keydown', (event) => {
-        if ((event.key === 'Enter' || event.key === ' ') && event.target === header) {
-            event.preventDefault();
+    if (openControl.classList.contains('item-open-editor')) {
+        openControl.addEventListener('click', () => openItemEditor(item));
+    } else {
+        header.addEventListener('click', (event) => {
+            if (event.target.closest('button, input, textarea, select, a')) return;
             openItemEditor(item);
-        }
-    });
+        });
+        header.addEventListener('keydown', (event) => {
+            if ((event.key === 'Enter' || event.key === ' ') && event.target === header) {
+                event.preventDefault();
+                openItemEditor(item);
+            }
+        });
+    }
+
+    bindItemChoiceControl(item);
+    if (itemCatalogReady) updateItemSpecificRow(item);
 
     item.querySelector('.delete-btn').addEventListener('click', () => {
         const listElement = item.parentElement;
@@ -974,7 +1159,14 @@ function bindArtworkItem(item) {
         apriModaleOpere(item);
     });
 
-    item.addEventListener('dragstart', () => {
+    item.addEventListener('dragstart', (event) => {
+        const startedFromControl = event.target.closest(
+            '.item-choice-control, input, textarea, select, a, button:not(.drag-handle)'
+        );
+        if (event.defaultPrevented || item.dataset.suppressDrag === 'true' || startedFromControl) {
+            event.preventDefault();
+            return;
+        }
         draggedItem = item;
         dragSourceList = item.parentElement;
         setTimeout(() => {
@@ -1010,58 +1202,65 @@ function creaEdAggiungiItem(
     prevDirections = "",
     itemToReplace = null
 ) {
+    const content = getContentByUniversalId(contentId);
+    const contentTitle = content?.name || titoloOpera || marketplaceT('common.content');
+    const contentAuthor = content?.author || author || marketplaceT('common.authorUnknown');
+    const contentImage = content ? contentImagePath(content) : imageUrl;
+    const contentYear = content?.year || itemCatalog[itemId]?.year || '—';
+    const contentType = content?.type || itemCatalog[itemId]?.contentType || '';
+
     const li = document.createElement('li');
     li.classList.add('draggable-item');
     li.setAttribute('draggable', 'true');
-    li.dataset.itemId = itemId;
-    li.dataset.title = titoloOpera || "";
-    li.dataset.author = author || "";
-    li.dataset.imageUrl = imageUrl || "";
+    li.dataset.itemId = itemId || '';
+    li.dataset.title = contentTitle;
+    li.dataset.author = contentAuthor;
+    li.dataset.imageUrl = contentImage || '';
     li.dataset.contentId = contentId || "";
     li.dataset.nextDirections = nextDirections || "";
     li.dataset.prevDirections = prevDirections || "";
 
     // Risolviamo il percorso dell'immagine
-    const finalImgUrl = resolveAssetUrl(imageUrl);
+    const finalImgUrl = resolveAssetUrl(contentImage);
     const imgTag = finalImgUrl
-        ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(titoloOpera)}" class="draggable-item-image">`
+        ? `<img src="${escapeHTML(finalImgUrl)}" alt="${escapeHTML(contentTitle)}" class="draggable-item-image">`
         : '<span class="image-fallback">IMG</span>';
 
-    const priceInfo = itemCatalog[itemId];
-    const priceValue = Number(priceInfo?.price) || 0;
-    const priceLabel = priceInfo?.isOwned
-        ? marketplaceT('visitEditor.owned')
-        : priceInfo?.isPurchased
-            ? marketplaceT('visitEditor.acquired')
-            : priceValue > 0 ? `${priceValue} Aα` : marketplaceT('visitEditor.free');
-    const priceClass = priceValue > 0 ? 'is-paid' : 'is-free';
+    const itemInfo = itemCatalog[itemId] || null;
+    const pricePresentation = itemPricePresentation(itemInfo);
+    const priceLabel = pricePresentation.label;
+    const priceClass = pricePresentation.className;
 
-    // Scheda-opera: sostituisce lo spazio che prima andava tutto alle
-    // indicazioni con informazioni utili sul quadro stesso.
-    const yearLabel = priceInfo?.year || '—';
-    const typeLabel = contentTypeLabel(priceInfo?.contentType) || priceInfo?.contentType || '—';
-    const licenseLabel = priceInfo?.license || 'CC-BY';
-    const targetLabel = targetAudienceLabel(priceInfo?.targetAudience) || '—';
+    // La scheda mostra i dati stabili del Content e aggiorna i metadati
+    // specifici dell'Item quando cambia la scelta nel menu a tendina.
+    const typeLabel = contentTypeLabel(contentType) || contentType || '—';
+    const creatorLabel = itemInfo?.creatorName || '—';
+    const licenseLabel = itemInfo?.license || '—';
+    const targetLabel = itemInfo
+        ? targetAudienceLabel(itemInfo.targetAudience || 'general')
+        : '—';
 
     li.innerHTML = `
-        <div class="item-accordion-header" role="button" tabindex="0" aria-label="${marketplaceT('visitEditor.editTextsAria')}">
-            <span class="item-toggle-thumb">${imgTag}</span>
-            <span class="item-toggle-info">
-                <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
-                <div class="card-meta-row">
-                    <span class="meta-pill meta-pill-author">${escapeHTML(author)}</span>
-                    <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
-                </div>
-            </span>
+        <div class="item-accordion-header">
+            <button type="button" class="item-open-editor" aria-label="${escapeHTML(marketplaceT('visitEditor.editTextsAria'))}">
+                <span class="item-toggle-thumb">${imgTag}</span>
+                <span class="item-toggle-info">
+                    <strong class="card-title">${escapeHTML(contentTitle)}</strong>
+                    <span class="card-meta-row">
+                        <span class="meta-pill meta-pill-author">${escapeHTML(contentAuthor)}</span>
+                        <span class="meta-pill meta-pill-price ${priceClass}">${escapeHTML(priceLabel)}</span>
+                    </span>
+                </span>
+            </button>
             <span class="item-toggle-actions">
                 <button type="button" class="edit-item-btn" title="${marketplaceT('visitEditor.editTexts')}" aria-label="${marketplaceT('visitEditor.editTexts')}">&#9998;</button>
-                <button type="button" class="replace-item-btn" title="${marketplaceT('visitEditor.changeArtwork')}" aria-label="${marketplaceT('visitEditor.changeArtwork')}">&#8644;</button>
+                <button type="button" class="replace-item-btn" title="${marketplaceT('visitEditor.changeContent')}" aria-label="${marketplaceT('visitEditor.changeContent')}">&#8644;</button>
                 <button type="button" class="drag-handle" title="${marketplaceT('visitEditor.reorder')}" aria-label="${marketplaceT('visitEditor.reorder')}">
                     <span class="drag-handle-dots" aria-hidden="true">
                         <span></span><span></span><span></span><span></span><span></span><span></span>
                     </span>
                 </button>
-                <button type="button" class="delete-btn" title="${marketplaceT('visitEditor.removeArtwork')}" aria-label="${marketplaceT('visitEditor.removeArtwork')}">&times;</button>
+                <button type="button" class="delete-btn" title="${marketplaceT('visitEditor.removeContent')}" aria-label="${marketplaceT('visitEditor.removeContent')}">&times;</button>
             </span>
             <span class="item-toggle-chevron" aria-hidden="true"></span>
         </div>
@@ -1071,34 +1270,38 @@ function creaEdAggiungiItem(
                     ${imgTag}
                     <div class="artwork-card-scrim"></div>
                     <div class="artwork-card-info">
-                        <strong class="card-title">${escapeHTML(titoloOpera)}</strong>
+                        <strong class="card-title">${escapeHTML(contentTitle)}</strong>
                     </div>
                 </div>
                 <dl class="item-info-panel">
                     <span class="item-info-heading">${marketplaceT('visitEditor.infoCardHeading')}</span>
                     <div class="item-info-row">
                         <dt>${marketplaceT('common.author')}</dt>
-                        <dd>${escapeHTML(author)}</dd>
+                        <dd>${escapeHTML(contentAuthor)}</dd>
                     </div>
                     <div class="item-info-row">
                         <dt>${marketplaceT('itemEditor.year')}</dt>
-                        <dd>${escapeHTML(yearLabel)}</dd>
+                        <dd>${escapeHTML(contentYear)}</dd>
                     </div>
                     <div class="item-info-row">
                         <dt>${marketplaceT('visitEditor.infoType')}</dt>
                         <dd>${escapeHTML(typeLabel)}</dd>
                     </div>
                     <div class="item-info-row">
+                        <dt>${marketplaceT('itemEditor.itemAuthor')}</dt>
+                        <dd class="item-info-creator">${escapeHTML(creatorLabel)}</dd>
+                    </div>
+                    <div class="item-info-row">
                         <dt>${marketplaceT('itemEditor.license')}</dt>
-                        <dd>${escapeHTML(licenseLabel)}</dd>
+                        <dd class="item-info-license">${escapeHTML(licenseLabel)}</dd>
                     </div>
                     <div class="item-info-row">
                         <dt>${marketplaceT('itemEditor.target')}</dt>
-                        <dd>${escapeHTML(targetLabel)}</dd>
+                        <dd class="item-info-target">${escapeHTML(targetLabel)}</dd>
                     </div>
                     <div class="item-info-row item-info-row-price">
                         <dt>${marketplaceT('itemEditor.price')}</dt>
-                        <dd class="${priceClass}">${escapeHTML(priceLabel)}</dd>
+                        <dd class="item-info-price ${priceClass}">${escapeHTML(priceLabel)}</dd>
                     </div>
                 </dl>
             </div>
@@ -1113,6 +1316,7 @@ function creaEdAggiungiItem(
     }
     refreshRouteConnectors(targetList);
     aggiornaContatoriBlocchi();
+    return li;
 }
 
 function setupDragAndDropForList(listElement) {
@@ -1249,7 +1453,7 @@ function normalizeVisitBlocks(visit) {
 }
 
 function getItemTitle(item, relatedContent) {
-    return item?.descriptions?.[0]?.title || relatedContent?.name || marketplaceT("visitEditor.artwork");
+    return relatedContent?.name || item?.descriptions?.[0]?.title || marketplaceT("visitEditor.artwork");
 }
 
 function createItemInfo(item, museumContents) {
@@ -1258,6 +1462,9 @@ function createItemInfo(item, museumContents) {
     return {
         title: getItemTitle(item, relatedContent),
         author: relatedContent?.author || marketplaceT("common.authorUnknown"),
+        creatorName: item.creatorId?.username
+            || item.creatorName
+            || marketplaceT('itemEditor.unknownUser'),
         year: relatedContent?.year || "",
         contentType: relatedContent?.type || "",
         imageUrl: contentImagePath(relatedContent),
@@ -1478,19 +1685,23 @@ window.addEventListener('DOMContentLoaded', async () => {
                 : null;
             setActiveBlock(restoredActiveBlock || blocksContainer.querySelector('.visit-block'));
             aggiornaContatoriBlocchi();
-            sessionStorage.removeItem('temp_visit_state');
         } else {
             createNewBlock(marketplaceT("visitEditor.firstStop"));
         }
     }
 
+    let catalogHydrated = false;
     try {
         await loadMuseumItemCatalog(true);
+        catalogHydrated = true;
     } catch (error) {
         console.error("Errore nel caricamento del catalogo prezzi:", error);
     }
 
-    updateWalletPreview();
+    hydrateVisitItemChoices();
+    if (shouldRestoreState && catalogHydrated) {
+        sessionStorage.removeItem('temp_visit_state');
+    }
 });
 
 window.addEventListener('marketplace:language-changed', () => {
@@ -1532,13 +1743,14 @@ window.addEventListener('marketplace:language-changed', () => {
         const list = block.querySelector('.block-list');
         if (list) {
             list.querySelectorAll('.draggable-item').forEach((item) => {
-                const header = item.querySelector('.item-accordion-header');
-                header.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
+                const openControl = item.querySelector('.item-open-editor')
+                    || item.querySelector('.item-accordion-header');
+                openControl.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
                 [
                     ['.edit-item-btn', 'visitEditor.editTexts'],
-                    ['.replace-item-btn', 'visitEditor.changeArtwork'],
+                    ['.replace-item-btn', 'visitEditor.changeContent'],
                     ['.drag-handle', 'visitEditor.reorder'],
-                    ['.delete-btn', 'visitEditor.removeArtwork']
+                    ['.delete-btn', 'visitEditor.removeContent']
                 ].forEach(([selector, key]) => {
                     const button = item.querySelector(selector);
                     if (!button) return;
@@ -1546,20 +1758,17 @@ window.addEventListener('marketplace:language-changed', () => {
                     button.title = label;
                     button.setAttribute('aria-label', label);
                 });
-                const info = itemCatalog[item.dataset.itemId];
-                const price = Number(info?.price) || 0;
-                const priceLabel = info?.isOwned
-                    ? marketplaceT('visitEditor.owned')
-                    : info?.isPurchased
-                        ? marketplaceT('visitEditor.acquired')
-                        : price > 0 ? `${price} Aα` : marketplaceT('visitEditor.free');
-                item.querySelectorAll('.meta-pill-price').forEach((label) => {
-                    label.textContent = priceLabel;
-                });
+                const choiceLabel = item.querySelector('.item-choice-label');
+                if (choiceLabel) choiceLabel.textContent = marketplaceT('visitEditor.itemLabel');
+                populateItemChoiceSelect(item);
+                if (itemCatalogReady) updateItemSpecificRow(item);
             });
             refreshRouteConnectors(list);
         }
     });
+    if (!itemModal.classList.contains('hidden')) {
+        apriModaleOpere(pendingItemReplacement);
+    }
     aggiornaContatoriBlocchi();
 });
 
@@ -1571,6 +1780,17 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
 
     if (!title.trim()) {
         alert(marketplaceT("visitEditor.titleRequired"));
+        return;
+    }
+
+    const hasContentStops = Boolean(document.querySelector('.draggable-item'));
+    if (hasContentStops && !itemCatalogReady) {
+        alert(marketplaceT('visitEditor.catalogRequiredBeforeSave'));
+        return;
+    }
+
+    if (hasContentStops && calculatePendingVisitCost() > currentWalletBalance) {
+        alert(marketplaceT('visitEditor.insufficientBalance'));
         return;
     }
 
@@ -1637,6 +1857,35 @@ document.getElementById('save-visit-btn').addEventListener('click', async () => 
         }
 
         const itemsNodes = block.querySelectorAll('.draggable-item');
+        const itemWithoutSelection = Array.from(itemsNodes).find((node) => !node.dataset.itemId);
+        if (itemWithoutSelection) {
+            validationError = marketplaceT('visitEditor.chooseItemBeforeSave', {
+                title: itemWithoutSelection.dataset.title || marketplaceT('common.content')
+            });
+            return;
+        }
+
+        const unavailableItem = Array.from(itemsNodes).find(
+            (node) => !itemCatalog[node.dataset.itemId]
+        );
+        if (unavailableItem) {
+            validationError = marketplaceT('visitEditor.itemUnavailableBeforeSave', {
+                title: unavailableItem.dataset.title || marketplaceT('common.content')
+            });
+            return;
+        }
+
+        const itemForDifferentContent = Array.from(itemsNodes).find((node) => {
+            const selectedItem = itemCatalog[node.dataset.itemId];
+            return selectedItem.contentId !== node.dataset.contentId;
+        });
+        if (itemForDifferentContent) {
+            validationError = marketplaceT('visitEditor.itemContentMismatch', {
+                title: itemForDifferentContent.dataset.title || marketplaceT('common.content')
+            });
+            return;
+        }
+
         const itemsIds = Array.from(itemsNodes).map(node => node.dataset.itemId);
 
         structurData.push({

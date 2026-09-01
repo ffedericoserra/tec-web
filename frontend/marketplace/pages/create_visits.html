@@ -42,7 +42,7 @@
         <div class="visit-editor-wrapper">
           <div class="visit-editor-toolbar">
             <h2 class="section-title-new" data-i18n="visitEditor.route">Percorso della visita</h2>
-            <p data-i18n="visitEditor.routeIntro">Ogni capitolo contiene una parte del percorso: le opere al suo interno si susseguono nell'ordine in cui compaiono.</p>
+            <p data-i18n="visitEditor.routeIntro">Ogni capitolo contiene una parte del percorso: i contenuti al suo interno si susseguono nell'ordine in cui compaiono.</p>
           </div>
 
           <div class="visit-meta-form">
@@ -140,7 +140,7 @@
       <div class="modal-content visit-builder-modal section-type-modal">
         <h3 class="modal-top-title" data-i18n="visitEditor.chooseChapterType">Scegli il tipo di capitolo</h3>
         <p class="section-type-intro" data-i18n="visitEditor.chapterTypeIntro">
-          I capitoli opere contengono le tappe della visita, nell'ordine in
+          I capitoli di contenuti raccolgono le tappe della visita, nell'ordine in
           cui le disponi qui sotto. I capitoli domanda vengono mostrati
           durante le sessioni di gruppo.
         </p>
@@ -150,8 +150,8 @@
             class="section-type-option"
             data-section-type="artwork"
           >
-            <strong data-i18n="visitEditor.artworkChapter">Capitolo opere</strong>
-            <span data-i18n="visitEditor.artworkChapterCopy">Aggiungi e ordina le opere del museo lungo il percorso.</span>
+            <strong data-i18n="visitEditor.artworkChapter">Capitolo contenuti</strong>
+            <span data-i18n="visitEditor.artworkChapterCopy">Aggiungi e ordina opere, artisti e altri contenuti del museo lungo il percorso.</span>
           </button>
           <button
             type="button"
@@ -173,8 +173,14 @@
     </div>
 
     <div id="select-item-modal" class="modal-overlay hidden">
-      <div class="modal-content visit-builder-modal">
-        <h3 class="modal-top-title" data-i18n="visitEditor.chooseArtwork">Scegli un'opera</h3>
+      <div
+        class="modal-content visit-builder-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="select-content-modal-title"
+        tabindex="-1"
+      >
+        <h3 id="select-content-modal-title" class="modal-top-title" data-i18n="visitEditor.chooseContent">Scegli un contenuto</h3>
         <div class="visit-wallet-panel">
           <p><span data-i18n="visitEditor.currentBalance">Saldo attuale</span> <strong id="visit-wallet-current">0 A&alpha;</strong></p>
           <p><span data-i18n="visitEditor.newAdditions">Nuove aggiunte</span> <strong id="visit-wallet-pending">0 A&alpha;</strong></p>

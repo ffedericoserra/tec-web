@@ -1469,7 +1469,7 @@
 }
 
 /* Ogni tappa è una "fisarmonica": una riga compatta sempre visibile
-   (miniatura + titolo + azioni) che si apre per mostrare l'opera a piena
+   (miniatura + titolo + scelta Item + azioni) che si apre per mostrare il Content
    grandezza (come in Archidekt) e le indicazioni verso la tappa successiva. */
 #artaround-visit-builder .draggable-item {
     position: relative;
@@ -1487,14 +1487,32 @@
     gap: 12px;
     padding: 8px;
     border-radius: 6px;
-    cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-#artaround-visit-builder .item-accordion-header:hover,
-#artaround-visit-builder .item-accordion-header:focus-visible {
+#artaround-visit-builder .item-accordion-header:hover {
     background-color: rgba(var(--burgundy-rgb), 0.06);
-    outline: none;
+}
+
+#artaround-visit-builder .item-open-editor {
+    display: flex;
+    flex: 1 1 220px;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 0;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+#artaround-visit-builder .item-open-editor:focus-visible {
+    border-radius: 4px;
+    outline: 2px solid var(--burgundy);
+    outline-offset: 2px;
 }
 
 #artaround-visit-builder .item-toggle-thumb {
@@ -1537,8 +1555,51 @@
 #artaround-visit-builder .item-toggle-actions {
     display: flex;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     align-items: center;
     gap: 6px;
+}
+
+#artaround-visit-builder .item-choice-control {
+    display: grid;
+    grid-template-columns: auto minmax(150px, 220px);
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+#artaround-visit-builder .item-choice-label {
+    color: rgba(var(--ink-rgb), 0.62);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+#artaround-visit-builder .item-choice-select {
+    width: 100%;
+    height: 30px;
+    min-width: 0;
+    padding: 0 28px 0 9px;
+    color: var(--ink);
+    background-color: var(--cream);
+    border: 1px solid rgba(var(--ink-rgb), 0.32);
+    border-radius: 4px;
+    font: 700 0.72rem/1 'Helvetica', Arial, sans-serif;
+    cursor: pointer;
+}
+
+#artaround-visit-builder .item-choice-select:focus-visible {
+    border-color: var(--burgundy);
+    outline: 2px solid rgba(var(--burgundy-rgb), 0.18);
+    outline-offset: 1px;
+}
+
+#artaround-visit-builder .item-choice-select:disabled {
+    color: rgba(var(--ink-rgb), 0.48);
+    background-color: rgba(var(--ink-rgb), 0.04);
+    cursor: not-allowed;
 }
 
 #artaround-visit-builder .item-toggle-actions button {
@@ -1731,9 +1792,9 @@
     border-radius: 50%;
 }
 
-/* Scheda opera: sostituisce, a colpo d'occhio, lo spazio che prima andava
-   tutto alle indicazioni di percorso con le informazioni sull'opera
-   (autore, anno, tipo, licenza, target, prezzo) in righe etichetta/valore
+/* Scheda Content: sostituisce, a colpo d'occhio, lo spazio che prima andava
+   tutto alle indicazioni di percorso con le informazioni sul contenuto e
+   sull'Item scelto (autori, anno, tipo, licenza, target, prezzo)
    coerenti con lo stile dei metadati di create_items.html. */
 #artaround-visit-builder .item-info-panel {
     flex: 0 0 200px;
@@ -2168,6 +2229,18 @@
     padding: 10px 12px 12px;
 }
 
+#artaround-visit-builder .modal-content-author {
+    color: rgba(var(--ink-rgb), 0.62);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+#artaround-visit-builder .modal-artwork-footer .meta-pill-count {
+    border-color: rgba(var(--burgundy-rgb), 0.35);
+    color: var(--burgundy);
+}
+
 /* I pill/titolo condivisi (definiti per l'overlay scuro delle altre card,
    vedi .artwork-card-info) diventano testo scuro su questo sfondo chiaro. */
 #artaround-visit-builder .modal-artwork-footer .card-title {
@@ -2295,6 +2368,29 @@
 
     #artaround-visit-builder .action-buttons {
         flex-direction: column-reverse;
+    }
+
+    #artaround-visit-builder .item-accordion-header {
+        flex-wrap: wrap;
+    }
+
+    #artaround-visit-builder .item-open-editor {
+        order: 1;
+        flex-basis: calc(100% - 28px);
+    }
+
+    #artaround-visit-builder .item-toggle-chevron {
+        order: 2;
+    }
+
+    #artaround-visit-builder .item-toggle-actions {
+        order: 3;
+        flex: 1 0 100%;
+    }
+
+    #artaround-visit-builder .item-choice-control {
+        flex: 1;
+        grid-template-columns: auto minmax(0, 1fr);
     }
 
     /* Sotto i 640px, a fisarmonica aperta, la carta, la scheda opera e le
