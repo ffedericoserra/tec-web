@@ -307,42 +307,52 @@ async function seed() {
             blockName: 'Caravaggio agli Uffizi',
             items: itemIds(uffiziGroupItems.slice(8, 10)),
           },
+          {
+            type: 'questions',
+            blockName: 'Prova finale: capolavori degli Uffizi',
+            items: [],
+            questions: [
+              {
+                prompt: 'Quale artista ha dipinto sia Bacco sia Medusa?',
+                answerType: 'multiple-choice',
+                options: ['Caravaggio', 'Tiziano Vecellio', 'Leonardo da Vinci', 'Sandro Botticelli'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Quale coppia di opere del percorso condivide l\'anno 1597?',
+                answerType: 'multiple-choice',
+                options: [
+                  'Bacco e Medusa',
+                  'La Primavera e La nascita di Venere',
+                  'Madonna del Cardellino e Tondo Doni',
+                  'Maestà di Ognissanti e Adorazione dei Magi',
+                ],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Qual è l\'opera più antica dell\'intero itinerario?',
+                answerType: 'multiple-choice',
+                options: ['Maestà di Ognissanti', 'Annunciazione', 'La Primavera', 'Tondo Doni'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Chi ha realizzato il Tondo Doni?',
+                answerType: 'multiple-choice',
+                options: ['Raffaello Sanzio', 'Michelangelo Buonarroti', 'Giotto', 'Gentile da Fabriano'],
+                correctIndex: 1,
+              },
+              {
+                prompt: 'Chi ha dipinto la Venere di Urbino?',
+                answerType: 'multiple-choice',
+                options: ['Tiziano Vecellio', 'Caravaggio', 'Sandro Botticelli', 'Leonardo da Vinci'],
+                correctIndex: 0,
+              },
+            ],
+          },
         ],
         type: 'synchronized',
         length: 'deep',
         isPublic: true,
-        quiz: [
-          {
-            question: 'Quale artista ha dipinto sia Bacco sia Medusa?',
-            options: ['Caravaggio', 'Tiziano Vecellio', 'Leonardo da Vinci', 'Sandro Botticelli'],
-            correctIndex: 0,
-          },
-          {
-            question: 'Quale coppia di opere del percorso condivide l\'anno 1597?',
-            options: [
-              'Bacco e Medusa',
-              'La Primavera e La nascita di Venere',
-              'Madonna del Cardellino e Tondo Doni',
-              'Maestà di Ognissanti e Adorazione dei Magi',
-            ],
-            correctIndex: 0,
-          },
-          {
-            question: 'Qual è l\'opera più antica dell\'intero itinerario?',
-            options: ['Maestà di Ognissanti', 'Annunciazione', 'La Primavera', 'Tondo Doni'],
-            correctIndex: 0,
-          },
-          {
-            question: 'Chi ha realizzato il Tondo Doni?',
-            options: ['Raffaello Sanzio', 'Michelangelo Buonarroti', 'Giotto', 'Gentile da Fabriano'],
-            correctIndex: 1,
-          },
-          {
-            question: 'Chi ha dipinto la Venere di Urbino?',
-            options: ['Tiziano Vecellio', 'Caravaggio', 'Sandro Botticelli', 'Leonardo da Vinci'],
-            correctIndex: 0,
-          },
-        ],
         imageUrl: '/uploads/visits/scuole.jpg',
       },
       // MAMbo visits
@@ -453,42 +463,52 @@ async function seed() {
             blockName: 'Materiali e bellezza classica',
             items: itemIds(mamboGroupItems.slice(8, 10)),
           },
+          {
+            type: 'questions',
+            blockName: 'Prova finale: il Novecento al MAMbo',
+            items: [],
+            questions: [
+              {
+                prompt: 'Quale opera del percorso è stata realizzata nel 1968?',
+                answerType: 'multiple-choice',
+                options: ['Bachi da setola', 'Venere degli stracci', 'Senza titolo', 'Concetto spaziale, Attese'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Chi ha realizzato la Venere degli stracci?',
+                answerType: 'multiple-choice',
+                options: ['Jannis Kounellis', 'Giulio Paolini', 'Michelangelo Pistoletto', 'Pino Pascali'],
+                correctIndex: 2,
+              },
+              {
+                prompt: 'Quale coppia di opere del percorso è datata 1962?',
+                answerType: 'multiple-choice',
+                options: [
+                  'Rosso Plastica e Plurimo',
+                  'Natura morta e Paesaggio',
+                  'Ettore e Andromaca e Venere degli stracci',
+                  'Bachi da setola e Giovane che guarda Lorenzo Lotto',
+                ],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Quale opera del percorso è di Giorgio de Chirico?',
+                answerType: 'multiple-choice',
+                options: ['Ettore e Andromaca', 'Rosso Plastica', 'Bachi da setola', 'Senza titolo'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Quale artista ha realizzato Concetto spaziale, Attese?',
+                answerType: 'multiple-choice',
+                options: ['Lucio Fontana', 'Emilio Vedova', 'Alberto Burri', 'Giorgio Morandi'],
+                correctIndex: 0,
+              },
+            ],
+          },
         ],
         type: 'synchronized',
         length: 'deep',
         isPublic: true,
-        quiz: [
-          {
-            question: 'Quale opera del percorso è stata realizzata nel 1968?',
-            options: ['Bachi da setola', 'Venere degli stracci', 'Senza titolo', 'Concetto spaziale, Attese'],
-            correctIndex: 0,
-          },
-          {
-            question: 'Chi ha realizzato la Venere degli stracci?',
-            options: ['Jannis Kounellis', 'Giulio Paolini', 'Michelangelo Pistoletto', 'Pino Pascali'],
-            correctIndex: 2,
-          },
-          {
-            question: 'Quale coppia di opere del percorso è datata 1962?',
-            options: [
-              'Rosso Plastica e Plurimo',
-              'Natura morta e Paesaggio',
-              'Ettore e Andromaca e Venere degli stracci',
-              'Bachi da setola e Giovane che guarda Lorenzo Lotto',
-            ],
-            correctIndex: 0,
-          },
-          {
-            question: 'Quale opera del percorso è di Giorgio de Chirico?',
-            options: ['Ettore e Andromaca', 'Rosso Plastica', 'Bachi da setola', 'Senza titolo'],
-            correctIndex: 0,
-          },
-          {
-            question: 'Quale artista ha realizzato Concetto spaziale, Attese?',
-            options: ['Lucio Fontana', 'Emilio Vedova', 'Alberto Burri', 'Giorgio Morandi'],
-            correctIndex: 0,
-          },
-        ],
         imageUrl: '/uploads/visits/mambo-povera.jpg',
       },
     ]);

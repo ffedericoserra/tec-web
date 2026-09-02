@@ -536,6 +536,23 @@ async function testVisits() {
     allPassed = allPassed && passed;
   }
 
+  // Seeded synchronized demos finish with a question section, not a separate quiz.
+  {
+    const { status, data } = publicSynchronizedVisitId
+      ? await request('GET', `/visits/${publicSynchronizedVisitId}`)
+      : { status: 0, data: {} };
+    const blocks = data.visit?.blocks || [];
+    const finalBlock = blocks[blocks.length - 1];
+    const passed =
+      status === 200 &&
+      finalBlock?.type === 'questions' &&
+      finalBlock.blockName?.startsWith('Prova finale') &&
+      finalBlock.questions?.length === 5 &&
+      data.visit?.quiz?.length === 0;
+    log('Seeded synchronized visit has its final test in a question section', passed);
+    allPassed = allPassed && passed;
+  }
+
   // Get my visits (authenticated)
   {
     const { status, data } = await request('GET', '/visits/my', null, authToken);
@@ -674,7 +691,6 @@ async function testSessions() {
       studentToken
     );
     const publicHostCode = data.session?.code;
-    const hostQuiz = data.session?.visitId?.quiz || [];
     const hostSectionQuestions = (data.session?.visitId?.blocks || []).flatMap(
       (block) => block.questions || []
     );
@@ -686,14 +702,6 @@ async function testSessions() {
           studentToken
         )
       : { status: 0 };
-    const quizResults = publicHostCode
-      ? await request(
-          'GET',
-          `/sessions/${publicHostCode}/quiz`,
-          null,
-          studentToken
-        )
-      : { status: 0, data: {} };
     const end = publicHostCode
       ? await request(
           'POST',
@@ -707,19 +715,13 @@ async function testSessions() {
       data.session?.isOwner === true &&
       data.session?.owner?.username === 'visitatore1' &&
       advance.status === 200 &&
-      hostQuiz.length > 0 &&
-      hostQuiz.every((question) => question.correctIndex === undefined) &&
       hostSectionQuestions.length > 0 &&
       hostSectionQuestions.every(
         (question) => question.correctIndex === undefined
       ) &&
-      quizResults.status === 200 &&
-      quizResults.data.quiz?.every(
-        (question) => question.correctIndex === undefined
-      ) &&
       end.status === 200;
     log(
-      'POST /sessions lets a non-author host a public synchronized visit without answer keys',
+      'POST /sessions lets a non-author host a public synchronized visit without section answer keys',
       passed,
       publicHostCode
     );
@@ -930,20 +932,40 @@ async function testQuiz() {
   let allPassed = true;
   let quizSessionCode = null;
 
-  // Find a synchronized visit with quiz (seeded by docente1)
-  let syncVisitId = null;
+  // Keep the optional legacy quiz flow covered without putting a quiz outside
+  // the final question section of either seeded group demonstration.
+  let quizVisitId = null;
   {
-    const { status, data } = await request('GET', '/visits/my', null, teacherToken);
-    if (status === 200 && data.visits) {
-      const syncVisit = data.visits.find((v) => v.type === 'synchronized' && v.quiz && v.quiz.length > 0);
-      if (syncVisit) syncVisitId = syncVisit._id;
-    }
-    const passed = !!syncVisitId;
-    log('Found synchronized visit with quiz', passed);
+    const { status, data } = await request(
+      'POST',
+      '/visits',
+      {
+        title: `Temporary quiz visit ${Date.now()}`,
+        museumId,
+        type: 'synchronized',
+        isPublic: false,
+        quiz: [
+          {
+            question: 'Quale opzione e corretta?',
+            options: ['Prima', 'Seconda'],
+            correctIndex: 0,
+          },
+          {
+            question: 'Quale opzione e errata?',
+            options: ['Prima', 'Seconda'],
+            correctIndex: 1,
+          },
+        ],
+      },
+      teacherToken
+    );
+    quizVisitId = data.visit?._id || null;
+    const passed = status === 201 && !!quizVisitId;
+    log('Create temporary synchronized visit with quiz', passed);
     allPassed = allPassed && passed;
   }
 
-  if (!syncVisitId) {
+  if (!quizVisitId) {
     console.log('  ⚠ Skipping quiz tests (no sync visit with quiz found)');
     return allPassed;
   }
@@ -953,7 +975,7 @@ async function testQuiz() {
     const { status, data } = await request(
       'POST',
       '/sessions',
-      { visitId: syncVisitId },
+      { visitId: quizVisitId },
       teacherToken
     );
     const passed = status === 201 && data.session?.code;
@@ -1053,7 +1075,16 @@ async function testQuiz() {
 
   // End the quiz session (cleanup)
   {
-    await request('POST', `/sessions/${quizSessionCode}/end`, null, teacherToken);
+    const end = await request(
+      'POST',
+      `/sessions/${quizSessionCode}/end`,
+      null,
+      teacherToken
+    );
+    const remove = await request('DELETE', `/visits/${quizVisitId}`, null, teacherToken);
+    const passed = end.status === 200 && remove.status === 200;
+    log('End and clean up the temporary quiz session', passed);
+    allPassed = allPassed && passed;
   }
 
   return allPassed;

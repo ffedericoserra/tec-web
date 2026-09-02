@@ -93,7 +93,7 @@ Node.js 22 + Express REST API with MongoDB persistence and real-time sync via So
 - **JWT (jsonwebtoken)** — stateless authentication. Token issued on login, verified by `requireAuth` middleware. No roles — authorization is creator-ownership checks in controllers
 - **Zod** — request body validation via `validate` middleware, before controllers run
 - **Socket.io** — real-time session sync (teacher advances/navigates, participants receive state updates). Auth via JWT handshake token
-- **Seed script** — wipes and recreates demo users, museums, items and visits at every server startup, and clears active sessions. It includes two public synchronized tours (one for the Uffizi and one for MAMbo), each with intermediate questions and a final quiz. Running `npm run seed` performs the same reset explicitly
+- **Seed script** — wipes and recreates demo users, museums, items and visits at every server startup, and clears active sessions. It includes two public synchronized tours (one for the Uffizi and one for MAMbo), each with intermediate questions and a final question section. Running `npm run seed` performs the same reset explicitly
 
 Request flow: `route → validate(zodSchema) → requireAuth → controller → model`
 
