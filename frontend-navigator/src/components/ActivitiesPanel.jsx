@@ -269,6 +269,7 @@ export default function ActivitiesPanel({
                         String(question._id)
                       );
                       const outcome = responseOutcome(question, response);
+                      const correctAnswer = correctAnswerText(question);
                       return (
                         <div className="activity-answer-row" key={String(question._id)}>
                           <p className="activity-question-text">
@@ -277,6 +278,11 @@ export default function ActivitiesPanel({
                           <p className={response ? 'activity-answer-text' : 'activity-answer-text is-empty'}>
                             {answerText(question, response, t)}
                           </p>
+                          {correctAnswer && (
+                            <p className="activity-correct-answer">
+                              {t('activities.correctAnswer', { answer: correctAnswer })}
+                            </p>
+                          )}
                           {outcome && (
                             <span
                               className={`activity-answer-outcome${

@@ -48,9 +48,9 @@ function buildSessionSteps(visit) {
 /**
  * Shape a session for the client: tell the caller which role it has, so the
  * navigator doesn't have to compare ObjectIds itself. A session owner can be a
- * host who did not author the Visit, so answer keys remain visible only to the
- * Visit's creator. `owner` may or may not be populated depending on the caller,
- * hence the `_id ||` dance.
+ * host who did not author the Visit. Both the session host and the Visit's
+ * creator can inspect answer keys; participants cannot. `owner` may or may not
+ * be populated depending on the caller, hence the `_id ||` dance.
  */
 function presentSession(session, userId) {
   const ownerId = (session.owner?._id || session.owner).toString();
@@ -59,7 +59,7 @@ function presentSession(session, userId) {
   const visitCreatorId = (
     session.visitId?.creatorId?._id || session.visitId?.creatorId
   )?.toString();
-  const canSeeAnswerKeys = visitCreatorId === me;
+  const canSeeAnswerKeys = isOwner || visitCreatorId === me;
 
   const obj = session.toObject();
   obj.isOwner = isOwner;
@@ -751,14 +751,7 @@ exports.getQuizResults = async (req, res, next) => {
     }
 
     const quiz = session.visitId.quiz || [];
-    const isVisitCreator =
-      session.visitId.creatorId.toString() === req.user._id.toString();
-    const visibleQuiz = isVisitCreator
-      ? quiz
-      : quiz.map((question) => ({
-          question: question.question,
-          options: question.options,
-        }));
+    const visibleQuiz = quiz;
     const results = session.participants
       .filter((p) => p.quizScore !== null)
       .map((p) => ({

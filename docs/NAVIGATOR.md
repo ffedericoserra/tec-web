@@ -426,7 +426,7 @@ text and voice metadata must never drift.
 - The session toolbar always prefixes the host-selected code with **`CODICE GRUPPO:`** (localized as `GROUP CODE:` in English), so the trailing identifier is unambiguous even when the custom code is long.
 - **Loading takes one extra hop**: `GET /sessions/:code` → the session names the visit `_id` and (via a nested populate) the museum **slug**, then the usual `GET /visits/:id` + `GET /museums/:slug/contents` pair runs unchanged.
 - **Steps, not just stops.** A visit's `blocks[]` (see [SCHEMA.md](SCHEMA.md)) interleave artwork stops with question sections, so a session walks a *step* list rather than the raw `sequence`. ⚠️ **That list is built twice** — `buildSteps`-style logic in `VisitRun.jsx` and in `session.controller.js`. They must stay in agreement; change one and you must change the other. A visit with no `blocks` degrades to one artwork step per `sequence` entry.
-- **Question-section review.** The host sees each multiple-choice response marked correct or incorrect in real time, including when the host did not author the public visit. Only that boolean is shared: `correctIndex` remains available solely to the visit author. Open answers are explicitly marked for manual review.
+- **Question-section review.** The host sees each multiple-choice response marked correct or incorrect in real time, including when the host did not author the public visit, and can see the correct option. The same option is included in the host's downloadable `.txt` answer report. Participants receive neither the solution nor the automatic result. Open answers are explicitly marked for manual review.
 - **Seeded group demos.** The reset creates two public `synchronized` visits, one for the Uffizi and one for MAMbo. Each has ten artwork stops and four question sections: three intermediate sections (including an open-answer prompt) plus a final verification section. Their `sequence` and artwork-block order intentionally match. Any authenticated user can host either demonstration; the session code itself is generated only when the host creates a `Session`.
 - **The guide never moves their own view.** `goNext`/`goPrevious` POST to `advance`/`previous` and everyone — guide included — follows the resulting broadcast. One broadcast drives every screen, so the group can't split across two artworks. Forward arrives in `logistic` mode, backward in `describe`, same rule as the solo runner.
 - **Students** get no Previous/Next at all (bottom bar is Map alone, `.is-student` centres it) and those rows greyed out in the command sheet — visibly not-theirs beats a mysteriously shorter list.
@@ -434,12 +434,13 @@ text and voice metadata must never drift.
 - **Chat is persisted on the Session** (`messages[]`) so reloads and late joins see the backlog. Sending POSTs and does **not** append locally: the server broadcasts to the whole room *including the sender*, so every client appends by one path with no optimistic copy to reconcile.
 - **Unread badges are synced by effect while a panel is open**, not stamped on open. Your own chat message returns through the socket like anyone else's, so stamping-on-open alone leaves a permanent "1" after you send.
 - **Quiz**: the guide's Next becomes `Start Quiz` on the last step (only when `visit.quiz` is non-empty), POSTs `quiz/start`, and `quizStarted` is **persisted** so a student reloading mid-quiz lands back on the quiz. Students answer; the guide sees scores land live and never answers. `bodyText` is forced empty while the quiz is up — that's what stops TTS reading the artwork over the questions.
-- **The answer key reaches only the visit author.** A session host can differ from
-  that author for public tours, so `presentSession()` and
-  `GET /sessions/:code/quiz` strip every `correctIndex` for a non-author host
-  as well as for students. The host can still guide the visit and see group
-  responses; `getById` in `visit.controller.js` applies the same author check.
-  `GET /visits/:id` carries `optionalAuth` purely so it can tell them apart.
+- **The answer key reaches the host and visit author.** A session host can differ
+  from that author for public tours, so `presentSession()` and
+  `GET /sessions/:code/quiz` retain every `correctIndex` for the host, while
+  stripping it for students. This allows the host's response view and `.txt`
+  export to show the right option. `getById` in `visit.controller.js` still
+  applies the stricter author-only check outside a session; `GET /visits/:id`
+  carries `optionalAuth` purely so it can tell them apart.
 - **End Visit is role-dependent**, matching server authorization: the guide confirms and POSTs `end` (broadcasting `session:ended`, which shows every student an explicit "the guide has ended this visit" screen rather than a silent redirect that reads as a crash); a student POSTs `leave` and the group carries on.
 - Failed session actions set `notice`, a dismissible line — **not** `setError`, which would swap the whole runner for an error screen over one failed button press.
 

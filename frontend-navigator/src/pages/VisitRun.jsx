@@ -404,7 +404,14 @@ export default function VisitRun() {
   }, [panel, activities.length]);
 
   const sequence = visit?.sequence || [];
-  const sessionSteps = useMemo(() => buildSessionSteps(visit), [visit]);
+  // `GET /visits/:id` deliberately strips answer keys for a non-author. During
+  // a session the host instead uses the role-aware session payload, which may
+  // include the correct options while keeping them hidden from participants.
+  const sessionVisit = inSession && session?.visitId ? session.visitId : visit;
+  const sessionSteps = useMemo(
+    () => buildSessionSteps(sessionVisit),
+    [sessionVisit]
+  );
   const activeSessionStep = inSession
     ? sessionSteps[currentStepIndex] || null
     : null;
@@ -453,7 +460,7 @@ export default function VisitRun() {
     : entryIndex >= sequence.length - 1;
   const atMaxLength = mode === 'describe' && lengthIdx >= maxLen;
 
-  const quiz = visit?.quiz || [];
+  const quiz = sessionVisit?.quiz || [];
   const quizActive = inSession && quizStarted && quiz.length > 0;
 
   let bodyText = '';

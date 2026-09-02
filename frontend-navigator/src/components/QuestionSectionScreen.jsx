@@ -27,6 +27,16 @@ function responseStatus(question, response, t) {
   return { kind: 'pending', label: t('questions.notEvaluated') };
 }
 
+function correctAnswerText(question) {
+  if (
+    question.answerType !== 'multiple-choice' ||
+    !Number.isInteger(question.correctIndex)
+  ) {
+    return null;
+  }
+  return question.options?.[question.correctIndex] || null;
+}
+
 export default function QuestionSectionScreen({
   section,
   code,
@@ -128,12 +138,18 @@ export default function QuestionSectionScreen({
             const questionResponses = sectionResponses.filter(
               (response) => response.questionId === id
             );
+            const correctAnswer = correctAnswerText(question);
             return (
               <section className="section-result-group" key={id}>
                 <div className="section-result-title">
                   <h2>{index + 1}. {question.prompt}</h2>
                   <span>{t('questions.responses', { count: questionResponses.length })}</span>
                 </div>
+                {correctAnswer && (
+                  <p className="section-correct-answer">
+                    {t('questions.correctAnswer', { answer: correctAnswer })}
+                  </p>
+                )}
                 {questionResponses.length === 0 ? (
                   <p className="section-result-empty">{t('questions.waiting')}</p>
                 ) : (

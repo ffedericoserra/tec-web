@@ -523,6 +523,13 @@
   font-style: italic;
 }
 
+.activity-correct-answer {
+  margin: 5px 78px 0 0;
+  color: #24643b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .activity-answer-outcome {
   position: absolute;
   top: 13px;
@@ -769,6 +776,13 @@
 
 .section-result-group li span {
   overflow-wrap: anywhere;
+}
+
+.section-correct-answer {
+  margin: 8px 0 0;
+  color: #176b3a;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .section-response-status {

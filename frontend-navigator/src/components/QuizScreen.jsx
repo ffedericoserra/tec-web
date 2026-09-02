@@ -12,9 +12,8 @@ import { logout } from '../auth.js';
  *
  * The teacher's `results` come from VisitRun, which collects them off the
  * `session:quiz-submitted` broadcast. The questions themselves arrive on the
- * session payload with `correctIndex` stripped for everyone except the visit's
- * author, so a host who did not create a public tour cannot read the key from
- * the network tab.
+ * session payload with `correctIndex` available to the session host and visit
+ * author, while it stays stripped for every participant.
  */
 export default function QuizScreen({ quiz, code, isOwner, results }) {
   const { t } = useTranslation();

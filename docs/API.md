@@ -283,12 +283,11 @@ only by its creator.
 **Session responses** carry `isOwner` so the client knows its role without
 comparing ObjectIds. For non-owners, other participants' section responses and
 `quizAnswers` / `quizScore` are stripped. Answer keys
-(`quiz[].correctIndex` and question-section `correctIndex`) are sent only to
-the visit's creator: a non-author host can guide the visit and see group
-responses, but cannot read the solutions. For multiple-choice section
-questions, the host receives only an `isCorrect` boolean for each response, not
-the solution index; each participant receives only their own section responses
-without that result.
+(`quiz[].correctIndex` and question-section `correctIndex`) are sent to the
+session host and to the visit's creator, but never to participants. A host who
+did not author the visit can therefore see each correct option and export it in
+the answer report. Each participant receives only their own section responses,
+without answer keys or the automatic `isCorrect` result.
 
 **Log Activity Request:**
 ```json

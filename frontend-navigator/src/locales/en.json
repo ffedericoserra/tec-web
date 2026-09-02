@@ -295,6 +295,7 @@
     "noAnswer": "No answer",
     "optionUnavailable": "Option unavailable",
     "solutionUnset": "Solution not set",
+    "correctAnswer": "Correct answer: {{answer}}",
     "correct": "Correct",
     "wrong": "Incorrect",
     "notAnswered": "Not answered",
@@ -345,7 +346,8 @@
     "correct": "Correct",
     "incorrect": "Incorrect",
     "manualReview": "Manual review",
-    "notEvaluated": "Not evaluated"
+    "notEvaluated": "Not evaluated",
+    "correctAnswer": "Correct answer: {{answer}}"
   },
   "quiz": {
     "waitingFirst": "Waiting for the first answers…",

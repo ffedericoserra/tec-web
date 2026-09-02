@@ -73,7 +73,7 @@ the account-language API; it remains valid only for authored Item text metadata.
 - `currentStepIndex` - Shared position within the rebuilt step list (artworks + question sections)
 - `activities` - Log of participant actions
 - `messages` - Persisted group chat, so reloads and late joins see the backlog
-- `sectionResponses` - Answers to `blocks[].questions`, visible to the owner; multiple-choice answers carry an owner-only `isCorrect` result without exposing `correctIndex`
+- `sectionResponses` - Answers to `blocks[].questions`, visible to the owner; multiple-choice answers carry an owner-only `isCorrect` result alongside the host-visible solution
 - `quizStarted` - Persisted, so a student reloading mid-quiz returns to the quiz
 - `isActive`, `startedAt`, `endedAt` - Status
 

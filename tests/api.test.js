@@ -682,8 +682,8 @@ async function testSessions() {
     allPassed = allPassed && passed;
   }
 
-  // A non-author host can review the correctness of multiple-choice answers
-  // without receiving the correctIndex itself.
+  // A non-author host can see both the solution and the correctness of
+  // multiple-choice answers.
   {
     const { status, data } = await request(
       'POST',
@@ -704,6 +704,9 @@ async function testSessions() {
     const hostQuestion = hostSection?.questions?.find(
       (question) => question.answerType === 'multiple-choice'
     );
+    const hostMultipleChoiceQuestions = hostBlocks
+      .flatMap((block) => block.questions || [])
+      .filter((question) => question.answerType === 'multiple-choice');
     const stepsToSection = hostBlocks
       .slice(0, Math.max(targetSectionIndex, 0))
       .reduce(
@@ -735,23 +738,14 @@ async function testSessions() {
         );
       }
     }
-    const authorView = publicHostCode
-      ? await request('GET', `/sessions/${publicHostCode}`, null, teacherToken)
-      : { status: 0, data: {} };
-    const authorSection = authorView.data.session?.visitId?.blocks?.find(
-      (block) => String(block._id) === String(hostSection?._id)
-    );
-    const authorQuestion = authorSection?.questions?.find(
-      (question) => String(question._id) === String(hostQuestion?._id)
-    );
     const submitted =
-      publicHostCode && authorQuestion && hostSection
+      publicHostCode && hostQuestion && hostSection
         ? await request(
             'POST',
             `/sessions/${publicHostCode}/sections/${hostSection._id}/answers`,
             {
               questionId: hostQuestion._id,
-              selectedIndex: authorQuestion.correctIndex,
+              selectedIndex: hostQuestion.correctIndex,
             },
             teacherToken
           )
@@ -779,20 +773,20 @@ async function testSessions() {
       joined.status === 200 &&
       targetSectionIndex >= 0 &&
       hostQuestion &&
+      Number.isInteger(hostQuestion.correctIndex) &&
+      hostMultipleChoiceQuestions.length > 0 &&
+      hostMultipleChoiceQuestions.every((question) =>
+        Number.isInteger(question.correctIndex)
+      ) &&
       advances.length === stepsToSection &&
       advances.every((advance) => advance.status === 200) &&
-      authorView.status === 200 &&
-      Number.isInteger(authorQuestion?.correctIndex) &&
       submitted.status === 201 &&
       submitted.data.response?.isCorrect === undefined &&
       hostView.status === 200 &&
       reviewedResponse?.isCorrect === true &&
-      hostBlocks.flatMap((block) => block.questions || []).every(
-        (question) => question.correctIndex === undefined
-      ) &&
       end.status === 200;
     log(
-      'Non-author host sees answer correctness without section answer keys',
+      'Non-author host sees solutions and answer correctness',
       passed,
       publicHostCode
     );
