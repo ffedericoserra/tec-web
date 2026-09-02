@@ -14,6 +14,19 @@ function responseText(question, response, t) {
   return response.text || '—';
 }
 
+function responseStatus(question, response, t) {
+  if (question.answerType === 'open') {
+    return { kind: 'manual', label: t('questions.manualReview') };
+  }
+  if (response.isCorrect === true) {
+    return { kind: 'correct', label: t('questions.correct') };
+  }
+  if (response.isCorrect === false) {
+    return { kind: 'incorrect', label: t('questions.incorrect') };
+  }
+  return { kind: 'pending', label: t('questions.notEvaluated') };
+}
+
 export default function QuestionSectionScreen({
   section,
   code,
@@ -125,12 +138,18 @@ export default function QuestionSectionScreen({
                   <p className="section-result-empty">{t('questions.waiting')}</p>
                 ) : (
                   <ul>
-                    {questionResponses.map((response) => (
-                      <li key={`${response.userId}-${id}`}>
-                        <strong>{response.username || t('common.participant')}</strong>
-                        <span>{responseText(question, response, t)}</span>
-                      </li>
-                    ))}
+                    {questionResponses.map((response) => {
+                      const status = responseStatus(question, response, t);
+                      return (
+                        <li key={`${response.userId}-${id}`}>
+                          <strong>{response.username || t('common.participant')}</strong>
+                          <span>{responseText(question, response, t)}</span>
+                          <span className={`section-response-status is-${status.kind}`}>
+                            {status.label}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </section>

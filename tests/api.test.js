@@ -682,7 +682,8 @@ async function testSessions() {
     allPassed = allPassed && passed;
   }
 
-  // A non-author can host a public synchronized visit and control the session.
+  // A non-author host can review the correctness of multiple-choice answers
+  // without receiving the correctIndex itself.
   {
     const { status, data } = await request(
       'POST',
@@ -691,17 +692,78 @@ async function testSessions() {
       studentToken
     );
     const publicHostCode = data.session?.code;
-    const hostSectionQuestions = (data.session?.visitId?.blocks || []).flatMap(
-      (block) => block.questions || []
+    const hostBlocks = data.session?.visitId?.blocks || [];
+    const targetSectionIndex = hostBlocks.findIndex(
+      (block) =>
+        block.type === 'questions' &&
+        block.questions?.some(
+          (question) => question.answerType === 'multiple-choice'
+        )
     );
-    const advance = publicHostCode
+    const hostSection = hostBlocks[targetSectionIndex];
+    const hostQuestion = hostSection?.questions?.find(
+      (question) => question.answerType === 'multiple-choice'
+    );
+    const stepsToSection = hostBlocks
+      .slice(0, Math.max(targetSectionIndex, 0))
+      .reduce(
+        (count, block) =>
+          count +
+          (block.type === 'questions' && block.questions?.length
+            ? 1
+            : (block.items || []).length),
+        0
+      );
+    const joined = publicHostCode
       ? await request(
           'POST',
-          `/sessions/${publicHostCode}/advance`,
+          `/sessions/${publicHostCode}/join`,
           null,
-          studentToken
+          teacherToken
         )
       : { status: 0 };
+    const advances = [];
+    if (publicHostCode) {
+      for (let step = 0; step < stepsToSection; step += 1) {
+        advances.push(
+          await request(
+            'POST',
+            `/sessions/${publicHostCode}/advance`,
+            null,
+            studentToken
+          )
+        );
+      }
+    }
+    const authorView = publicHostCode
+      ? await request('GET', `/sessions/${publicHostCode}`, null, teacherToken)
+      : { status: 0, data: {} };
+    const authorSection = authorView.data.session?.visitId?.blocks?.find(
+      (block) => String(block._id) === String(hostSection?._id)
+    );
+    const authorQuestion = authorSection?.questions?.find(
+      (question) => String(question._id) === String(hostQuestion?._id)
+    );
+    const submitted =
+      publicHostCode && authorQuestion && hostSection
+        ? await request(
+            'POST',
+            `/sessions/${publicHostCode}/sections/${hostSection._id}/answers`,
+            {
+              questionId: hostQuestion._id,
+              selectedIndex: authorQuestion.correctIndex,
+            },
+            teacherToken
+          )
+        : { status: 0, data: {} };
+    const hostView = publicHostCode
+      ? await request('GET', `/sessions/${publicHostCode}`, null, studentToken)
+      : { status: 0, data: {} };
+    const reviewedResponse = hostView.data.session?.sectionResponses?.find(
+      (response) =>
+        String(response.sectionId) === String(hostSection?._id) &&
+        String(response.questionId) === String(hostQuestion?._id)
+    );
     const end = publicHostCode
       ? await request(
           'POST',
@@ -714,14 +776,23 @@ async function testSessions() {
       status === 201 &&
       data.session?.isOwner === true &&
       data.session?.owner?.username === 'visitatore1' &&
-      advance.status === 200 &&
-      hostSectionQuestions.length > 0 &&
-      hostSectionQuestions.every(
+      joined.status === 200 &&
+      targetSectionIndex >= 0 &&
+      hostQuestion &&
+      advances.length === stepsToSection &&
+      advances.every((advance) => advance.status === 200) &&
+      authorView.status === 200 &&
+      Number.isInteger(authorQuestion?.correctIndex) &&
+      submitted.status === 201 &&
+      submitted.data.response?.isCorrect === undefined &&
+      hostView.status === 200 &&
+      reviewedResponse?.isCorrect === true &&
+      hostBlocks.flatMap((block) => block.questions || []).every(
         (question) => question.correctIndex === undefined
       ) &&
       end.status === 200;
     log(
-      'POST /sessions lets a non-author host a public synchronized visit without section answer keys',
+      'Non-author host sees answer correctness without section answer keys',
       passed,
       publicHostCode
     );

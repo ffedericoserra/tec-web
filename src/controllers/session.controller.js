@@ -89,9 +89,9 @@ function presentSession(session, userId) {
         ? p
         : { ...p, quizAnswers: undefined, quizScore: undefined }
     );
-    obj.sectionResponses = obj.sectionResponses.filter(
-      (response) => response.userId.toString() === me
-    );
+    obj.sectionResponses = obj.sectionResponses
+      .filter((response) => response.userId.toString() === me)
+      .map((response) => ({ ...response, isCorrect: undefined }));
   }
   return obj;
 }
@@ -535,6 +535,7 @@ exports.submitSectionAnswer = async (req, res, next) => {
         return res.status(400).json({ error: 'Select a valid option' });
       }
       response.selectedIndex = selectedIndex;
+      response.isCorrect = selectedIndex === question.correctIndex;
     } else {
       const text = req.body.text?.trim();
       if (!text) {
@@ -559,7 +560,14 @@ exports.submitSectionAnswer = async (req, res, next) => {
     await session.save();
     emitToSessionOwner(session.code, 'session:section-response', response);
 
-    res.status(existingIndex >= 0 ? 200 : 201).json({ response });
+    // Participants can update their response while the section is active, so
+    // do not reveal the automatic result to them. The owner-only socket event
+    // and owner-only response list retain it for the host's live review.
+    const participantResponse = { ...response };
+    delete participantResponse.isCorrect;
+    res.status(existingIndex >= 0 ? 200 : 201).json({
+      response: participantResponse,
+    });
   } catch (error) {
     next(error);
   }

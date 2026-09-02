@@ -85,6 +85,9 @@ const sectionResponseSchema = new mongoose.Schema(
       maxlength: 1000,
     },
     selectedIndex: Number,
+    // Computed server-side for multiple-choice questions. It lets the session
+    // host review responses without exposing the visit's correctIndex.
+    isCorrect: Boolean,
     submittedAt: {
       type: Date,
       default: Date.now,

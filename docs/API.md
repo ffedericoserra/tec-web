@@ -285,8 +285,10 @@ comparing ObjectIds. For non-owners, other participants' section responses and
 `quizAnswers` / `quizScore` are stripped. Answer keys
 (`quiz[].correctIndex` and question-section `correctIndex`) are sent only to
 the visit's creator: a non-author host can guide the visit and see group
-responses, but cannot read the solutions. Each participant receives only their
-own section responses.
+responses, but cannot read the solutions. For multiple-choice section
+questions, the host receives only an `isCorrect` boolean for each response, not
+the solution index; each participant receives only their own section responses
+without that result.
 
 **Log Activity Request:**
 ```json

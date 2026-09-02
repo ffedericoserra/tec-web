@@ -341,7 +341,11 @@
     "update": "Aggiorna risposte",
     "submit": "Invia risposte",
     "submitError": "Invio delle risposte non riuscito.",
-    "optionUnavailable": "Opzione non disponibile"
+    "optionUnavailable": "Opzione non disponibile",
+    "correct": "Corretta",
+    "incorrect": "Non corretta",
+    "manualReview": "Da valutare",
+    "notEvaluated": "Non valutata"
   },
   "quiz": {
     "waitingFirst": "In attesa delle prime risposte…",

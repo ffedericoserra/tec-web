@@ -760,7 +760,7 @@
 
 .section-result-group li {
   display: grid;
-  grid-template-columns: minmax(100px, 0.35fr) minmax(0, 1fr);
+  grid-template-columns: minmax(100px, 0.35fr) minmax(0, 1fr) auto;
   gap: 16px;
   padding: 12px 0;
   border-bottom: 1px solid var(--line-soft);
@@ -769,6 +769,32 @@
 
 .section-result-group li span {
   overflow-wrap: anywhere;
+}
+
+.section-response-status {
+  align-self: start;
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.section-response-status.is-correct {
+  color: #176b3a;
+  background: #d9f4e4;
+}
+
+.section-response-status.is-incorrect {
+  color: #a22b31;
+  background: #fde1e2;
+}
+
+.section-response-status.is-manual,
+.section-response-status.is-pending {
+  color: var(--muted);
+  background: var(--line-soft);
 }
 
 .section-result-empty {

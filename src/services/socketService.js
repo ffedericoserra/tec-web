@@ -34,6 +34,12 @@ function withUsernames(session) {
   }));
 }
 
+function withoutCorrectness(response) {
+  const visible = response.toObject ? response.toObject() : { ...response };
+  delete visible.isCorrect;
+  return visible;
+}
+
 /**
  * Initialize Socket.io server
  */
@@ -102,7 +108,7 @@ function initSocket(httpServer) {
             ? session.sectionResponses
             : session.sectionResponses.filter(
                 (response) => response.userId.toString() === socket.userId.toString()
-              ),
+              ).map(withoutCorrectness),
         });
       } catch (err) {
         socket.emit('session:error', err.message);

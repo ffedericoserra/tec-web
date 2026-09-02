@@ -341,7 +341,11 @@
     "update": "Update answers",
     "submit": "Submit answers",
     "submitError": "Unable to submit the answers.",
-    "optionUnavailable": "Option unavailable"
+    "optionUnavailable": "Option unavailable",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "manualReview": "Manual review",
+    "notEvaluated": "Not evaluated"
   },
   "quiz": {
     "waitingFirst": "Waiting for the first answers…",
