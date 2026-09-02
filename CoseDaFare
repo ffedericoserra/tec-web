@@ -2,9 +2,11 @@ Migliora URI marketplace e navigator e aggiorna README
 
 Finire traduzione descizione item in inglese
 
-Feauture più interessanti del sito, magari lo spieghiamo in docs specifici
+Controlla visita sincronizzata in db sia corretta
 
-Rinominare frontend/marketplace in fontend-marketplace
+Controllo popolazione corretta database
+
+Feauture più interessanti del sito, magari lo spieghiamo in docs specifici
 
 Eliminare file come AGENTS.md, .env.example, docs/
 

@@ -276,11 +276,17 @@ All session endpoints require authentication.
 
 **Response includes mnemonic code:** `ROSSO_LEONE_42`
 
+Only `synchronized` visits can create a session. Any authenticated user can
+host a public synchronized visit; a private synchronized visit can be hosted
+only by its creator.
+
 **Session responses** carry `isOwner` so the client knows its role without
-comparing ObjectIds. For non-owners, other participants' section responses,
-`quizAnswers` / `quizScore`, every `quiz[].correctIndex`, and every question
-section `correctIndex` are stripped. The owner receives all section responses;
-each participant receives only their own.
+comparing ObjectIds. For non-owners, other participants' section responses and
+`quizAnswers` / `quizScore` are stripped. Answer keys
+(`quiz[].correctIndex` and question-section `correctIndex`) are sent only to
+the visit's creator: a non-author host can guide the visit and see group
+responses, but cannot read the solutions. Each participant receives only their
+own section responses.
 
 **Log Activity Request:**
 ```json

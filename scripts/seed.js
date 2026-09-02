@@ -158,6 +158,46 @@ async function seed() {
       return sequence;
     };
 
+    // The group tours name their Content IDs explicitly instead of relying on
+    // MongoDB's natural query order. Their artwork blocks must flatten to the
+    // exact same Item order as `sequence` for the synchronized runner.
+    const getItemsForContents = (itemList, contentIds) =>
+      contentIds.map((contentId) => {
+        const item = itemList.find((candidate) => candidate.contentId === contentId);
+        if (!item) {
+          throw new Error(`Item seed mancante per il contenuto "${contentId}"`);
+        }
+        return item;
+      });
+
+    const itemIds = (itemList) => itemList.map((item) => item._id);
+
+    const uffiziGroupItems = getItemsForContents(uffiziItems, [
+      'uffizi-giotto-maesta',
+      'uffizi-gentile-magi',
+      'uffizi-leonardo-annunciazione',
+      'uffizi-botticelli-primavera',
+      'uffizi-botticelli-venere',
+      'uffizi-raffaello-cardellino',
+      'uffizi-michelangelo-tondodoni',
+      'uffizi-tiziano-venere',
+      'uffizi-caravaggio-bacco',
+      'uffizi-caravaggio-medusa',
+    ]);
+
+    const mamboGroupItems = getItemsForContents(mamboItems, [
+      'mambo-morandi-natura-morta-1946',
+      'mambo-morandi-paesaggio',
+      'mambo-burri-rosso-plastica',
+      'mambo-fontana-concetto-spaziale',
+      'mambo-de-chirico-ettore-andromaca',
+      'mambo-vedova-plurimo',
+      'mambo-kounellis-senza-titolo',
+      'mambo-paolini-giovane-guardando-lorenzo-lotto',
+      'mambo-pascali-bachi-da-setola',
+      'mambo-pistoletto-venere-stracci',
+    ]);
+
     const visits = await Visit.create([
       // Uffizi visits
       {
@@ -185,31 +225,122 @@ async function seed() {
         imageUrl: '/uploads/visits/botticelli.jpg',
       },
       {
-        title: 'Visita guidata scuole',
+        title: 'Uffizi in gruppo: dal Medioevo a Caravaggio',
         museumId: uffizi._id,
         creatorId: docente._id,
         description:
-          'Percorso didattico per gruppi scolastici con quiz finale.',
-        sequence: createVisitSequence(uffiziItems, 2, 8),
+          'Visita pubblica e sincronizzata attraverso i capolavori degli Uffizi, con confronti tra le opere e prova finale.',
+        sequence: createVisitSequence(uffiziGroupItems, 0, uffiziGroupItems.length),
+        blocks: [
+          {
+            type: 'artwork',
+            blockName: 'Dalle origini al Rinascimento',
+            items: itemIds(uffiziGroupItems.slice(0, 3)),
+          },
+          {
+            type: 'questions',
+            blockName: 'Ricapitoliamo le prime opere',
+            items: [],
+            questions: [
+              {
+                prompt: 'Quale opera appena vista è la più antica?',
+                answerType: 'multiple-choice',
+                options: ['Maestà di Ognissanti', 'Adorazione dei Magi', 'Annunciazione'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Chi ha dipinto l\'Annunciazione del percorso?',
+                answerType: 'multiple-choice',
+                options: ['Leonardo da Vinci', 'Sandro Botticelli', 'Giotto', 'Gentile da Fabriano'],
+                correctIndex: 0,
+              },
+            ],
+          },
+          {
+            type: 'artwork',
+            blockName: 'Le opere di Botticelli',
+            items: itemIds(uffiziGroupItems.slice(3, 5)),
+          },
+          {
+            type: 'questions',
+            blockName: 'Confronto su Botticelli',
+            items: [],
+            questions: [
+              {
+                prompt: 'Quale opera di Botticelli vista nel percorso è datata 1482?',
+                answerType: 'multiple-choice',
+                options: ['La Primavera', 'La nascita di Venere', 'Madonna del Cardellino'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Descrivi un elemento che accomuna La Primavera e La nascita di Venere.',
+                answerType: 'open',
+              },
+            ],
+          },
+          {
+            type: 'artwork',
+            blockName: 'L\'Alto Rinascimento',
+            items: itemIds(uffiziGroupItems.slice(5, 8)),
+          },
+          {
+            type: 'questions',
+            blockName: 'Date e autori',
+            items: [],
+            questions: [
+              {
+                prompt: 'Quale opera vista in questo blocco è stata realizzata nel 1506?',
+                answerType: 'multiple-choice',
+                options: ['Madonna del Cardellino', 'Tondo Doni', 'Venere di Urbino'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Quale opera del blocco è datata 1538?',
+                answerType: 'multiple-choice',
+                options: ['Tondo Doni', 'Venere di Urbino', 'Madonna del Cardellino'],
+                correctIndex: 1,
+              },
+            ],
+          },
+          {
+            type: 'artwork',
+            blockName: 'Caravaggio agli Uffizi',
+            items: itemIds(uffiziGroupItems.slice(8, 10)),
+          },
+        ],
         type: 'synchronized',
-        length: 'normal',
-        sessionCode: 'SCUOLA_ARTE',
-        isPublic: false,
+        length: 'deep',
+        isPublic: true,
         quiz: [
           {
-            question: 'Chi ha dipinto "La nascita di Venere"?',
-            options: ['Leonardo da Vinci', 'Sandro Botticelli', 'Michelangelo', 'Raffaello'],
+            question: 'Quale artista ha dipinto sia Bacco sia Medusa?',
+            options: ['Caravaggio', 'Tiziano Vecellio', 'Leonardo da Vinci', 'Sandro Botticelli'],
+            correctIndex: 0,
+          },
+          {
+            question: 'Quale coppia di opere del percorso condivide l\'anno 1597?',
+            options: [
+              'Bacco e Medusa',
+              'La Primavera e La nascita di Venere',
+              'Madonna del Cardellino e Tondo Doni',
+              'Maestà di Ognissanti e Adorazione dei Magi',
+            ],
+            correctIndex: 0,
+          },
+          {
+            question: 'Qual è l\'opera più antica dell\'intero itinerario?',
+            options: ['Maestà di Ognissanti', 'Annunciazione', 'La Primavera', 'Tondo Doni'],
+            correctIndex: 0,
+          },
+          {
+            question: 'Chi ha realizzato il Tondo Doni?',
+            options: ['Raffaello Sanzio', 'Michelangelo Buonarroti', 'Giotto', 'Gentile da Fabriano'],
             correctIndex: 1,
           },
           {
-            question: 'In che secolo è stato realizzato il "Tondo Doni"?',
-            options: ['XIV secolo', 'XV secolo', 'XVI secolo', 'XVII secolo'],
-            correctIndex: 2,
-          },
-          {
-            question: 'Quale artista è famoso per lo "sfumato"?',
-            options: ['Caravaggio', 'Tiziano', 'Leonardo da Vinci', 'Giotto'],
-            correctIndex: 2,
+            question: 'Chi ha dipinto la Venere di Urbino?',
+            options: ['Tiziano Vecellio', 'Caravaggio', 'Sandro Botticelli', 'Leonardo da Vinci'],
+            correctIndex: 0,
           },
         ],
         imageUrl: '/uploads/visits/scuole.jpg',
@@ -240,31 +371,122 @@ async function seed() {
         imageUrl: '/uploads/visits/mambo-morandi.jpg',
       },
       {
-        title: 'Visita guidata Arte Povera',
+        title: 'MAMbo in gruppo: materia, spazio e memoria',
         museumId: mambo._id,
         creatorId: docente._id,
         description:
-          'Percorso didattico sul movimento dell\'Arte Povera con quiz finale.',
-        sequence: createVisitSequence(mamboItems, 4, 6),
+          'Visita pubblica e sincronizzata attraverso le ricerche del Novecento, dalle forme silenziose di Morandi alle sperimentazioni su materia, spazio e memoria.',
+        sequence: createVisitSequence(mamboGroupItems, 0, mamboGroupItems.length),
+        blocks: [
+          {
+            type: 'artwork',
+            blockName: 'Forme, paesaggi e materia',
+            items: itemIds(mamboGroupItems.slice(0, 3)),
+          },
+          {
+            type: 'questions',
+            blockName: 'Confronto tra Morandi e Burri',
+            items: [],
+            questions: [
+              {
+                prompt: 'Confronta Natura morta e Paesaggio: quale somiglianza noti nell\'uso delle forme o dei colori?',
+                answerType: 'open',
+              },
+              {
+                prompt: 'Quale artista ha realizzato Rosso Plastica?',
+                answerType: 'multiple-choice',
+                options: ['Giorgio Morandi', 'Alberto Burri', 'Lucio Fontana', 'Emilio Vedova'],
+                correctIndex: 1,
+              },
+            ],
+          },
+          {
+            type: 'artwork',
+            blockName: 'Oltre il quadro: spazio e gesto',
+            items: itemIds(mamboGroupItems.slice(3, 6)),
+          },
+          {
+            type: 'questions',
+            blockName: 'Confronto tra immagini e spazio',
+            items: [],
+            questions: [
+              {
+                prompt: 'Quale opera appena vista è di Lucio Fontana?',
+                answerType: 'multiple-choice',
+                options: ['Concetto spaziale, Attese', 'Ettore e Andromaca', 'Plurimo', 'Rosso Plastica'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Quale opera appena vista raffigura Ettore e Andromaca?',
+                answerType: 'multiple-choice',
+                options: ['Ettore e Andromaca', 'Senza titolo', 'Plurimo', 'Paesaggio'],
+                correctIndex: 0,
+              },
+            ],
+          },
+          {
+            type: 'artwork',
+            blockName: 'Arte Povera e sguardi sul passato',
+            items: itemIds(mamboGroupItems.slice(6, 8)),
+          },
+          {
+            type: 'questions',
+            blockName: 'Confronto tra materia e memoria',
+            items: [],
+            questions: [
+              {
+                prompt: 'Chi è l\'autore di Senza titolo vista in questo blocco?',
+                answerType: 'multiple-choice',
+                options: ['Jannis Kounellis', 'Giulio Paolini', 'Pino Pascali', 'Michelangelo Pistoletto'],
+                correctIndex: 0,
+              },
+              {
+                prompt: 'Quale pittore del passato è nominato nel titolo Giovane che guarda Lorenzo Lotto?',
+                answerType: 'multiple-choice',
+                options: ['Lorenzo Lotto', 'Sandro Botticelli', 'Caravaggio', 'Raffaello Sanzio'],
+                correctIndex: 0,
+              },
+            ],
+          },
+          {
+            type: 'artwork',
+            blockName: 'Materiali e bellezza classica',
+            items: itemIds(mamboGroupItems.slice(8, 10)),
+          },
+        ],
         type: 'synchronized',
-        length: 'normal',
-        sessionCode: 'ARTE_POVERA',
-        isPublic: false,
+        length: 'deep',
+        isPublic: true,
         quiz: [
           {
-            question: 'Quale artista è noto per i "tagli" sulla tela?',
-            options: ['Giorgio Morandi', 'Lucio Fontana', 'Alberto Burri', 'Emilio Vedova'],
-            correctIndex: 1,
+            question: 'Quale opera del percorso è stata realizzata nel 1968?',
+            options: ['Bachi da setola', 'Venere degli stracci', 'Senza titolo', 'Concetto spaziale, Attese'],
+            correctIndex: 0,
           },
           {
-            question: 'Cos\'è l\'Arte Povera?',
-            options: ['Arte fatta con materiali economici', 'Movimento artistico italiano degli anni \'60', 'Arte dei paesi poveri', 'Stile minimalista'],
-            correctIndex: 1,
-          },
-          {
-            question: 'Chi ha creato la "Venere degli stracci"?',
+            question: 'Chi ha realizzato la Venere degli stracci?',
             options: ['Jannis Kounellis', 'Giulio Paolini', 'Michelangelo Pistoletto', 'Pino Pascali'],
             correctIndex: 2,
+          },
+          {
+            question: 'Quale coppia di opere del percorso è datata 1962?',
+            options: [
+              'Rosso Plastica e Plurimo',
+              'Natura morta e Paesaggio',
+              'Ettore e Andromaca e Venere degli stracci',
+              'Bachi da setola e Giovane che guarda Lorenzo Lotto',
+            ],
+            correctIndex: 0,
+          },
+          {
+            question: 'Quale opera del percorso è di Giorgio de Chirico?',
+            options: ['Ettore e Andromaca', 'Rosso Plastica', 'Bachi da setola', 'Senza titolo'],
+            correctIndex: 0,
+          },
+          {
+            question: 'Quale artista ha realizzato Concetto spaziale, Attese?',
+            options: ['Lucio Fontana', 'Emilio Vedova', 'Alberto Burri', 'Giorgio Morandi'],
+            correctIndex: 0,
           },
         ],
         imageUrl: '/uploads/visits/mambo-povera.jpg',

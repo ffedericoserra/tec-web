@@ -47,25 +47,26 @@ function buildSessionSteps(visit) {
 
 /**
  * Shape a session for the client: tell the caller which role it has, so the
- * navigator doesn't have to compare ObjectIds itself, and hide other people's
- * quiz answers from students. `owner` may or may not be populated depending on
- * the caller, hence the `_id ||` dance.
+ * navigator doesn't have to compare ObjectIds itself. A session owner can be a
+ * host who did not author the Visit, so answer keys remain visible only to the
+ * Visit's creator. `owner` may or may not be populated depending on the caller,
+ * hence the `_id ||` dance.
  */
 function presentSession(session, userId) {
   const ownerId = (session.owner?._id || session.owner).toString();
   const me = userId.toString();
   const isOwner = ownerId === me;
+  const visitCreatorId = (
+    session.visitId?.creatorId?._id || session.visitId?.creatorId
+  )?.toString();
+  const canSeeAnswerKeys = visitCreatorId === me;
 
   const obj = session.toObject();
   obj.isOwner = isOwner;
-  if (!isOwner) {
-    obj.participants = obj.participants.map((p) =>
-      p.userId.toString() === me
-        ? p
-        : { ...p, quizAnswers: undefined, quizScore: undefined }
-    );
-    // Students get the questions and options — never the key. The owner reads
-    // the full quiz from GET /sessions/:code/quiz instead.
+  if (obj.visitId) {
+    obj.visitId.creatorId = undefined;
+  }
+  if (!canSeeAnswerKeys) {
     if (obj.visitId?.quiz) {
       obj.visitId.quiz = obj.visitId.quiz.map((q) => ({
         question: q.question,
@@ -81,6 +82,13 @@ function presentSession(session, userId) {
         })),
       }));
     }
+  }
+  if (!isOwner) {
+    obj.participants = obj.participants.map((p) =>
+      p.userId.toString() === me
+        ? p
+        : { ...p, quizAnswers: undefined, quizScore: undefined }
+    );
     obj.sectionResponses = obj.sectionResponses.filter(
       (response) => response.userId.toString() === me
     );
@@ -96,10 +104,18 @@ exports.create = async (req, res, next) => {
   try {
     const { visitId } = req.body;
 
-    // Verify visit exists and is synchronized type
+    // A group session is available to everyone for a public synchronized tour,
+    // and only to its creator when the synchronized tour is private.
     const visit = await Visit.findById(visitId);
     if (!visit) {
       return res.status(404).json({ error: 'Visit not found' });
+    }
+    if (visit.type !== 'synchronized') {
+      return res.status(400).json({ error: 'Visit is not synchronized' });
+    }
+    const isCreator = visit.creatorId.toString() === req.user._id.toString();
+    if (!visit.isPublic && !isCreator) {
+      return res.status(403).json({ error: 'Not authorized to host this visit' });
     }
 
     // Use custom name if provided, otherwise auto-generate
@@ -136,7 +152,7 @@ exports.create = async (req, res, next) => {
     await session.populate('owner', 'username');
     await session.populate({
       path: 'visitId',
-      select: 'title description sequence blocks quiz museumId',
+      select: 'title description sequence blocks quiz museumId creatorId',
       populate: { path: 'museumId', select: 'name slug' },
     });
 
@@ -156,7 +172,7 @@ exports.getByCode = async (req, res, next) => {
       .populate('owner', 'username')
       .populate({
         path: 'visitId',
-        select: 'title description slug sequence blocks quiz museumId',
+        select: 'title description slug sequence blocks quiz museumId creatorId',
         // The runner routes by museum slug (it fetches that museum's contents),
         // so the slug has to come along or the client needs a second lookup.
         populate: { path: 'museumId', select: 'name slug' },
@@ -214,7 +230,7 @@ exports.join = async (req, res, next) => {
     await session.populate('owner', 'username');
     await session.populate({
       path: 'visitId',
-      select: 'title description slug sequence blocks quiz museumId',
+      select: 'title description slug sequence blocks quiz museumId creatorId',
       populate: { path: 'museumId', select: 'name slug' },
     });
 
@@ -716,7 +732,7 @@ exports.submitQuiz = async (req, res, next) => {
 exports.getQuizResults = async (req, res, next) => {
   try {
     const session = await Session.findOne({ code: req.params.code.toUpperCase() })
-      .populate('visitId', 'quiz');
+      .populate('visitId', 'quiz creatorId');
 
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
@@ -727,6 +743,14 @@ exports.getQuizResults = async (req, res, next) => {
     }
 
     const quiz = session.visitId.quiz || [];
+    const isVisitCreator =
+      session.visitId.creatorId.toString() === req.user._id.toString();
+    const visibleQuiz = isVisitCreator
+      ? quiz
+      : quiz.map((question) => ({
+          question: question.question,
+          options: question.options,
+        }));
     const results = session.participants
       .filter((p) => p.quizScore !== null)
       .map((p) => ({
@@ -737,7 +761,7 @@ exports.getQuizResults = async (req, res, next) => {
         total: quiz.length,
       }));
 
-    res.json({ results, quiz });
+    res.json({ results, quiz: visibleQuiz });
   } catch (error) {
     next(error);
   }

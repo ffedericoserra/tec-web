@@ -24,6 +24,8 @@ let museumId = null;
 let museumSlug = null;
 let itemId = null;
 let visitId = null;
+let publicSynchronizedVisitId = null;
+let standardVisitId = null;
 let sessionCode = null;
 
 // Helper functions
@@ -312,6 +314,12 @@ async function testMuseums() {
     log('GET /museums/:id/visits returns visits', passed, `${data.visits?.length || 0} visits`);
     if (passed && data.visits.length > 0) {
       visitId = data.visits[0]._id;
+      publicSynchronizedVisitId =
+        data.visits.find(
+          (visit) => visit.type === 'synchronized' && visit.isPublic
+        )?._id || null;
+      standardVisitId =
+        data.visits.find((visit) => visit.type === 'standard')?._id || null;
     }
     allPassed = allPassed && passed;
   }
@@ -636,13 +644,19 @@ async function testVisits() {
 async function testSessions() {
   console.log('\n👥 Sessions');
   let allPassed = true;
+  const sessionVisitId = publicSynchronizedVisitId;
+
+  if (!sessionVisitId) {
+    log('Found public synchronized visit for session tests', false);
+    return false;
+  }
 
   // Create session (teacher)
   {
     const { status, data } = await request(
       'POST',
       '/sessions',
-      { visitId: visitId },
+      { visitId: sessionVisitId },
       teacherToken
     );
     const passed = status === 201 && data.session && data.session.code;
@@ -651,9 +665,70 @@ async function testSessions() {
     allPassed = allPassed && passed;
   }
 
+  // A non-author can host a public synchronized visit and control the session.
+  {
+    const { status, data } = await request(
+      'POST',
+      '/sessions',
+      { visitId: sessionVisitId },
+      studentToken
+    );
+    const publicHostCode = data.session?.code;
+    const hostQuiz = data.session?.visitId?.quiz || [];
+    const hostSectionQuestions = (data.session?.visitId?.blocks || []).flatMap(
+      (block) => block.questions || []
+    );
+    const advance = publicHostCode
+      ? await request(
+          'POST',
+          `/sessions/${publicHostCode}/advance`,
+          null,
+          studentToken
+        )
+      : { status: 0 };
+    const quizResults = publicHostCode
+      ? await request(
+          'GET',
+          `/sessions/${publicHostCode}/quiz`,
+          null,
+          studentToken
+        )
+      : { status: 0, data: {} };
+    const end = publicHostCode
+      ? await request(
+          'POST',
+          `/sessions/${publicHostCode}/end`,
+          null,
+          studentToken
+        )
+      : { status: 0 };
+    const passed =
+      status === 201 &&
+      data.session?.isOwner === true &&
+      data.session?.owner?.username === 'visitatore1' &&
+      advance.status === 200 &&
+      hostQuiz.length > 0 &&
+      hostQuiz.every((question) => question.correctIndex === undefined) &&
+      hostSectionQuestions.length > 0 &&
+      hostSectionQuestions.every(
+        (question) => question.correctIndex === undefined
+      ) &&
+      quizResults.status === 200 &&
+      quizResults.data.quiz?.every(
+        (question) => question.correctIndex === undefined
+      ) &&
+      end.status === 200;
+    log(
+      'POST /sessions lets a non-author host a public synchronized visit without answer keys',
+      passed,
+      publicHostCode
+    );
+    allPassed = allPassed && passed;
+  }
+
   // Create session without auth
   {
-    const { status } = await request('POST', '/sessions', { visitId: visitId });
+    const { status } = await request('POST', '/sessions', { visitId: sessionVisitId });
     const passed = status === 401;
     log('POST /sessions requires auth', passed);
     allPassed = allPassed && passed;
@@ -677,6 +752,60 @@ async function testSessions() {
     const { status, data } = await request('GET', `/sessions/${sessionCode}`, null, teacherToken);
     const passed = status === 200 && data.session && data.session.code === sessionCode;
     log('GET /sessions/:code returns session', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Standard visits cannot become synchronized sessions.
+  {
+    const { status, data } = standardVisitId
+      ? await request(
+          'POST',
+          '/sessions',
+          { visitId: standardVisitId },
+          teacherToken
+        )
+      : { status: 0, data: {} };
+    const passed =
+      !!standardVisitId &&
+      status === 400 &&
+      data.error === 'Visit is not synchronized';
+    log('POST /sessions rejects a standard visit', passed);
+    allPassed = allPassed && passed;
+  }
+
+  // Private synchronized visits remain hostable only by their creator.
+  {
+    const privateVisit = itemId
+      ? await request(
+          'POST',
+          '/visits',
+          {
+            title: `Private synchronized visit ${Date.now()}`,
+            museumId,
+            sequence: [{ itemId }],
+            type: 'synchronized',
+            isPublic: false,
+          },
+          authToken
+        )
+      : { status: 0, data: {} };
+    const privateVisitId = privateVisit.data.visit?._id;
+    const forbidden = privateVisitId
+      ? await request(
+          'POST',
+          '/sessions',
+          { visitId: privateVisitId },
+          studentToken
+        )
+      : { status: 0 };
+    const cleanup = privateVisitId
+      ? await request('DELETE', `/visits/${privateVisitId}`, null, authToken)
+      : { status: 0 };
+    const passed =
+      privateVisit.status === 201 &&
+      forbidden.status === 403 &&
+      cleanup.status === 200;
+    log('POST /sessions rejects another user\'s private synchronized visit', passed);
     allPassed = allPassed && passed;
   }
 
@@ -888,7 +1017,11 @@ async function testQuiz() {
       null,
       teacherToken
     );
-    const passed = status === 200 && Array.isArray(data.results) && data.results.length > 0;
+    const passed =
+      status === 200 &&
+      Array.isArray(data.results) &&
+      data.results.length > 0 &&
+      data.quiz?.every((question) => Number.isInteger(question.correctIndex));
     log('GET /sessions/:code/quiz returns results (owner)', passed);
     allPassed = allPassed && passed;
   }

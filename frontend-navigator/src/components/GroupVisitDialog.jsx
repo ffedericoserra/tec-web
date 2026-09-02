@@ -9,10 +9,9 @@ import { logout } from '../auth.js';
  * group visit — and which one applies depends only on whether you're the one
  * running it.
  *
- * Create lists the user's *own* visits (GET /visits/my), not the museum's public
- * ones: a session is run by the person who authored the tour, and the seeded
- * didactic visits are deliberately private so they never appear in the public
- * list VisitSelect shows.
+ * Create loads the museum's visible visits (GET /museums/:id/visits) and keeps
+ * synchronized ones only. Any authenticated user can host a public tour; an
+ * author's private synchronized tours remain available only to that author.
  *
  * Follows AuthDialog's contract rather than <dialog>: a state-controlled overlay
  * div, dismissed by backdrop mousedown or Escape.
@@ -37,15 +36,17 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Own visits are only needed on the create tab, so they're fetched when it's
-  // first opened rather than on mount.
+  // Candidate tours are only needed on the create tab, so they are fetched when
+  // it is first opened rather than on mount.
   useEffect(() => {
     if (tab !== 'create' || visits !== null || !museum?._id) return;
     let cancelled = false;
-    api(`/visits/my?museumId=${museum._id}`)
+    api(`/museums/${museum._id}/visits`)
       .then((res) => {
         if (cancelled) return;
-        const list = res.visits || [];
+        const list = (res.visits || []).filter(
+          (visit) => visit.type === 'synchronized'
+        );
         setVisits(list);
         if (list.length > 0) setVisitId(list[0]._id);
       })
