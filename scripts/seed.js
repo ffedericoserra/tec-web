@@ -61,10 +61,20 @@ async function seed() {
         password: '12345678',
         walletBalance: 200,
       },
+      {
+        username: 'autore2',
+        password: '12345678',
+        walletBalance: 4242,
+      },
+      {
+        username: 'visitatore2',
+        password: '12345678',
+        walletBalance: 1489,
+      },
     ]);
     console.log(`Created ${users.length} users`);
 
-    const [autore, visitatore, docente] = users;
+    const [autore, visitatore, docente, autore2, visitatore2] = users;
 
     // =====================
     // 2. LOAD MUSEUMS FROM CONFIG FILES
