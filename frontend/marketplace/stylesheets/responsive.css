@@ -1,0 +1,127 @@
+/* Shared responsive safeguards for the active Marketplace.
+   Page styles stay in their own files; these rules only protect the common
+   navigation and the small/very-large viewport boundaries. */
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body,
+#artaround-home,
+#artaround-login,
+#artaround-register,
+#artaround-about,
+#artaround-visits,
+#artaround-my-items,
+#artaround-account,
+#artaround-item-edit,
+#artaround-visit-builder {
+    max-width: 100%;
+    overflow-x: hidden;
+    overflow-x: clip;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+}
+
+/* The navigation already wraps on phones. Make its row independently
+   scrollable, so translated labels never force the page wider than the screen. */
+@media (max-width: 720px) {
+    header.editorial-nav .nav-links {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    header.editorial-nav .nav-links::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* The wrapped fixed navbar is about 85px tall. The Item editor previously
+       used 64px here, letting its heading start beneath the navigation. */
+    #artaround-item-edit {
+        padding-top: 128px;
+    }
+
+    .visits-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(290px, 100%), 1fr));
+    }
+}
+
+@media (max-width: 360px) {
+    header.editorial-nav .nav-wrapper {
+        padding-inline: 12px;
+    }
+
+    header.editorial-nav .nav-auth {
+        gap: 10px;
+    }
+
+    #artaround-item-edit .meta-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 7px;
+    }
+
+    #artaround-item-edit .meta-label,
+    #artaround-item-edit .readonly-input,
+    #artaround-item-edit .metadata-control,
+    #artaround-item-edit .publication-toggle {
+        text-align: left;
+    }
+
+    #artaround-visit-builder .modal-overlay {
+        padding: 12px;
+    }
+
+    #artaround-visit-builder .visit-builder-modal {
+        max-height: calc(100dvh - 24px);
+        padding: 24px 16px;
+    }
+}
+
+/* Keep content readable on wide laptops and TVs instead of stretching every
+   card across the full television width. Backgrounds and editorial heroes stay
+   full bleed; only their working areas receive a comfortable reading measure. */
+@media (min-width: 1440px) {
+    #artaround-home .museums-section,
+    #artaround-visits .visits-workspace,
+    #artaround-my-items .items-workspace,
+    #artaround-account .account-workspace,
+    #artaround-about .about-content-section,
+    #artaround-item-edit .item-edit-container,
+    #artaround-visit-builder .visit-builder-editor {
+        width: min(1640px, 100%);
+        margin-inline: auto;
+    }
+
+    #artaround-visit-builder .visit-builder-hero-layout {
+        width: min(1440px, 100%);
+        margin-inline: auto;
+    }
+
+    #artaround-home .museum-grid {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 360px));
+        justify-content: center;
+    }
+
+    #artaround-visits .visits-grid {
+        grid-template-columns: repeat(auto-fit, minmax(290px, 360px));
+        justify-content: center;
+    }
+
+    #artaround-my-items .contents-grid {
+        grid-template-columns: repeat(auto-fit, minmax(230px, 300px));
+        justify-content: center;
+    }
+}

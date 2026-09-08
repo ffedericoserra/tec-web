@@ -1,19 +1,9 @@
-Migliora URI marketplace e navigator e aggiorna README
-
 Finire traduzione descizione item in inglese
 
-Controlla visita sincronizzata in db sia corretta
-
-Feauture più interessanti del sito, magari lo spieghiamo in docs specifici
-
 Eliminare file come AGENTS.md, .env.example, docs/
-
-Controllo rispetto specs
 
 --------PER ULTIMO--------------
 
 Rendi sito accessibile con attributi ARIA
-
-Controllo stile su disositivi diversi
 
 !!!! TEST DEPLOY

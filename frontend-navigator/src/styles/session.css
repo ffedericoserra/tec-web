@@ -883,3 +883,33 @@
     gap: 4px;
   }
 }
+
+@media (min-width: 900px) {
+  /* Question and quiz pages are text-heavy. A constrained column stays readable
+     on a desktop without changing their fixed-height runner behaviour. */
+  .section-question-screen,
+  .quiz-screen {
+    width: min(960px, 100%);
+    align-self: center;
+    border-inline: 1px solid var(--line-soft);
+    background: var(--bg);
+  }
+
+  .map-dialog {
+    max-width: 760px;
+  }
+
+  .map-body {
+    padding: 20px 24px 24px;
+  }
+
+  .map-plate {
+    max-height: 62dvh;
+    max-height: 62vh;
+  }
+
+  .panel-sheet,
+  .cmd-sheet {
+    max-width: 680px;
+  }
+}

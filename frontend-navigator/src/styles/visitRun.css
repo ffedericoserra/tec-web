@@ -6,6 +6,27 @@
   overflow: hidden;
 }
 
+/* On phones this keeps the existing vertical runner: artwork, controls,
+ * scrollable description and navigation. The reading panel becomes the useful
+ * flex boundary when the same markup switches to two columns on wider screens. */
+.visit-run-content,
+.visit-reading-panel {
+  min-height: 0;
+}
+
+.visit-run-content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.visit-reading-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .end-visit-btn {
   background: transparent;
   border: 0;
@@ -1089,4 +1110,67 @@
 .map-empty {
   text-align: center;
   margin: 24px 0;
+}
+
+/* A phone-height composition wastes the horizontal room of landscape tablets,
+ * laptops and TVs. At this point the artwork and its reading controls sit side
+ * by side, while the description remains the only scrolling region. */
+@media (min-width: 900px) {
+  .page-visit-run {
+    background: var(--surface-alt);
+  }
+
+  .visit-run-content {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+    grid-template-rows: minmax(0, 1fr);
+    width: min(1440px, 100%);
+    margin-inline: auto;
+    background: var(--bg);
+  }
+
+  .visit-image-wrap {
+    height: auto;
+    max-height: none;
+    aspect-ratio: auto;
+    border-bottom: 0;
+  }
+
+  .visit-reading-panel {
+    border-left: 1px solid var(--line-soft);
+  }
+
+  .visit-description {
+    padding: 18px 28px 24px;
+  }
+
+  .visit-actions-row,
+  .visit-bottom-bar {
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 360px) {
+  .visit-actions-row {
+    flex-direction: column;
+    gap: 8px;
+    padding-block: 10px;
+  }
+
+  .visit-describe-btn,
+  .visit-ask-btn {
+    flex: none;
+    width: 100%;
+  }
+
+  .visit-bottom-bar {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+
+  .visit-nav-btn {
+    padding-inline: 5px;
+    font-size: 10px;
+    letter-spacing: 0.4px;
+  }
 }

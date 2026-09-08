@@ -267,7 +267,7 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 
 The most complex page. Read this carefully before changing anything.
 
-**Layout** — `100dvh` flex column. Header / image / actions / description / bottom-bar are all `flex-shrink: 0`. Only `.visit-description` flexes and scrolls (`flex: 1` + `min-height: 0` + `overflow-y: auto`). Don't change those constraints unless you also rework the layout.
+**Layout** — on phones and portrait tablets the runner is a `100dvh` flex column: `.visit-run-content` and its `.visit-reading-panel` preserve the image / actions / scrollable description / bottom-bar order. Only `.visit-description` flexes and scrolls (`flex: 1` + `min-height: 0` + `overflow-y: auto`). At `900px+`, that same wrapper becomes a two-column layout (artwork left, reading controls right), constrained to 1440px; the description remains the only scrolling region. Question and quiz screens use a centred 960px reading column at that breakpoint. Don't change these flex/min-height constraints unless you also rework the layout.
 
 **Data fetch** — on mount, parallel:
 

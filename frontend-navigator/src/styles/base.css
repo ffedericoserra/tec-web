@@ -34,6 +34,8 @@ html {
   touch-action: pan-x pan-y;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 html,
@@ -57,6 +59,7 @@ body {
 #root {
   min-height: 100dvh;
   min-height: 100vh;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -80,6 +83,13 @@ textarea,
 select {
   font: inherit;
   color: inherit;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
 }
 
 /* ---------- Shared editorial bits ---------- */
@@ -113,4 +123,16 @@ select {
 .marketplace-link:focus-visible {
   color: var(--accent);
   outline: none;
+}
+
+/* The museum and visit lists are designed mobile-first, but a long single row
+ * is hard to scan on a laptop or TV. Constrain their reading column while the
+ * surrounding page remains full width. */
+@media (min-width: 768px) {
+  .page-museums-body,
+  .page-visit-select-body {
+    width: min(1080px, 100%);
+    margin-inline: auto;
+    padding-inline: 28px;
+  }
 }

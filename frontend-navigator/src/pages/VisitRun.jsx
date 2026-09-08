@@ -969,8 +969,8 @@ export default function VisitRun() {
           }
         />
       ) : (
-        <>
-      <div className="visit-image-wrap">
+        <div className="visit-run-content">
+          <div className="visit-image-wrap">
         {showImage ? (
           <img
             key={imageUrl}
@@ -993,8 +993,9 @@ export default function VisitRun() {
         >
           ?
         </button>
-      </div>
+          </div>
 
+          <div className="visit-reading-panel">
       <div className="visit-actions-row">
         <button
           type="button"
@@ -1175,7 +1176,8 @@ export default function VisitRun() {
           {t('visitRun.map')}
         </button>
       </div>
-        </>
+          </div>
+        </div>
       )}
 
       {sheetOpen && (
