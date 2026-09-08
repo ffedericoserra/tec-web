@@ -31,7 +31,6 @@ New marketplace work belongs in `frontend/marketplace/`. The old version survive
 
 ## 2. Missing for the grade
 
-- **README.txt is a mandatory deliverable** and doesn't exist yet: group members, architecture, which parts used AI assistance, feature list. Check [SPECS.md](SPECS.md) for the exact required contents.
 - **Seed vs SPECS account mismatch.** The spec asks for `autore1`, `autore2`, `visitatore1`, `visitatore2`; `scripts/seed.js` creates `autore1`, `visitatore1`, `docente1`.
 
 ## 3. Extension 2 — not started
