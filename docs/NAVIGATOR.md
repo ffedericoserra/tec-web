@@ -239,6 +239,7 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Protected route declared before `/:museumSlug`, so `account` is never interpreted as a museum slug.
 - Loads `/auth/me` and `/visits/my` in parallel and refreshes the cached user.
 - Shows created and saved visits in separate tabs; both can launch the visit runner using museum and visit slugs.
+- Its tabs have linked `tab`/`tabpanel` IDs, roving tab focus and Arrow/Home/End keyboard navigation. The same pattern is used for the activity and group-visit panels; loading messages use `role="status"` and failures use `role="alert"`.
 - The Settings tab contains an accessible two-button Italian/English language control
   (`aria-pressed` marks the active choice). Buttons are disabled while saving. It sends
   the choice through `PATCH /auth/language`; only after success does the returned
@@ -468,6 +469,8 @@ text and voice metadata must never drift.
 
 - **Late-fetch guard.** Every effect that fires `Promise.all([...])` uses a `cancelled` flag (`let cancelled = false; ... return () => { cancelled = true; }`) and ignores the response when set. Don't drop this — without it, navigating away mid-fetch can call `setState` on an unmounted component.
 - **No `<dialog>`.** Modals are overlay `<div>`s with their own keydown listener. Easier to control from React state and avoids cross-browser polyfills.
+- **ARIA state follows UI state.** If a control changes a panel, connect it with a stable ID (`aria-controls`/`aria-labelledby`) and keep selection/expanded/pressed state in sync. Dynamic loading feedback is a polite status; blocking failures are alerts. Avoid giving a native form field a replacement ARIA role, because that hides its textbox semantics.
+- **Map markers are keyboard controls.** The interactive SVG uses `role="group"` instead of flattening its descendants as an image; each stop and point of interest is a labelled keyboard-operable button (Enter/Space) that updates the map footer.
 - **CSS scoping.** No CSS modules / styled-components. Page CSS is global, but every page uses unique class prefixes (`.visit-`, `.museums-`, etc.) to avoid collision. Keep the prefix when you add classes to a page.
 - **UI copy belongs in both locale catalogues.** Do not hard-code a new user-facing
   string in JSX: add the same key to `src/locales/it.json` and `src/locales/en.json`,

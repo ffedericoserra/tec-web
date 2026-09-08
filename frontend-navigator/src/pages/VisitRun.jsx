@@ -807,7 +807,7 @@ export default function VisitRun() {
     return (
       <div className="page-visit-run">
         <PageHeader />
-        <p className="visit-status">{t('common.loading')}</p>
+        <p className="visit-status" role="status">{t('common.loading')}</p>
       </div>
     );
   }
@@ -826,7 +826,7 @@ export default function VisitRun() {
             </button>
           }
         />
-        <p className="visit-status error">{t(error)}</p>
+        <p className="visit-status error" role="alert">{t(error)}</p>
       </div>
     );
   }
@@ -869,7 +869,7 @@ export default function VisitRun() {
             </button>
           }
         />
-        <p className="visit-status">{t('visitRun.empty')}</p>
+        <p className="visit-status" role="status">{t('visitRun.empty')}</p>
       </div>
     );
   }
@@ -996,6 +996,7 @@ export default function VisitRun() {
           </div>
 
           <div className="visit-reading-panel">
+      <h1 id="visit-current-content-title" className="sr-only">{contentName}</h1>
       <div className="visit-actions-row">
         <button
           type="button"
@@ -1020,6 +1021,9 @@ export default function VisitRun() {
         className={`visit-description${
           mode === 'logistic' && !answer ? ' is-logistic' : ''
         }${answer ? ' is-answer' : ''}`}
+        role="region"
+        aria-labelledby="visit-current-content-title"
+        aria-live="polite"
         onPointerDown={onDescPointerDown}
         onPointerMove={onDescPointerMove}
         onPointerUp={onDescPointerUp}

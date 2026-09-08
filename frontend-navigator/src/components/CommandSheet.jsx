@@ -147,7 +147,9 @@ export default function CommandSheet({ disabled, onCommand, onClose }) {
                 {listening ? t('voice.listening') : t('voice.tapAndSpeak')}
               </p>
               {status && (
-                <p className="cmd-mic-status">{t(status.key, status.values)}</p>
+                <p className="cmd-mic-status" role="status">
+                  {t(status.key, status.values)}
+                </p>
               )}
             </div>
           )}

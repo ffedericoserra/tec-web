@@ -160,6 +160,22 @@ export default function ActivitiesPanel({
     (total, section) => total + section.questions.length,
     0
   );
+  const activityTabs = ['activities', 'answers'];
+
+  function handleTabKeyDown(event, currentView) {
+    const currentIndex = activityTabs.indexOf(currentView);
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % activityTabs.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + activityTabs.length) % activityTabs.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = activityTabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextView = activityTabs[nextIndex];
+    setView(nextView);
+    requestAnimationFrame(() => document.getElementById(`activity-tab-${nextView}`)?.focus());
+  }
 
   function downloadAnswers() {
     const report = buildAnswersReport({
@@ -200,18 +216,26 @@ export default function ActivitiesPanel({
         <button
           type="button"
           role="tab"
+          id="activity-tab-activities"
+          aria-controls="activity-panel-activities"
           aria-selected={view === 'activities'}
+          tabIndex={view === 'activities' ? 0 : -1}
           className={view === 'activities' ? 'is-active' : ''}
           onClick={() => setView('activities')}
+          onKeyDown={(event) => handleTabKeyDown(event, 'activities')}
         >
           {t('activities.tabActivities')}
         </button>
         <button
           type="button"
           role="tab"
+          id="activity-tab-answers"
+          aria-controls="activity-panel-answers"
           aria-selected={view === 'answers'}
+          tabIndex={view === 'answers' ? 0 : -1}
           className={view === 'answers' ? 'is-active' : ''}
           onClick={() => setView('answers')}
+          onKeyDown={(event) => handleTabKeyDown(event, 'answers')}
         >
           {t('activities.tabAnswers')}
           {responses.length > 0 && (
@@ -220,6 +244,12 @@ export default function ActivitiesPanel({
         </button>
       </div>
 
+      <div
+        id={`activity-panel-${view}`}
+        role="tabpanel"
+        aria-labelledby={`activity-tab-${view}`}
+        tabIndex="0"
+      >
       {view === 'activities' ? (
         newestFirst.length === 0 ? (
           <p className="panel-empty">{t('activities.empty')}</p>
@@ -307,6 +337,7 @@ export default function ActivitiesPanel({
           })}
         </div>
       )}
+      </div>
     </SessionPanel>
   );
 }

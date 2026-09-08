@@ -18,14 +18,16 @@ function renderMarketplaceNavbar() {
         <a href="homepage.html" class="brand" aria-label="${marketplaceT("nav.homeAria")}">
             <span class="logo-text">A&alpha;</span>
         </a>
-        <ul class="nav-links">
-            ${links.map(([href, label]) => `
-                <li><a href="${href}"${activePage === href ? ' class="active"' : ""}>${label}</a></li>
-            `).join("")}
-        </ul>
+        <nav class="nav-main" aria-label="${marketplaceT("nav.primaryAria")}">
+            <ul class="nav-links">
+                ${links.map(([href, label]) => `
+                    <li><a href="${href}"${activePage === href ? ' class="active" aria-current="page"' : ""}>${label}</a></li>
+                `).join("")}
+            </ul>
+        </nav>
         <div class="nav-auth-wrapper">
             <ul class="nav-auth">
-                <li><a href="user_profile.html"${activePage === "user_profile.html" ? ' class="active"' : ""}>${marketplaceT("common.account")}</a></li>
+                <li><a href="user_profile.html"${activePage === "user_profile.html" ? ' class="active" aria-current="page"' : ""}>${marketplaceT("common.account")}</a></li>
                 <li><a href="${token ? "#" : "login.html"}" id="${token ? "logout-btn" : "login-link"}">${token ? marketplaceT("common.logout") : marketplaceT("common.login")}</a></li>
             </ul>
         </div>

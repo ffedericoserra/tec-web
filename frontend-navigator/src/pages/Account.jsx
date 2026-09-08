@@ -96,6 +96,23 @@ export default function Account() {
   const [rechargeAmount, setRechargeAmount] = useState(10);
   const [recharging, setRecharging] = useState(false);
   const [rechargeError, setRechargeError] = useState(null);
+
+  const accountTabs = ['visits', 'saved', 'settings'];
+
+  function handleTabKeyDown(event, currentTab) {
+    const currentIndex = accountTabs.indexOf(currentTab);
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % accountTabs.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + accountTabs.length) % accountTabs.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = accountTabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextTab = accountTabs[nextIndex];
+    setActiveTab(nextTab);
+    requestAnimationFrame(() => document.getElementById(`account-tab-${nextTab}`)?.focus());
+  }
   const [walletNoticeAmount, setWalletNoticeAmount] = useState(null);
   const [languageSaving, setLanguageSaving] = useState(false);
   const [languageError, setLanguageError] = useState(null);
@@ -229,8 +246,8 @@ export default function Account() {
           <p>{t('account.intro')}</p>
         </section>
 
-        {loading && <p className="account-status">{t('common.loading')}</p>}
-        {error && !loading && <p className="account-status error">{t(error)}</p>}
+        {loading && <p className="account-status" role="status">{t('common.loading')}</p>}
+        {error && !loading && <p className="account-status error" role="alert">{t(error)}</p>}
 
         {!loading && !error && (
           <section className="account-dashboard">
@@ -288,33 +305,51 @@ export default function Account() {
                 <button
                   type="button"
                   role="tab"
+                  id="account-tab-visits"
+                  aria-controls="account-panel-visits"
                   aria-selected={activeTab === 'visits'}
+                  tabIndex={activeTab === 'visits' ? 0 : -1}
                   className={activeTab === 'visits' ? 'is-active' : ''}
                   onClick={() => setActiveTab('visits')}
+                  onKeyDown={(event) => handleTabKeyDown(event, 'visits')}
                 >
                   {t('account.tabs.visits')}
                 </button>
                 <button
                   type="button"
                   role="tab"
+                  id="account-tab-saved"
+                  aria-controls="account-panel-saved"
                   aria-selected={activeTab === 'saved'}
+                  tabIndex={activeTab === 'saved' ? 0 : -1}
                   className={activeTab === 'saved' ? 'is-active' : ''}
                   onClick={() => setActiveTab('saved')}
+                  onKeyDown={(event) => handleTabKeyDown(event, 'saved')}
                 >
                   {t('account.tabs.saved')}
                 </button>
                 <button
                   type="button"
                   role="tab"
+                  id="account-tab-settings"
+                  aria-controls="account-panel-settings"
                   aria-selected={activeTab === 'settings'}
+                  tabIndex={activeTab === 'settings' ? 0 : -1}
                   className={activeTab === 'settings' ? 'is-active' : ''}
                   onClick={() => setActiveTab('settings')}
+                  onKeyDown={(event) => handleTabKeyDown(event, 'settings')}
                 >
                   {t('account.tabs.settings')}
                 </button>
               </div>
 
-              <div className="account-panel" role="tabpanel">
+              <div
+                id={`account-panel-${activeTab}`}
+                className="account-panel"
+                role="tabpanel"
+                aria-labelledby={`account-tab-${activeTab}`}
+                tabIndex="0"
+              >
                 {activeTab === 'visits' && (
                   <>
                     <h2>{t('account.createdVisits')}</h2>

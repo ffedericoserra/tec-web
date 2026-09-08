@@ -59,6 +59,12 @@ header.editorial-nav .nav-links {
     min-width: 0;
 }
 
+header.editorial-nav .nav-main {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
 header.editorial-nav .nav-links li {
     flex: 0 1 auto;
 }
@@ -115,6 +121,10 @@ header.editorial-nav .nav-auth {
         overflow-x: auto;
     }
 
+    header.editorial-nav .nav-main {
+        min-width: 0;
+    }
+
     header.editorial-nav .nav-auth {
         gap: 14px;
     }
@@ -132,9 +142,13 @@ header.editorial-nav .nav-auth {
         padding: 14px 18px;
     }
 
-    header.editorial-nav .nav-links {
+    header.editorial-nav .nav-main {
         order: 3;
         flex-basis: 100%;
+        min-width: 0;
+    }
+
+    header.editorial-nav .nav-links {
         padding-bottom: 4px;
     }
 }

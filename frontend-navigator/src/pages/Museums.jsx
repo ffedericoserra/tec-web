@@ -86,8 +86,8 @@ export default function Museums() {
             aria-label={t('museums.searchAria')}
           />
         </label>
-        {loading && <p className="status">{t('common.loading')}</p>}
-        {error && !loading && <p className="status error">{t(error)}</p>}
+        {loading && <p className="status" role="status">{t('common.loading')}</p>}
+        {error && !loading && <p className="status error" role="alert">{t(error)}</p>}
         {!loading && !error && (
           <ul className="museum-list">
             {filtered.map((m) => {

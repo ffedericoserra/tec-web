@@ -61,6 +61,9 @@ function showToast(message, type = "success") {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
+        container.setAttribute('role', 'status');
+        container.setAttribute('aria-live', 'polite');
+        container.setAttribute('aria-atomic', 'true');
         document.body.appendChild(container);
     }
     const toast = document.createElement('div');
@@ -162,12 +165,25 @@ function setActiveDuration(audienceId, duration) {
     panel.querySelectorAll('.duration-tab').forEach(tab => {
         const isActive = tab.dataset.duration === duration;
         tab.classList.toggle('is-active', isActive);
-        tab.setAttribute('aria-selected', String(isActive));
+        tab.setAttribute('aria-pressed', String(isActive));
         tab.tabIndex = isActive ? 0 : -1;
     });
 
     panel.querySelectorAll('.audience-textarea').forEach(textarea => {
         textarea.classList.toggle('hidden', textarea.dataset.duration !== duration);
+    });
+}
+
+function labelAudienceTextareas() {
+    audienceMap.forEach((audience) => {
+        const panel = document.getElementById(`audience-panel-${audience.id}`);
+        if (!panel) return;
+        panel.querySelectorAll('.audience-textarea').forEach((textarea) => {
+            const duration = textarea.dataset.duration;
+            const durationLabel = panel.querySelector(`.duration-tab[data-duration="${duration}"]`)?.textContent?.trim();
+            textarea.removeAttribute('role');
+            textarea.setAttribute('aria-label', `${marketplaceT(audience.labelKey)}: ${durationLabel || duration}`);
+        });
     });
 }
 
@@ -177,6 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('artwork-title-display').textContent = `${urlTitle} - ${urlAuthor}`;
     document.getElementById('museum-name-display').textContent = museumName;
     applyTailoredPlaceholders();
+    labelAudienceTextareas();
     resetCommercialFields();
     await loadAssociatedContentOptions();
 
@@ -258,8 +275,15 @@ const dropdownTrigger = document.getElementById('dropdown-trigger');
 const dropdownMenu = document.getElementById('dropdown-menu');
 const existingItemsList = document.getElementById('existing-items-list');
 
+function setDropdownOpen(open) {
+    dropdownMenu.classList.toggle('hidden', !open);
+    dropdownTrigger?.setAttribute('aria-expanded', String(open));
+}
+
 if (dropdownTrigger) {
-    dropdownTrigger.addEventListener('click', () => dropdownMenu.classList.toggle('hidden'));
+    dropdownTrigger.addEventListener('click', () => {
+        setDropdownOpen(dropdownMenu.classList.contains('hidden'));
+    });
 }
 
 async function loadCommunityItems() {
@@ -324,15 +348,19 @@ async function loadCommunityItems() {
             const detailsLine = document.createElement('span');
             detailsLine.classList.add('community-item-tags');
             detailsLine.textContent = itemDetails;
-            li.append(authorLine, detailsLine);
-            
-            li.addEventListener('click', async () => {
+            const itemButton = document.createElement('button');
+            itemButton.type = 'button';
+            itemButton.classList.add('community-item-button');
+            itemButton.append(authorLine, detailsLine);
+            const selectCommunityItem = async () => {
                 await caricaTestiDaDB(item._id);
                 setDropdownTranslation('itemEditor.viewingBy', {
                     creator: displayCreatorName
                 });
-                dropdownMenu.classList.add('hidden');
-            });
+                setDropdownOpen(false);
+            };
+            itemButton.addEventListener('click', selectCommunityItem);
+            li.appendChild(itemButton);
             existingItemsList.appendChild(li);
         });
     } catch (e) {
@@ -347,7 +375,7 @@ document.getElementById('btn-create-new').addEventListener('click', () => {
     setDropdownTranslation('itemEditor.createOwn');
     document.getElementById('btn-delete-item').classList.add('hidden');
     setSaveButtonState({ owned: true });
-    dropdownMenu.classList.add('hidden');
+    setDropdownOpen(false);
 });
 
 // Il tasto Salva sta sempre affiancato ad Annulla, anche quando i testi
@@ -703,5 +731,6 @@ document.getElementById('btn-delete-item').addEventListener('click', async () =>
 
 window.addEventListener('marketplace:language-changed', () => {
     setDropdownTranslation(dropdownTranslation.key, dropdownTranslation.options);
+    labelAudienceTextareas();
     if (originalContentId) loadCommunityItems();
 });

@@ -103,7 +103,9 @@
             </div>
           </div>
 
+          <div class="chapter-tabs-row">
           <div class="chapter-tabs" id="chapter-tabs" role="tablist" aria-label="Capitoli della visita" data-i18n-aria-label="visitEditor.chaptersAria">
+          </div>
             <button
               id="add-block-btn"
               type="button"
@@ -138,9 +140,9 @@
     </main>
 
     <div id="section-type-modal" class="modal-overlay hidden">
-      <div class="modal-content visit-builder-modal section-type-modal">
-        <h3 class="modal-top-title" data-i18n="visitEditor.chooseChapterType">Scegli il tipo di capitolo</h3>
-        <p class="section-type-intro" data-i18n="visitEditor.chapterTypeIntro">
+      <div class="modal-content visit-builder-modal section-type-modal" role="dialog" aria-modal="true" aria-labelledby="section-type-modal-title" aria-describedby="section-type-modal-intro" tabindex="-1">
+        <h3 id="section-type-modal-title" class="modal-top-title" data-i18n="visitEditor.chooseChapterType">Scegli il tipo di capitolo</h3>
+        <p id="section-type-modal-intro" class="section-type-intro" data-i18n="visitEditor.chapterTypeIntro">
           I capitoli di contenuti raccolgono le tappe della visita, nell'ordine in
           cui le disponi qui sotto. I capitoli domanda vengono mostrati
           durante le sessioni di gruppo.
@@ -187,7 +189,7 @@
           <p><span data-i18n="visitEditor.newAdditions">Nuove aggiunte</span> <strong id="visit-wallet-pending">0 A&alpha;</strong></p>
           <p><span data-i18n="visitEditor.estimatedRemaining">Residuo stimato</span> <strong id="visit-wallet-remaining">0 A&alpha;</strong></p>
         </div>
-        <div id="items-container" class="items-scroll-container"></div>
+        <div id="items-container" class="items-scroll-container" role="region" aria-live="polite" aria-busy="true"></div>
         <button
           type="button"
           class="main-btn close-modal-btn"
@@ -199,9 +201,9 @@
     </div>
 
     <div id="cancel-confirm-modal" class="modal-overlay hidden">
-      <div class="modal-content visit-builder-modal center-text-modal">
-        <h2 class="warning-title" data-i18n="visitEditor.warning">Attenzione</h2>
-        <p class="warning-text" data-i18n="visitEditor.leaveWarning">
+      <div class="modal-content visit-builder-modal center-text-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-modal-title" aria-describedby="cancel-confirm-modal-copy" tabindex="-1">
+        <h2 id="cancel-confirm-modal-title" class="warning-title" data-i18n="visitEditor.warning">Attenzione</h2>
+        <p id="cancel-confirm-modal-copy" class="warning-text" data-i18n="visitEditor.leaveWarning">
           You are leaving the editor. Unsaved changes will be lost. Do you want
           to save them before leaving this page?
         </p>

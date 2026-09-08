@@ -55,18 +55,48 @@ if (displayMuseumEl) displayMuseumEl.innerText = museumName || marketplaceT('vis
 
 // --- LOGICA MODALE ANNULLA / ESCI ---
 const cancelModal = document.getElementById('cancel-confirm-modal');
+let cancelModalReturnFocus = null;
+let sectionTypeModalReturnFocus = null;
+
+function openModal(modal, returnFocusStore) {
+    returnFocusStore.set(document.activeElement);
+    modal.classList.remove('hidden');
+    requestAnimationFrame(() => modal.querySelector('[role="dialog"]')?.focus());
+}
+
+function closeModal(modal, returnFocusStore, nextFocus = null) {
+    modal.classList.add('hidden');
+    const focusTarget = nextFocus || returnFocusStore.get();
+    returnFocusStore.set(null);
+    if (focusTarget?.isConnected) requestAnimationFrame(() => focusTarget.focus());
+}
+
+const cancelModalFocus = {
+    get: () => cancelModalReturnFocus,
+    set: (value) => { cancelModalReturnFocus = value; }
+};
+const sectionTypeModalFocus = {
+    get: () => sectionTypeModalReturnFocus,
+    set: (value) => { sectionTypeModalReturnFocus = value; }
+};
+
 document.getElementById('cancel-btn').addEventListener('click', () => {
-    cancelModal.classList.remove('hidden');
+    openModal(cancelModal, cancelModalFocus);
 });
 document.getElementById('confirm-exit-btn').addEventListener('click', () => {
     window.location.href = `visits_list.html?museumId=${museumId}&museumName=${encodeURIComponent(museumName)}`;
 });
 document.getElementById('confirm-save-btn').addEventListener('click', () => {
-    cancelModal.classList.add('hidden');
+    closeModal(cancelModal, cancelModalFocus, null);
     document.getElementById('save-visit-btn').click();
 });
 document.getElementById('close-cancel-modal').addEventListener('click', () => {
-    cancelModal.classList.add('hidden');
+    closeModal(cancelModal, cancelModalFocus);
+});
+cancelModal.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    closeModal(cancelModal, cancelModalFocus);
 });
 
 const itemModal = document.getElementById('select-item-modal');
@@ -353,6 +383,12 @@ function generateBlockUid() {
     return `chapter-${Date.now()}-${blockUidSeed}`;
 }
 
+function configureBlockPanel(block) {
+    block.id = `visit-block-${block.dataset.blockUid}`;
+    block.setAttribute('role', 'tabpanel');
+    block.tabIndex = block.classList.contains('is-active-block') ? 0 : -1;
+}
+
 // --- SCHEDE CAPITOLO (una alla volta, come le pagine di un documento) ---
 // Ogni sezione resta sempre nel DOM (stato ed eventi non vanno persi), ma
 // solo quella con .is-active-block è visibile: niente più scorrimento
@@ -380,19 +416,37 @@ function renderChapterTabs() {
         tab.classList.toggle('is-active', isActive);
         tab.setAttribute('role', 'tab');
         tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        tab.id = `${block.id}-tab`;
+        tab.setAttribute('aria-controls', block.id);
+        tab.tabIndex = isActive ? 0 : -1;
+        block.setAttribute('aria-labelledby', tab.id);
         tab.title = title;
         tab.innerHTML = `
             <span class="chapter-tab-number">${number}</span>
             <span class="chapter-tab-title">${escapeHTML(title)}</span>
         `;
         tab.addEventListener('click', () => setActiveBlock(block));
-        chapterTabsList.insertBefore(tab, addBlockBtnWrapper);
+        tab.addEventListener('keydown', (event) => {
+            const chapters = Array.from(blocksContainer.querySelectorAll('.visit-block'));
+            const currentIndex = chapters.indexOf(block);
+            let nextIndex = currentIndex;
+            if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % chapters.length;
+            else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + chapters.length) % chapters.length;
+            else if (event.key === 'Home') nextIndex = 0;
+            else if (event.key === 'End') nextIndex = chapters.length - 1;
+            else return;
+            event.preventDefault();
+            setActiveBlock(chapters[nextIndex]);
+            chapterTabsList.querySelector(`.chapter-tab[aria-controls="${chapters[nextIndex].id}"]`)?.focus();
+        });
+        chapterTabsList.appendChild(tab);
     });
 }
 
 function setActiveBlock(block) {
     blocksContainer.querySelectorAll('.visit-block').forEach((candidate) => {
         candidate.classList.toggle('is-active-block', candidate === block);
+        candidate.tabIndex = candidate === block ? 0 : -1;
     });
     renderChapterTabs();
 }
@@ -582,6 +636,7 @@ function createNewBlock(defaultTitle = marketplaceT("visitEditor.newChapter"), s
     block.classList.add('visit-block');
     block.dataset.sectionType = sectionType;
     block.dataset.blockUid = generateBlockUid();
+    configureBlockPanel(block);
 
     const sectionBody = sectionType === 'questions'
         ? `<div class="question-list"></div>
@@ -596,7 +651,7 @@ function createNewBlock(defaultTitle = marketplaceT("visitEditor.newChapter"), s
     block.innerHTML = `
       <div class="block-header">
         <span class="block-number">${marketplaceT('visitEditor.chapter', { number: toRoman(blockCounter) })}</span>
-        <input type="text" class="block-title-input" value="${escapeHTML(defaultTitle)}">
+        <input type="text" class="block-title-input" aria-label="${marketplaceT('visitEditor.chapterTitleAria')}" value="${escapeHTML(defaultTitle)}">
         <span class="block-count">${sectionType === 'questions'
             ? marketplaceT('visitEditor.blockQuestions', { count: 0 })
             : marketplaceT('visitEditor.blockArtworks', { count: 0 })}</span>
@@ -635,7 +690,7 @@ function createNewBlock(defaultTitle = marketplaceT("visitEditor.newChapter"), s
 }
 
 addBlockBtnWrapper.addEventListener('click', () => {
-    sectionTypeModal.classList.remove('hidden');
+    openModal(sectionTypeModal, sectionTypeModalFocus);
 });
 
 document.querySelectorAll('[data-section-type]').forEach((button) => {
@@ -648,12 +703,17 @@ document.querySelectorAll('[data-section-type]').forEach((button) => {
                 : marketplaceT('visitEditor.newChapter'),
             sectionType
         );
-        sectionTypeModal.classList.add('hidden');
+        closeModal(sectionTypeModal, sectionTypeModalFocus);
     });
 });
 
 document.getElementById('close-section-type-modal').addEventListener('click', () => {
-    sectionTypeModal.classList.add('hidden');
+    closeModal(sectionTypeModal, sectionTypeModalFocus);
+});
+sectionTypeModal.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    closeModal(sectionTypeModal, sectionTypeModalFocus);
 });
 
 function aggiornaContatoriBlocchi() {
@@ -682,6 +742,7 @@ async function apriModaleOpere(itemToReplace = null) {
     if (wasClosed) itemModalReturnFocus = document.activeElement;
     pendingItemReplacement = itemToReplace;
     itemModal.classList.remove('hidden');
+    itemsContainer.setAttribute('aria-busy', 'true');
     itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("items.loadingContents"));
     updateWalletPreview();
     const modalPanel = itemModal.querySelector('.visit-builder-modal');
@@ -765,6 +826,8 @@ async function apriModaleOpere(itemToReplace = null) {
         if (requestId !== itemModalRequestId || itemModal.classList.contains('hidden')) return;
         itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.connectionError"), true);
         document.getElementById('close-item-modal')?.focus();
+    } finally {
+        if (requestId === itemModalRequestId) itemsContainer.setAttribute('aria-busy', 'false');
     }
 }
 
@@ -773,6 +836,7 @@ function closeItemPicker(nextFocus = null) {
     itemModalRequestId++;
     pendingItemReplacement = null;
     itemModal.classList.add('hidden');
+    itemsContainer.setAttribute('aria-busy', 'false');
     itemModalReturnFocus = null;
     if (focusTarget?.isConnected) {
         requestAnimationFrame(() => focusTarget.focus());
@@ -1655,6 +1719,11 @@ window.addEventListener('DOMContentLoaded', async () => {
                 blocksContainer.appendChild(block);
                 block.dataset.sectionType = block.dataset.sectionType || 'artwork';
                 block.dataset.blockUid = block.dataset.blockUid || generateBlockUid();
+                configureBlockPanel(block);
+                block.querySelector('.block-title-input').setAttribute(
+                    'aria-label',
+                    marketplaceT('visitEditor.chapterTitleAria')
+                );
                 normalizeBlockAddButton(block);
                 bindBlockDelete(block);
                 block.querySelector('.block-title-input').addEventListener('input', renderChapterTabs);

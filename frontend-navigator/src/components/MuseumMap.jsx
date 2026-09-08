@@ -84,6 +84,12 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
   const [selected, setSelected] = useState(null);
   const [view, setView] = useState(null);
 
+  function activateWithKeyboard(event, action) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    action();
+  }
+
   const svgRef = useRef(null);
   const pointers = useRef(new Map());
   const gesture = useRef(null);
@@ -352,7 +358,7 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                   ref={svgRef}
                   className="map-svg"
                   viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
-                  role="img"
+                  role="group"
                   aria-label={t('map.visitAria', {
                     count: geometry.stops.length,
                   })}
@@ -392,6 +398,9 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                     <g
                       key={p.key}
                       className="map-poi"
+                      role="button"
+                      tabIndex="0"
+                      aria-label={`${p.label || t(poiMeta(p.type).labelKey)}: ${t(poiMeta(p.type).labelKey)}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         pick({
@@ -399,6 +408,10 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                           sub: t(poiMeta(p.type).labelKey),
                         });
                       }}
+                      onKeyDown={(event) => activateWithKeyboard(event, () => pick({
+                        title: p.label || t(poiMeta(p.type).labelKey),
+                        sub: t(poiMeta(p.type).labelKey),
+                      }))}
                     >
                       <circle
                         cx={p.x}
@@ -423,6 +436,13 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                       className={`map-stop${
                         s.index === currentIndex ? ' is-current' : ''
                       }`}
+                      role="button"
+                      tabIndex="0"
+                      aria-label={`${s.index + 1}. ${s.name}: ${
+                        s.index === currentIndex
+                          ? t('map.currentStop')
+                          : t('map.visitStop')
+                      }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         pick({
@@ -433,6 +453,12 @@ export default function MuseumMap({ museum, stops, currentIndex, onClose }) {
                               : t('map.visitStop'),
                         });
                       }}
+                      onKeyDown={(event) => activateWithKeyboard(event, () => pick({
+                        title: `${s.index + 1}. ${s.name}`,
+                        sub: s.index === currentIndex
+                          ? t('map.currentStop')
+                          : t('map.visitStop'),
+                      }))}
                     >
                       <circle
                         cx={s.x}

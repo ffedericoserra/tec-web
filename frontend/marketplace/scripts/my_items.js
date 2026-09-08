@@ -16,6 +16,8 @@ const grid = document.getElementById("contents-grid");
 const feedback = document.getElementById("items-feedback");
 const museumSelect = document.getElementById("items-museum-select");
 const search = document.getElementById("content-search");
+const detailModal = document.getElementById("content-detail");
+let detailReturnFocus = null;
 feedback.textContent = marketplaceT("items.loadingContents");
 
 function escapeHTML(value) {
@@ -85,10 +87,11 @@ function renderContents() {
     const visible = filteredContents();
     if (visible.length === 0) {
         grid.innerHTML = `<div class="empty-state">${marketplaceT("items.noFilteredContent")}</div>`;
+        grid.setAttribute("aria-busy", "false");
         return;
     }
     grid.innerHTML = visible.map((content) => `
-        <button class="content-card" type="button" data-content-id="${escapeHTML(content.universalId)}" data-museum-id="${content.museum._id}">
+        <button class="content-card" type="button" aria-haspopup="dialog" data-content-id="${escapeHTML(content.universalId)}" data-museum-id="${content.museum._id}">
             <img src="${escapeHTML(content.imageUrl || "/uploads/placeholders/template-no-image.jpg")}" alt="" />
             <span class="content-card-copy">
                 <span>${escapeHTML(content.museum.name)} · ${escapeHTML(contentTypeLabel(content.type))}</span>
@@ -98,9 +101,11 @@ function renderContents() {
         </button>
     `).join("");
     grid.querySelectorAll(".content-card").forEach((card) => card.addEventListener("click", () => {
+        detailReturnFocus = card;
         currentContent = contents.find((content) => content.universalId === card.dataset.contentId && content.museum._id === card.dataset.museumId);
         openContent();
     }));
+    grid.setAttribute("aria-busy", "false");
 }
 
 function itemEditorUrl(itemId = "") {
@@ -136,7 +141,10 @@ function renderDetail() {
         const isActive = button.dataset.tab === activeTab;
         button.classList.toggle("active", isActive);
         button.setAttribute("aria-selected", String(isActive));
+        button.tabIndex = isActive ? 0 : -1;
     });
+    list.id = `items-panel-${activeTab}`;
+    list.setAttribute("aria-labelledby", `items-tab-${activeTab}`);
 
     const mine = currentItems.filter((item) => item.isOwned);
     const purchased = currentItems.filter((item) => item.isPurchased && !item.isOwned);
@@ -166,7 +174,8 @@ function renderDetail() {
 }
 
 async function openContent() {
-    document.getElementById("content-detail").classList.remove("hidden");
+    detailModal.classList.remove("hidden");
+    requestAnimationFrame(() => detailModal.focus());
     document.getElementById("detail-title").textContent = currentContent.name || marketplaceT("common.content");
     document.getElementById("detail-author").textContent = currentContent.author || marketplaceT("items.authorMissing");
     document.getElementById("detail-museum").textContent = currentContent.museum.name;
@@ -179,6 +188,14 @@ async function openContent() {
     } catch (error) {
         document.getElementById("items-detail-list").innerHTML = `<div class="empty-state">${marketplaceT("items.loadItemsError")}</div>`;
     }
+}
+
+function closeContent() {
+    detailModal.classList.add("hidden");
+    if (detailReturnFocus?.isConnected) {
+        requestAnimationFrame(() => detailReturnFocus.focus());
+    }
+    detailReturnFocus = null;
 }
 
 async function deleteItem(itemId) {
@@ -229,13 +246,39 @@ async function initialize() {
         initializationStatus = "error";
         feedback.textContent = marketplaceT("items.loadError");
         feedback.classList.add("is-error");
+        grid.setAttribute("aria-busy", "false");
     }
 }
 
 museumSelect.addEventListener("change", renderContents);
 search.addEventListener("input", renderContents);
-document.getElementById("close-detail").addEventListener("click", () => document.getElementById("content-detail").classList.add("hidden"));
-document.querySelectorAll(".tab-btn").forEach((button) => button.addEventListener("click", () => { activeTab = button.dataset.tab; renderDetail(); }));
+document.getElementById("close-detail").addEventListener("click", closeContent);
+detailModal.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    closeContent();
+});
+document.querySelectorAll(".tab-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+        activeTab = button.dataset.tab;
+        renderDetail();
+    });
+    button.addEventListener("keydown", (event) => {
+        const tabs = Array.from(document.querySelectorAll(".tab-btn"));
+        const currentIndex = tabs.indexOf(button);
+        let nextIndex = currentIndex;
+        if (event.key === "ArrowRight") nextIndex = (currentIndex + 1) % tabs.length;
+        else if (event.key === "ArrowLeft") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = tabs.length - 1;
+        else return;
+        event.preventDefault();
+        const nextTab = tabs[nextIndex];
+        activeTab = nextTab.dataset.tab;
+        renderDetail();
+        nextTab.focus();
+    });
+});
 window.addEventListener("marketplace:language-changed", () => {
     renderMuseumOptions();
     renderContents();

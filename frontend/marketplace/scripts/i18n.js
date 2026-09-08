@@ -40,6 +40,7 @@
                 },
                 nav: {
                     homeAria: "Home di ArtAround",
+                    primaryAria: "Navigazione principale",
                     myVisits: "Le mie visite",
                     myItems: "I miei item",
                     about: "Chi siamo",
@@ -429,6 +430,7 @@
                     groupEnabled: "Sessione sincronizzata abilitata",
                     addChapter: "Aggiungi capitolo",
                     chaptersAria: "Capitoli della visita",
+                    chapterTitleAria: "Titolo del capitolo",
                     cancelExit: "Annulla / esci",
                     save: "Salva",
                     chooseChapterType: "Scegli il tipo di capitolo",
@@ -637,6 +639,7 @@
                 },
                 nav: {
                     homeAria: "ArtAround home",
+                    primaryAria: "Primary navigation",
                     myVisits: "My visits",
                     myItems: "My Items",
                     about: "About us",
@@ -1022,6 +1025,7 @@
                     groupEnabled: "Synchronised session enabled",
                     addChapter: "Add chapter",
                     chaptersAria: "Visit chapters",
+                    chapterTitleAria: "Chapter title",
                     cancelExit: "Cancel / exit",
                     save: "Save",
                     chooseChapterType: "Choose the chapter type",

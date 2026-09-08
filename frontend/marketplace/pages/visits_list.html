@@ -21,7 +21,7 @@
         <div class="shape-circle circle-small"></div>
         <div class="shape-circle circle-large"></div>
         <span class="kicker" data-i18n="visits.kicker">Visite del museo</span>
-        <h1 data-i18n="visits.heading">Crea e scopri visite</h1>
+        <h1 id="visits-heading" data-i18n="visits.heading">Crea e scopri visite</h1>
         <p data-i18n="visits.intro">Seleziona un museo per gestire i tuoi percorsi e vedere le visite pubblicate dagli altri autori.</p>
       </section>
 
@@ -37,14 +37,14 @@
           </label>
           <button id="add-visit-btn" class="primary-btn" type="button" disabled data-i18n="visits.create">Crea nuova visita</button>
         </div>
-        <div id="visits-feedback" class="feedback" aria-live="polite"></div>
-        <div id="tours-list" class="visits-collections"></div>
+        <div id="visits-feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div id="tours-list" class="visits-collections" role="region" aria-labelledby="visits-heading" aria-busy="true"></div>
       </section>
     </main>
 
-    <div id="delete-confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div id="delete-confirm-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-describedby="delete-modal-text" tabindex="-1">
       <div class="modal-content">
-        <h2 data-i18n="visits.deleteTitle">Eliminare la visita?</h2>
+        <h2 id="delete-modal-title" data-i18n="visits.deleteTitle">Eliminare la visita?</h2>
         <p id="delete-modal-text"></p>
         <div class="modal-actions">
           <button id="cancel-delete-btn" class="secondary-btn" type="button" data-i18n="common.cancel">Annulla</button>

@@ -12,6 +12,7 @@ let museums = [];
 let visits = [];
 let selectedMuseum = null;
 let pendingDelete = null;
+let lastDeleteTrigger = null;
 let museumLoadFailed = false;
 let currentUserId = "";
 let savedVisitIds = new Set();
@@ -126,6 +127,7 @@ function renderVisits() {
             : marketplaceT("visits.noPublic"),
         isOwn: false
     });
+    visitsContainer.setAttribute("aria-busy", "false");
 }
 
 function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }) {
@@ -171,7 +173,7 @@ function renderVisitCollection({ title, intro, collection, emptyMessage, isOwn }
             </div>
         `;
         const deleteButton = card.querySelector(".delete-btn");
-        if (deleteButton) deleteButton.addEventListener("click", () => openDeleteModal(visit));
+        if (deleteButton) deleteButton.addEventListener("click", (event) => openDeleteModal(visit, event.currentTarget));
         const favoriteButton = card.querySelector(".favorite-btn");
         if (favoriteButton) favoriteButton.addEventListener("click", () => toggleFavoriteVisit(visit, favoriteButton));
         grid.appendChild(card);
@@ -201,6 +203,7 @@ async function toggleFavoriteVisit(visit, button) {
 
 async function loadVisits() {
     if (!selectedMuseum) return;
+    visitsContainer.setAttribute("aria-busy", "true");
     feedback.textContent = marketplaceT("visits.loading");
     feedback.classList.remove("is-error");
     visitsContainer.innerHTML = "";
@@ -212,6 +215,7 @@ async function loadVisits() {
     } catch (error) {
         feedback.textContent = marketplaceT("visits.loadError");
         feedback.classList.add("is-error");
+        visitsContainer.setAttribute("aria-busy", "false");
     }
 }
 
@@ -224,6 +228,7 @@ function selectMuseum(id) {
     } else {
         visits = [];
         visitsContainer.innerHTML = `<div class="empty-state"><h2>${marketplaceT("visits.chooseMuseum")}</h2><p>${marketplaceT("visits.filteredByMuseum")}</p></div>`;
+        visitsContainer.setAttribute("aria-busy", "false");
     }
 }
 
@@ -253,17 +258,32 @@ async function loadMuseums() {
     }
 }
 
-function openDeleteModal(visit) {
+function openDeleteModal(visit, trigger = null) {
     pendingDelete = visit;
+    lastDeleteTrigger = trigger || document.activeElement;
     document.getElementById("delete-modal-text").textContent = marketplaceT("visits.willBeDeleted", {
         title: visit.title || marketplaceT("visits.untitled")
     });
-    document.getElementById("delete-confirm-modal").classList.remove("hidden");
+    const modal = document.getElementById("delete-confirm-modal");
+    modal.classList.remove("hidden");
+    requestAnimationFrame(() => modal.focus());
+}
+
+function closeDeleteModal({ restoreFocus = true } = {}) {
+    pendingDelete = null;
+    document.getElementById("delete-confirm-modal").classList.add("hidden");
+    const target = lastDeleteTrigger;
+    lastDeleteTrigger = null;
+    if (restoreFocus && target?.isConnected) requestAnimationFrame(() => target.focus());
 }
 
 document.getElementById("cancel-delete-btn").addEventListener("click", () => {
-    pendingDelete = null;
-    document.getElementById("delete-confirm-modal").classList.add("hidden");
+    closeDeleteModal();
+});
+document.getElementById("delete-confirm-modal").addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    closeDeleteModal();
 });
 
 document.getElementById("confirm-delete-btn").addEventListener("click", async () => {
@@ -272,8 +292,7 @@ document.getElementById("confirm-delete-btn").addEventListener("click", async ()
     button.disabled = true;
     try {
         await api(`/visits/${pendingDelete._id}`, { method: "DELETE" });
-        document.getElementById("delete-confirm-modal").classList.add("hidden");
-        pendingDelete = null;
+        closeDeleteModal({ restoreFocus: false });
         await loadVisits();
     } catch (error) {
         alert(marketplaceT("visits.deleteError"));

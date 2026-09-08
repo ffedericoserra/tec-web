@@ -69,6 +69,22 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
     setError(null);
   }
 
+  function handleTabKeyDown(event, currentTab) {
+    const tabs = ['join', 'create'];
+    const currentIndex = tabs.indexOf(currentTab);
+    let nextIndex = currentIndex;
+    if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+    else if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    else if (event.key === 'Home') nextIndex = 0;
+    else if (event.key === 'End') nextIndex = tabs.length - 1;
+    else return;
+
+    event.preventDefault();
+    const nextTab = tabs[nextIndex];
+    switchTab(nextTab);
+    requestAnimationFrame(() => document.getElementById(`gv-tab-${nextTab}`)?.focus());
+  }
+
   async function handleJoin(e) {
     e.preventDefault();
     const trimmed = code.trim();
@@ -147,25 +163,40 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
           <button
             type="button"
             role="tab"
+            id="gv-tab-join"
+            aria-controls="gv-panel-join"
             aria-selected={tab === 'join'}
+            tabIndex={tab === 'join' ? 0 : -1}
             className={`gv-tab${tab === 'join' ? ' is-active' : ''}`}
             onClick={() => switchTab('join')}
+            onKeyDown={(event) => handleTabKeyDown(event, 'join')}
           >
             {t('groupVisit.joinTab')}
           </button>
           <button
             type="button"
             role="tab"
+            id="gv-tab-create"
+            aria-controls="gv-panel-create"
             aria-selected={tab === 'create'}
+            tabIndex={tab === 'create' ? 0 : -1}
             className={`gv-tab${tab === 'create' ? ' is-active' : ''}`}
             onClick={() => switchTab('create')}
+            onKeyDown={(event) => handleTabKeyDown(event, 'create')}
           >
             {t('groupVisit.createTab')}
           </button>
         </div>
 
         {tab === 'join' ? (
-          <form className="gv-body" onSubmit={handleJoin}>
+          <form
+            id="gv-panel-join"
+            className="gv-body"
+            role="tabpanel"
+            aria-labelledby="gv-tab-join"
+            tabIndex="0"
+            onSubmit={handleJoin}
+          >
             <label className="gv-label" htmlFor="gv-code">
               {t('groupVisit.sessionCode')}
             </label>
@@ -179,7 +210,7 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
               autoFocus
             />
             <p className="gv-hint">{t('groupVisit.askGuide')}</p>
-            {error && <p className="gv-error">{t(error)}</p>}
+            {error && <p className="gv-error" role="alert">{t(error)}</p>}
             <button
               type="submit"
               className="gv-submit"
@@ -189,12 +220,19 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
             </button>
           </form>
         ) : (
-          <form className="gv-body" onSubmit={handleCreate}>
+          <form
+            id="gv-panel-create"
+            className="gv-body"
+            role="tabpanel"
+            aria-labelledby="gv-tab-create"
+            tabIndex="0"
+            onSubmit={handleCreate}
+          >
             <label className="gv-label" htmlFor="gv-visit">
               {t('groupVisit.yourVisit')}
             </label>
             {visits === null ? (
-              <p className="gv-hint">{t('common.loading')}</p>
+              <p className="gv-hint" role="status">{t('common.loading')}</p>
             ) : visits.length === 0 ? (
               <p className="gv-hint">
                 {t('groupVisit.noVisits')}
@@ -227,7 +265,7 @@ export default function GroupVisitDialog({ museum, onClose, onJoined }) {
               autoComplete="off"
             />
             <p className="gv-hint">{t('groupVisit.generatedCode')}</p>
-            {error && <p className="gv-error">{t(error)}</p>}
+            {error && <p className="gv-error" role="alert">{t(error)}</p>}
             <button
               type="submit"
               className="gv-submit"

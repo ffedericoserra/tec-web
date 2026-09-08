@@ -218,8 +218,8 @@ export default function VisitSelect() {
         >
           {t('visitSelect.groupAction')}
         </button>
-        {loading && <p className="status">{t('common.loading')}</p>}
-        {error && !loading && <p className="status error">{t(error)}</p>}
+        {loading && <p className="status" role="status">{t('common.loading')}</p>}
+        {error && !loading && <p className="status error" role="alert">{t(error)}</p>}
         {!loading && !error && (
           <ul className="visit-list">
             {filtered.map((v) => {
@@ -237,7 +237,7 @@ export default function VisitSelect() {
                   >
                     <div className="visit-card-head">
                       <div className="visit-card-info">
-                        <h2 className="visit-card-title">{v.title}</h2>
+                        <h2 id={`visit-title-${v._id}`} className="visit-card-title">{v.title}</h2>
                         <p className="visit-card-meta">
                           {t('visitSelect.author', {
                             author: v.creatorId?.username || '—',
@@ -267,7 +267,12 @@ export default function VisitSelect() {
                       </button>
                     </div>
                     {isOpen && (hasDesc || hasStops) && (
-                      <div className="visit-card-expanded-content">
+                      <div
+                        id={`visit-details-${v._id}`}
+                        className="visit-card-expanded-content"
+                        role="region"
+                        aria-labelledby={`visit-title-${v._id}`}
+                      >
                     {hasDesc && (
                       <div className="visit-card-desc">
                         <p>{v.description}</p>
@@ -318,6 +323,7 @@ export default function VisitSelect() {
                         className="visit-card-toggle"
                         onClick={() => toggleExpand(v._id)}
                         aria-expanded={isOpen}
+                        aria-controls={isOpen ? `visit-details-${v._id}` : undefined}
                         aria-label={
                           isOpen
                             ? t('visitSelect.hideDetails')

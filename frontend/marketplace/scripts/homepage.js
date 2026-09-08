@@ -71,10 +71,12 @@ function renderMuseums() {
     } else {
         visible.forEach((museum) => museumGrid.appendChild(createMuseumCard(museum)));
     }
+    museumGrid.setAttribute("aria-busy", "false");
     museumFeedback.textContent = marketplaceT("home.availableMuseums", { count: visible.length });
 }
 
 async function loadMuseums() {
+    museumGrid.setAttribute("aria-busy", "true");
     museumFeedback.textContent = marketplaceT("home.loadingMuseums");
     try {
         const response = await fetch(`${myApi}/museums`);
@@ -88,6 +90,7 @@ async function loadMuseums() {
         museumFeedback.textContent = marketplaceT("home.loadError");
         museumFeedback.classList.add("is-error");
         museumGrid.innerHTML = "";
+        museumGrid.setAttribute("aria-busy", "false");
     }
 }
 

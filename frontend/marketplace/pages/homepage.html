@@ -52,8 +52,8 @@
             <h2 id="destinations-title" data-i18n="home.museums">Musei</h2>
           </div>
         </div>
-        <div id="museum-feedback" class="museum-feedback" aria-live="polite"></div>
-        <div id="museum-list" class="museum-grid"></div>
+        <div id="museum-feedback" class="museum-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div id="museum-list" class="museum-grid" role="region" aria-labelledby="destinations-title" aria-busy="true"></div>
       </section>
     </main>
     <script src="../vendor/i18next.min.js"></script>

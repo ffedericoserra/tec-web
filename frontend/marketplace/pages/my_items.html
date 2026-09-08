@@ -21,7 +21,7 @@
         <div class="shape-circle circle-small"></div>
         <div class="shape-circle circle-large"></div>
         <span class="kicker" data-i18n="items.kicker">Collezione</span>
-        <h1 data-i18n="items.heading">I miei Item</h1>
+        <h1 id="items-heading" data-i18n="items.heading">I miei Item</h1>
         <p data-i18n="items.intro">Parti da un Content del museo per gestire le tue descrizioni e quelle acquistate.</p>
       </section>
       <section class="items-workspace">
@@ -29,23 +29,23 @@
           <label><span data-i18n="common.museum">Museo</span><select id="items-museum-select"><option value="" data-i18n="items.allMuseums">Tutti i musei</option></select></label>
           <label><span data-i18n="items.search">Cerca Content</span><input id="content-search" type="search" placeholder="Titolo o autore" data-i18n-placeholder="items.searchPlaceholder" /></label>
         </div>
-        <div id="items-feedback" class="feedback" aria-live="polite">Caricamento contenuti...</div>
-        <div id="contents-grid" class="contents-grid"></div>
+        <div id="items-feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true">Caricamento contenuti...</div>
+        <div id="contents-grid" class="contents-grid" role="region" aria-labelledby="items-heading" aria-busy="true"></div>
       </section>
     </main>
 
-    <div id="content-detail" class="detail-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div id="content-detail" class="detail-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="detail-title" tabindex="-1">
       <section class="detail-panel">
         <div class="detail-heading">
           <div><span class="kicker" id="detail-museum"></span><h2 id="detail-title">Content</h2><p id="detail-author"></p></div>
           <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi" data-i18n-aria-label="items.closeAria">&times;</button>
         </div>
         <div class="detail-tabs" role="tablist" aria-label="Sezioni Item" data-i18n-aria-label="items.detailSectionsAria">
-          <button class="tab-btn active" data-tab="marketplace" type="button" role="tab" aria-selected="true" data-i18n="items.marketplace">Marketplace</button>
-          <button class="tab-btn" data-tab="mine" type="button" role="tab" aria-selected="false" data-i18n="items.mineTab">I miei Item</button>
-          <button class="tab-btn" data-tab="purchased" type="button" role="tab" aria-selected="false" data-i18n="items.purchasedTab">Item acquistati</button>
+          <button id="items-tab-marketplace" class="tab-btn active" data-tab="marketplace" type="button" role="tab" aria-selected="true" aria-controls="items-panel-marketplace" tabindex="0" data-i18n="items.marketplace">Marketplace</button>
+          <button id="items-tab-mine" class="tab-btn" data-tab="mine" type="button" role="tab" aria-selected="false" aria-controls="items-panel-mine" tabindex="-1" data-i18n="items.mineTab">I miei Item</button>
+          <button id="items-tab-purchased" class="tab-btn" data-tab="purchased" type="button" role="tab" aria-selected="false" aria-controls="items-panel-purchased" tabindex="-1" data-i18n="items.purchasedTab">Item acquistati</button>
         </div>
-        <div id="items-detail-list" class="items-detail-list" role="tabpanel"></div>
+        <div id="items-detail-list" class="items-detail-list" role="tabpanel" tabindex="0"></div>
       </section>
     </div>
 
