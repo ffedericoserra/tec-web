@@ -1,6 +1,8 @@
 .page-visit-run {
-  height: 100dvh;
   height: 100vh;
+  /* Keep this after the fallback: 100vh can extend behind mobile browser chrome,
+     leaving the fixed bottom navigation beyond reach with no page scroll. */
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;

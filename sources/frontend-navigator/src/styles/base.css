@@ -52,13 +52,13 @@ body {
 }
 
 body {
-  min-height: 100dvh;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 #root {
-  min-height: 100dvh;
   min-height: 100vh;
+  min-height: 100dvh;
   min-width: 0;
   display: flex;
   flex-direction: column;
