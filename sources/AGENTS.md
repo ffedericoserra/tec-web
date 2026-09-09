@@ -52,6 +52,9 @@ Extension 2 is the only tier with grading headroom left. `src/services/aiService
 
 ## 5. Running it
 
+Run all commands in this section from the `sources/` directory. From the
+repository root, enter it first with `cd sources`.
+
 ```bash
 docker compose up                     # MongoDB + Node, API on :8000
 node scripts/seed.js                  # DESTRUCTIVE reseed (wipes all collections)

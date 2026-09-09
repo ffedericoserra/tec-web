@@ -72,6 +72,9 @@ frontend-navigator/
 
 ## 3. Running
 
+The application root is `sources/`. Run the commands below from that directory
+(`cd sources` first when starting at the repository root).
+
 ### 3.1. Dev mode (hot reload)
 
 Two terminals — backend on `:8000` and Vite on `:5173`:
