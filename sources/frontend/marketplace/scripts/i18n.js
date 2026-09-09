@@ -41,6 +41,7 @@
                 nav: {
                     homeAria: "Home di ArtAround",
                     primaryAria: "Navigazione principale",
+                    profileMenu: "Apri menu account",
                     myVisits: "Le mie visite",
                     myItems: "I miei item",
                     about: "Chi siamo",
@@ -640,6 +641,7 @@
                 nav: {
                     homeAria: "ArtAround home",
                     primaryAria: "Primary navigation",
+                    profileMenu: "Open account menu",
                     myVisits: "My visits",
                     myItems: "My Items",
                     about: "About us",
