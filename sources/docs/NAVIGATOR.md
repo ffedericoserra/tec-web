@@ -233,7 +233,7 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Single effect runs `Promise.all([api('/auth/me'), api('/museums')])`. A `cancelled` flag drops late responses if the user navigates away mid-fetch.
 - 401 from either call → `logout()`.
 - Search filters client-side (case-insensitive `includes` on `name`). The dataset is small (~2 museums seeded), so server-side query isn't worth it.
-- Sorted alphabetically by name. Hovering a row (or moving focus to it with the keyboard) expands a preview with its image, name, city and full address, plus right-aligned **Scopri le visite** and **Open in Marketplace** controls. The latter opens `/marketplace/pages/visits_list.html?museumId=<id>` so the Marketplace is preselected on that museum; the city is derived from the locality segment of the existing `address` field, so no extra API data is fetched.
+- Sorted alphabetically by name. Hovering a row (or moving focus to it with the keyboard) expands a preview with its image, name, city and full address, plus **Scopri le visite** and **Open in Marketplace** controls. On phones the two controls form a row below the details, so they never cover the address; from 640px they return to the right-hand side. The latter opens `/marketplace/pages/visits_list.html?museumId=<id>` so the Marketplace is preselected on that museum; the city is derived from the locality segment of the existing `address` field, so no extra API data is fetched.
 - Click a row → `navigate('/${m.slug}')`.
 - Right slot of the header is the `ProfileMenu` (the only place to log out from authed pages).
 
@@ -254,7 +254,7 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 
 - Parallel-fetches `/auth/me`, `/museums/:slug`, `/museums/:slug/visits`, `/museums/:slug/contents`.
 - 404 on the museum → redirects back to `/museums`.
-- Lists public visits plus the authenticated user's own private visits. Each visit card is enlarged; opening its detail chevron reveals the description and an explore area with the ordered stops on the left and a carousel of the corresponding artwork images on the right. The carousel is resolved from the already-fetched contents map, needs no extra request and is omitted only when no stop has an image. On narrow screens the two panels stack vertically. Private entries are labelled in the list and remain hidden from other accounts.
+- Lists public visits plus the authenticated user's own private visits. Each visit card is enlarged; opening its detail chevron reveals the description and an explore area with the ordered stops on the left and a carousel of the corresponding artwork images on the right. The carousel is resolved from the already-fetched contents map, needs no extra request and is omitted only when no stop has an image; its fixed media box uses centred `scale-down` so both portrait and landscape artwork stays fully visible without enlarging small source files. On narrow screens the two panels stack vertically. Private entries are labelled in the list and remain hidden from other accounts.
 - Re-fetches visits when the browser tab becomes visible or receives focus, so
   returning from the marketplace shows a newly-created visit without a reload.
 - Backend already sorts by `viewCount` desc; client doesn't re-sort.
@@ -271,7 +271,7 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 
 The most complex page. Read this carefully before changing anything.
 
-**Layout** — on phones and portrait tablets the runner is a `100dvh` flex column: `.visit-run-content` and its `.visit-reading-panel` preserve the image / actions / scrollable description / bottom-bar order. Only `.visit-description` flexes and scrolls (`flex: 1` + `min-height: 0` + `overflow-y: auto`). At `900px+`, that same wrapper becomes a two-column layout (artwork left, reading controls right), constrained to 1440px; the description remains the only scrolling region. Question and quiz screens use a centred 960px reading column at that breakpoint. Don't change these flex/min-height constraints unless you also rework the layout.
+**Layout** — on phones and portrait tablets the runner is a `100dvh` flex column, with `100vh` only as the fallback for older browsers: `.visit-run-content` and its `.visit-reading-panel` preserve the image / actions / scrollable description / bottom-bar order. Only `.visit-description` flexes and scrolls (`flex: 1` + `min-height: 0` + `overflow-y: auto`), keeping the bottom navigation reachable even while mobile browser chrome is visible. At `900px+`, that same wrapper becomes a two-column layout (artwork left, reading controls right), constrained to 1440px; the description remains the only scrolling region. Question and quiz screens use a centred 960px reading column at that breakpoint. Don't change these flex/min-height constraints unless you also rework the layout.
 
 **Data fetch** — on mount, parallel:
 

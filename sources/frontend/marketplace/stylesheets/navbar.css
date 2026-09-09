@@ -109,6 +109,85 @@ header.editorial-nav .nav-auth {
     padding: 0;
 }
 
+/* The avatar menu is rendered for authenticated users, but it only replaces
+   the Account/Logout links in the compact mobile header. */
+header.editorial-nav .nav-profile {
+    display: none;
+    position: relative;
+}
+
+header.editorial-nav .nav-profile-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #161616;
+    border-radius: 50%;
+    background: #F2F1ED;
+    overflow: hidden;
+}
+
+header.editorial-nav .nav-profile-toggle:focus-visible {
+    outline: 2px solid #710014;
+    outline-offset: 3px;
+}
+
+header.editorial-nav .nav-profile-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+header.editorial-nav .nav-profile-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 164px;
+    padding: 6px;
+    border: 1px solid #161616;
+    background: #F2F1ED;
+    box-shadow: 0 8px 20px rgba(22, 22, 22, 0.16);
+}
+
+header.editorial-nav .nav-profile-menu[hidden] {
+    display: none;
+}
+
+header.editorial-nav .nav-profile-menu a,
+header.editorial-nav .nav-profile-menu button {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    background: transparent;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 44px;
+    text-align: left;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+header.editorial-nav .nav-profile-menu a:hover,
+header.editorial-nav .nav-profile-menu a:focus-visible,
+header.editorial-nav .nav-profile-menu button:hover,
+header.editorial-nav .nav-profile-menu button:focus-visible {
+    color: #710014;
+    background: rgba(113, 0, 20, 0.08);
+    outline: none;
+}
+
+header.editorial-nav .nav-profile-menu a.active {
+    color: #710014;
+    border-left: 2px solid #710014;
+}
+
 @media (max-width: 900px) {
     header.editorial-nav .nav-wrapper {
         gap: 16px;
@@ -150,5 +229,13 @@ header.editorial-nav .nav-auth {
 
     header.editorial-nav .nav-links {
         padding-bottom: 4px;
+    }
+
+    header.editorial-nav .nav-auth-desktop {
+        display: none;
+    }
+
+    header.editorial-nav .nav-profile {
+        display: flex;
     }
 }
