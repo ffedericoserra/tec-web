@@ -894,7 +894,7 @@ async function testSessions() {
     const { status } = await request(
       'POST',
       `/sessions/${sessionCode}/activity`,
-      { action: 'tellMore' },
+      { action: 'complex' },
       studentToken
     );
     const passed = status === 200;

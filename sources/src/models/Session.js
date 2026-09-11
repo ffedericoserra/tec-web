@@ -16,8 +16,8 @@ const activitySchema = new mongoose.Schema(
      * The navigator logs the id of the controlled-vocabulary command a student
      * issued (see frontend-navigator/src/voice.js), so the teacher's Activities
      * panel can label it with the same wording the student saw. 'joined' and
-     * 'left' are written by the server itself; 'tellLess' and 'tooSimple' are
-     * legacy values with no UI, kept so old sessions still validate.
+     * 'left' are written by the server itself. Removed command ids remain valid
+     * so sessions created by older clients can still be loaded.
      */
     action: {
       type: String,
@@ -25,11 +25,14 @@ const activitySchema = new mongoose.Schema(
         'joined',
         'left',
         'more',
+        'shorter',
+        'complex',
         'simpler',
+        'details',
+        'map',
         'author',
         'year',
         'exit',
-        'map',
         'tellMore',
         'tellLess',
         'tooSimple',

@@ -26,18 +26,15 @@ const TONES = ['easy', 'medium', 'complex'];
 const TTS_SUPPORTED =
   typeof window !== 'undefined' && 'speechSynthesis' in window;
 
-/* Which commands are worth putting in front of the guide during a group visit.
- * Must stay a subset of the activity enum in src/models/Session.js — the server
- * rejects anything else. `next`/`previous` are excluded because students can't
- * issue them, and `map` is included because a group all reaching for the map is
- * a useful signal that people are lost. */
+/* Voice/tap commands logged for the guide during a group visit. This must stay
+ * a subset of the activity enum in src/models/Session.js. */
 const LOGGED_COMMANDS = new Set([
   'more',
+  'shorter',
+  'complex',
   'simpler',
-  'author',
-  'year',
-  'exit',
   'map',
+  'details',
 ]);
 
 /* A horizontal drag shorter than this is a tap or a stray finger, not a swipe. */
@@ -587,13 +584,31 @@ export default function VisitRun() {
     }
   }
 
-  // "Simpler" — step back down the length ladder (60s → 30s → 15s). At 15s it's
-  // a no-op rather than falling back to logistic mode: dropping the user into
-  // walking directions when they asked for a simpler description is confusing.
-  function handleSimpler() {
+  // Length and tone are deliberately independent axes. Shortening selects a
+  // briefer text without changing its easy/medium/complex register.
+  function handleShorter() {
     setAnswer(null);
     if (mode !== 'describe') return;
     if (lengthIdx > 0) setLengthIdx((i) => i - 1);
+  }
+
+  function adjacentTone(delta) {
+    const currentIndex = TONES.indexOf(effectiveTone);
+    for (
+      let index = currentIndex + delta;
+      index >= 0 && index < TONES.length;
+      index += delta
+    ) {
+      if (itemTones.includes(TONES[index])) return TONES[index];
+    }
+    return null;
+  }
+
+  function handleToneStep(delta) {
+    setAnswer(null);
+    if (mode !== 'describe') return;
+    const nextTone = adjacentTone(delta);
+    if (nextTone) selectTone(nextTone);
   }
 
   function selectTone(next) {
@@ -692,8 +707,7 @@ export default function VisitRun() {
     /* In a group visit, what a student asks for feeds the guide's Activities
      * panel. Logged here rather than in each handler so the mic and the tap list
      * are covered by one call, and only for students — the guide watching their
-     * own taps scroll past would be noise. `next`/`previous` are the guide's to
-     * make, so they aren't student activity either. */
+     * own taps scroll past would be noise. */
     if (inSession && !isOwner && LOGGED_COMMANDS.has(id)) {
       sessionAction('activity', { action: id });
     }
@@ -701,8 +715,14 @@ export default function VisitRun() {
       case 'more':
         handleDescribe();
         break;
+      case 'shorter':
+        handleShorter();
+        break;
+      case 'complex':
+        handleToneStep(1);
+        break;
       case 'simpler':
-        handleSimpler();
+        handleToneStep(-1);
         break;
       case 'next':
         goNext();
@@ -710,19 +730,10 @@ export default function VisitRun() {
       case 'previous':
         goPrevious();
         break;
-      case 'author':
-        answerAuthor();
-        break;
-      case 'year':
-        answerYear();
-        break;
-      case 'exit':
-        answerExit();
-        break;
       case 'map':
         setMapOpen(true);
         break;
-      case 'associated':
+      case 'details':
         openAssociated();
         break;
       default:
@@ -740,10 +751,12 @@ export default function VisitRun() {
   const unreadActivities = Math.max(0, activities.length - seen.activities);
   const commandsDisabled = {
     more: atMaxLength,
-    simpler: mode !== 'describe' || lengthIdx === 0,
+    shorter: mode !== 'describe' || lengthIdx === 0,
+    complex: mode !== 'describe' || !adjacentTone(1),
+    simpler: mode !== 'describe' || !adjacentTone(-1),
     next: isLast || studentInSession,
     previous: isFirst || studentInSession,
-    associated: !item?.associatedContents?.length,
+    details: !item,
   };
 
   async function handleEndVisit() {

@@ -240,9 +240,9 @@ the account-language API; it remains valid only for authored Item text metadata.
   isActive: Boolean,             // default: true
   activities: [{
     participantId: ObjectId,     // refs User
-    action: String,              // 'joined'|'left'|'more'|'simpler'|'author'|'year'|'exit'|'map'
-                                 //   + legacy 'tellMore'|'tellLess'|'tooSimple' (no UI, kept so
-                                 //   old sessions still validate)
+    action: String,              // current: 'joined'|'left'|'more'|'shorter'|'complex'|
+                                 //   'simpler'|'map'|'details'; removed command ids remain
+                                 //   valid so old sessions still load
     timestamp: Date
   }],
   messages: [{                   // persisted chat — backlog survives reload / late join

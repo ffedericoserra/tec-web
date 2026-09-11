@@ -311,7 +311,7 @@ Transitions:
   - Pulses with `is-prompt` (terracotta keyframe) only while `mode === 'logistic'` — that's the "highlighted in some way" the spec asks for.
 - `Map` opens `MuseumMap` (§11) and `Ask me anything` opens `CommandSheet` (§10). Nothing in the runner is inert any more.
 
-**Length is also swipeable, Instagram-style.** Swipe left on the description for the next longer text, right for the shorter one; `.visit-length-dots` (one dot per available length, active one filled) shows where you are. `Describe!`, the `more`/`simpler` voice commands and the swipe all drive the same `lengthIdx`, so nothing can desync.
+**Length is also swipeable, Instagram-style.** Swipe left on the description for the next longer text, right for the shorter one; `.visit-length-dots` (one dot per available length, active one filled) shows where you are. `Describe!`, the `more`/`shorter` voice commands and the swipe all drive the same `lengthIdx`, so nothing can desync.
 
 - **The axis lock is load-bearing.** `.visit-description` is the only scrollable region on the page, so a gesture stays ambiguous until it travels `SWIPE_AXIS_LOCK` (10px), then commits to `'x'` or `'y'`; vertical is abandoned so the browser scrolls normally. `touch-action: pan-y` on the block is what makes the browser hand horizontal gestures over at all — without it the swipe only works with a mouse. Below `SWIPE_THRESHOLD` (45px) a horizontal drag is a stray finger.
 - `onPointerCancel` clears the gesture — that's what fires when the browser takes over for scrolling.
@@ -326,7 +326,7 @@ Transitions:
 - Switching tone **keeps `lengthIdx`** (you switch tone to re-hear the same depth differently), clamped down if the new tone carries fewer lengths.
 - Dismissal mirrors `ProfileMenu`: outside-mousedown or Escape.
 
-**`?` button / `associated` command → AssociatedContentsModal** — the visit fetch returns the associated Content IDs on each item but does **not** populate them; only `GET /items/:id` does. Both entry points call the same `openAssociated()` handler, which lazily fetches the populated item on first open and caches it by `_id` (`assocCache`). The command-sheet row is disabled when the current item has no associated contents. Subsequent opens are synchronous. The modal renders each associated `Content` with image / type / name / author / year. Closes on backdrop mousedown or Escape.
+**`?` button / `details` command → AssociatedContentsModal** — the visit fetch returns the associated Content IDs on each item but does **not** populate them; only `GET /items/:id` does. Both entry points call the same `openAssociated()` handler, which lazily fetches the populated item on first open and caches it by `_id` (`assocCache`). The action remains available even when there are no associated entries because the modal always shows the current Content's title, author, year, type and universal ID; any associated Content follows below. Subsequent opens are synchronous. Closes on backdrop mousedown or Escape.
 
 **`End Visit`** lives in the header's right slot (plain underlined text → `navigate('/${museumSlug}')`). Intentionally no profile dropdown during a visit — the user has to End Visit before logging out, matching the mockup.
 
@@ -375,10 +375,12 @@ text and voice metadata must never drift.
 `src/voice.js` + `components/CommandSheet.jsx` satisfy the base-tier "controlled vocabulary" requirement (SPECS §5). The translated command action opens `CommandSheet`, which holds **both** ways of issuing a command so they can't drift: a push-to-talk mic and a tappable list, both dispatching the same ids through `VisitRun`'s `runCommand(id)`.
 
 - **The bilingual registry in `voice.js` is the single source of truth.** Italian
-  and English expose the same nine stable ids: `more` / `simpler` / `next` /
-  `previous` / `author` / `year` / `exit` / `map` / `associated`. Labels and hints shown by the
-  sheet come from the UI catalogues; spoken phrases are selected for the current
-  language. Adding a command means adding the same id and copy for both locales.
+  and English expose exactly eight ids: `more` / `shorter` change only description
+  length, `complex` / `simpler` change only the `easy → medium → complex` tone,
+  `next` / `previous` move between visit items, and `map` / `details` open their
+  respective panels. Labels and hints shown by the sheet come from the UI
+  catalogues; spoken phrases are selected for the current language. Adding a
+  command means adding the same id and copy for both locales.
 - **Recognition follows the UI locale:** `it` uses `it-IT`, `en` uses `en-US`.
   Switching language therefore changes both the visible command list and what the
   recognizer listens for; it does not invoke automatic NLP translation.
@@ -389,9 +391,8 @@ text and voice metadata must never drift.
   `normalize()` also folds accents and apostrophe variants because recognizers are
   inconsistent about both.
 - **Push-to-talk, never continuous.** `listenOnce()` sets `continuous = false` and calls `speechSynthesis.cancel()` before starting — an open mic hears the runner reading a description aloud and fires phantom commands. `maxAlternatives = 3` and every alternative is tested: free accuracy on a fixed vocabulary.
-- **`simpler` is the only genuinely new state transition** — `handleSimpler()` walks `lengthIdx` *down* (60s → 30s → 15s). At `15s` it's a no-op and deliberately does **not** fall back to logistic mode; dropping the user into walking directions when they asked for something simpler would be confusing.
-- **Question commands (`author` / `year` / `exit`) set `answer`**, which wins over the description in the `bodyText` chain — so answers are spoken by the existing TTS effect with no new speech code. The area gets `.is-answer` (terracotta left border, `Risposta` pill, `×` dismiss). Every navigation command calls `setAnswer(null)` first, so an answer never outlives the item it described.
-- **`exit` needs no extra request** — `getVisit` does `.populate('museumId')` *unselected*, so `visit.museumId.pointsOfInterest` already rides along. It names the exit POIs without any "nearest" claim, since the base tier is explicitly *map without user positioning*.
+- **Length and tone never cross.** `more` walks `lengthIdx` upward and `shorter` walks it downward without changing tone. `complex` and `simpler` search the next available tone in their direction without changing `lengthIdx` (apart from clamping when the selected tone lacks that length). At either boundary the corresponding command is disabled.
+- **Canonical labels are deliberately explicit.** Italian shows *Versione più lunga / Versione più breve / Tono più complesso / Tono più semplice / Prossimo / Precedente / Apri la mappa / Mostra la scheda del contenuto*; English shows *Longer version / Shorter version / More complex tone / Simpler tone / Next / Previous / Open the map / Show content details*. Natural aliases such as *Dimmi di più*, *Sintetizza*, *Approfondisci*, *Semplifica*, *Vai avanti*, *Tell me more*, *Summarize* and *Go back* map to those same eight ids.
 - **Graceful degradation**: `SPEECH_SUPPORTED` checks both `SpeechRecognition` and `webkitSpeechRecognition`. Firefox implements neither, so the mic is hidden entirely and the tap list is the complete interface — the fallback by design, not an afterthought.
 - ⚠️ **`SpeechRecognition` requires a secure context.** `localhost` qualifies, so dev works — but **on the department server over plain HTTP the mic will silently never start**. If deployment isn't HTTPS, voice is demo-only and the tap list carries the feature. Chrome also routes recognition through a server-side service, so it needs connectivity; it is not on-device.
 
@@ -433,7 +434,7 @@ text and voice metadata must never drift.
 - **Seeded group demos.** The reset creates two public `synchronized` visits, one for the Uffizi and one for MAMbo. Each has ten artwork stops and four question sections: three intermediate sections (including an open-answer prompt) plus a final verification section. Their `sequence` and artwork-block order intentionally match. Any authenticated user can host either demonstration; the session code itself is generated only when the host creates a `Session`.
 - **The guide never moves their own view.** `goNext`/`goPrevious` POST to `advance`/`previous` and everyone — guide included — follows the resulting broadcast. One broadcast drives every screen, so the group can't split across two artworks. Forward arrives in `logistic` mode, backward in `describe`, same rule as the solo runner.
 - **Students** get no Previous/Next at all (bottom bar is Map alone, `.is-student` centres it) and those rows greyed out in the command sheet — visibly not-theirs beats a mysteriously shorter list.
-- **Activities is the guide's feed of student commands.** `runCommand` logs any id in `LOGGED_COMMANDS` (`more`/`simpler`/`author`/`year`/`exit`/`map`) once, covering mic and tap together, and only for students. That set **must stay a subset of the activity enum in `src/models/Session.js`** or the server 400s.
+- **Activities is the guide's feed of student commands.** `runCommand` logs any id in `LOGGED_COMMANDS` (`more`/`shorter`/`complex`/`simpler`/`map`/`details`) once, covering mic and tap together, and only for students. That set **must stay a subset of the activity enum in `src/models/Session.js`** or the server 400s.
 - **Chat is persisted on the Session** (`messages[]`) so reloads and late joins see the backlog. Sending POSTs and does **not** append locally: the server broadcasts to the whole room *including the sender*, so every client appends by one path with no optimistic copy to reconcile.
 - **Unread badges are synced by effect while a panel is open**, not stamped on open. Your own chat message returns through the socket like anyone else's, so stamping-on-open alone leaves a permanent "1" after you send.
 - **Quiz**: the guide's Next becomes `Start Quiz` on the last step (only when `visit.quiz` is non-empty), POSTs `quiz/start`, and `quizStarted` is **persisted** so a student reloading mid-quiz lands back on the quiz. Students answer; the guide sees scores land live and never answers. `bodyText` is forced empty while the quiz is up — that's what stops TTS reading the artwork over the questions.

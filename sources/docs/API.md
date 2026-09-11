@@ -292,13 +292,15 @@ without answer keys or the automatic `isCorrect` result.
 **Log Activity Request:**
 ```json
 {
-  "action": "author"
+  "action": "complex"
 }
 ```
-**Actions:** `more`, `simpler`, `author`, `year`, `exit`, `map` — the controlled
-vocabulary command ids from `frontend-navigator/src/voice.js`, which is what the
-teacher's Activities panel renders. Legacy `tellMore`, `tellLess`, `tooSimple`
-are still accepted. `joined` / `left` are written by the server and rejected here.
+**Current actions:** `more`, `shorter`, `complex`, `simpler`, `map`, `details` —
+the controlled-vocabulary command ids from `frontend-navigator/src/voice.js`,
+which is what the teacher's Activities panel renders. Removed ids `author`,
+`year`, `exit` and legacy `tellMore`, `tellLess`, `tooSimple` remain accepted so
+older clients and saved sessions keep validating. `joined` / `left` are written
+by the server and rejected here.
 
 **Post Message Request:**
 ```json

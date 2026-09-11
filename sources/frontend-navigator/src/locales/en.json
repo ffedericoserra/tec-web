@@ -193,7 +193,7 @@
     "oneExit": "The exit is: {{exit}}.",
     "manyExits": "Available exits: {{exits}}.",
     "endGroupConfirm": "End the visit for the entire group? Everyone will be sent back.",
-    "showAssociated": "Show related content",
+    "showAssociated": "Show content details",
     "describe": "Describe!",
     "askAnything": "Ask me anything",
     "answer": "Answer",
@@ -225,15 +225,14 @@
     "noSpeech": "I didn't hear anything. Please try again.",
     "microphoneError": "Microphone error.",
     "commands": {
-      "more": { "label": "Tell me more", "hint": "tell me more" },
-      "simpler": { "label": "Make it simpler", "hint": "make it simpler" },
-      "next": { "label": "Next artwork", "hint": "go forward" },
-      "previous": { "label": "Previous artwork", "hint": "go back" },
-      "author": { "label": "Who is the author?", "hint": "who is the author" },
-      "year": { "label": "What year is it from?", "hint": "what year is it from" },
-      "exit": { "label": "Where is the exit?", "hint": "where is the exit" },
-      "map": { "label": "Show the map", "hint": "show the map" },
-      "associated": { "label": "Show associated content", "hint": "show associated content" }
+      "more": { "label": "Longer version", "hint": "longer version" },
+      "shorter": { "label": "Shorter version", "hint": "shorter version" },
+      "complex": { "label": "More complex tone", "hint": "more complex tone" },
+      "simpler": { "label": "Simpler tone", "hint": "simpler tone" },
+      "next": { "label": "Next", "hint": "next" },
+      "previous": { "label": "Previous", "hint": "previous" },
+      "map": { "label": "Open the map", "hint": "open the map" },
+      "details": { "label": "Show content details", "hint": "show content details" }
     }
   },
   "associated": {
@@ -317,12 +316,15 @@
     "actions": {
       "joined": "joined the visit",
       "left": "left the visit",
-      "more": "asked for more details",
-      "simpler": "asked for a simpler explanation",
+      "more": "asked for a longer version",
+      "shorter": "asked for a shorter version",
+      "complex": "asked for a more complex tone",
+      "simpler": "asked for a simpler tone",
       "author": "asked who the author is",
       "year": "asked what year the artwork is from",
       "exit": "asked where the exit is",
       "map": "opened the map",
+      "details": "opened the content details",
       "tellMore": "asked for more details",
       "tellLess": "asked for fewer details",
       "tooSimple": "said it was too simple"

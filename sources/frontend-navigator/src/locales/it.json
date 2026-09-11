@@ -193,7 +193,7 @@
     "oneExit": "L'uscita è: {{exit}}.",
     "manyExits": "Uscite disponibili: {{exits}}.",
     "endGroupConfirm": "Terminare la visita per tutto il gruppo? Tutti verranno rimandati indietro.",
-    "showAssociated": "Mostra contenuti associati",
+    "showAssociated": "Mostra la scheda del contenuto",
     "describe": "Descrivi!",
     "askAnything": "Chiedimi qualsiasi cosa",
     "answer": "Risposta",
@@ -225,15 +225,14 @@
     "noSpeech": "Non ho sentito nulla. Riprova.",
     "microphoneError": "Errore del microfono.",
     "commands": {
-      "more": { "label": "Dimmi di più", "hint": "dimmi di più" },
-      "simpler": { "label": "Più semplice", "hint": "più semplice" },
-      "next": { "label": "Opera successiva", "hint": "avanti" },
-      "previous": { "label": "Opera precedente", "hint": "indietro" },
-      "author": { "label": "Chi è l'autore?", "hint": "chi è l'autore" },
-      "year": { "label": "Di che anno è?", "hint": "di che anno è" },
-      "exit": { "label": "Dov'è l'uscita?", "hint": "dov'è l'uscita" },
-      "map": { "label": "Mostra la mappa", "hint": "mostra la mappa" },
-      "associated": { "label": "Mostra contenuti associati", "hint": "mostra contenuti associati" }
+      "more": { "label": "Versione più lunga", "hint": "versione più lunga" },
+      "shorter": { "label": "Versione più breve", "hint": "versione più breve" },
+      "complex": { "label": "Tono più complesso", "hint": "tono più complesso" },
+      "simpler": { "label": "Tono più semplice", "hint": "tono più semplice" },
+      "next": { "label": "Prossimo", "hint": "prossimo" },
+      "previous": { "label": "Precedente", "hint": "precedente" },
+      "map": { "label": "Apri la mappa", "hint": "apri la mappa" },
+      "details": { "label": "Mostra la scheda del contenuto", "hint": "mostra la scheda del contenuto" }
     }
   },
   "associated": {
@@ -317,12 +316,15 @@
     "actions": {
       "joined": "è entrato nella visita",
       "left": "ha lasciato la visita",
-      "more": "ha chiesto più dettagli",
-      "simpler": "ha chiesto una spiegazione più semplice",
+      "more": "ha chiesto una versione più lunga",
+      "shorter": "ha chiesto una versione più breve",
+      "complex": "ha chiesto un tono più complesso",
+      "simpler": "ha chiesto un tono più semplice",
       "author": "ha chiesto chi è l'autore",
       "year": "ha chiesto di che anno è l'opera",
       "exit": "ha chiesto dov'è l'uscita",
       "map": "ha aperto la mappa",
+      "details": "ha aperto la scheda del contenuto",
       "tellMore": "ha chiesto più dettagli",
       "tellLess": "ha chiesto meno dettagli",
       "tooSimple": "ha detto che era troppo semplice"

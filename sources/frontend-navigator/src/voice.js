@@ -20,87 +20,57 @@ export const COMMANDS = [
   {
     id: 'more',
     phrases: {
-      it: ['dimmi di più', 'più dettagli', 'raccontami di più', 'approfondisci', 'continua'],
-      en: ['tell me more', 'more details', 'go deeper', 'continue'],
+      it: ['versione più lunga', 'dimmi di più', 'allunga la descrizione'],
+      en: ['longer version', 'tell me more', 'make it longer'],
+    },
+  },
+  {
+    id: 'shorter',
+    phrases: {
+      it: ['versione più breve', 'sintetizza', 'accorcia la descrizione', 'più breve'],
+      en: ['shorter version', 'summarize', 'make it shorter'],
+    },
+  },
+  {
+    id: 'complex',
+    phrases: {
+      it: ['tono più complesso', 'rendi più complesso', 'approfondisci'],
+      en: ['more complex tone', 'make it more complex', 'increase complexity'],
     },
   },
   {
     id: 'simpler',
     phrases: {
-      it: ['più semplice', 'semplifica', 'più breve', 'più corto', 'meno dettagli'],
-      en: ['make it simpler', 'simplify', 'shorter', 'less detail'],
+      it: ['tono più semplice', 'semplifica il linguaggio', 'semplifica'],
+      en: ['simpler tone', 'use simpler language', 'make it simpler'],
     },
   },
   {
     id: 'next',
     phrases: {
-      it: ['prossima opera', 'vai avanti', 'prossimo', 'successivo', 'avanti'],
-      en: ['next artwork', 'go forward', 'next', 'continue forward'],
+      it: ['prossimo', 'successivo', 'vai avanti'],
+      en: ['next', 'go forward'],
     },
   },
   {
     id: 'previous',
     phrases: {
-      it: ['opera precedente', 'torna indietro', 'precedente', 'indietro'],
-      en: ['previous artwork', 'go back', 'previous', 'back'],
-    },
-  },
-  {
-    id: 'author',
-    phrases: {
-      it: ["chi è l'autore", "chi l'ha dipinto", "chi l'ha fatto", 'autore'],
-      en: ['who is the author', 'who painted it', 'who made it', 'author'],
-    },
-  },
-  {
-    id: 'year',
-    phrases: {
-      it: ['di che anno è', 'in che anno', "quand'è stato fatto", 'anno'],
-      en: ['what year is it from', 'which year', 'when was it made', 'year'],
-    },
-  },
-  {
-    id: 'exit',
-    phrases: {
-      it: ["dov'è l'uscita", 'dove si esce', 'come si esce', 'uscita'],
-      en: ['where is the exit', 'how do I get out', 'how do I leave', 'exit'],
+      it: ['precedente', 'torna indietro'],
+      en: ['previous', 'go back'],
     },
   },
   {
     id: 'map',
     phrases: {
-      it: [
-        'fammi vedere la mappa',
-        'mostra la mappa',
-        'apri la mappa',
-        "dov'è la mappa",
-        'mappa',
-        'pianta',
-      ],
-      en: [
-        'show me the map',
-        'show the map',
-        'open the map',
-        'where is the map',
-        'map',
-        'floor plan',
-      ],
+      it: ['apri la mappa', 'mostra la mappa'],
+      en: ['open the map', 'show the map'],
     },
   },
   {
-    id: 'associated',
+    id: 'details',
     phrases: {
-      it: [
-        'mostra contenuti associati',
-        'apri contenuti associati',
-        'contenuti associati',
-      ],
-      en: [
-        'show associated content',
-        'open associated content',
-        'associated content',
-        'related content',
-      ],
+      it: ['mostra la scheda del contenuto', 'mostra dettagli', 'apri la scheda'],
+      en: ['show content details', 'show details', 'open content details'],
     },
   },
 ];

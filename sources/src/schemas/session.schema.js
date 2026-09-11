@@ -12,16 +12,21 @@ const createSessionSchema = z.object({
 /**
  * Only the actions a participant can trigger. 'joined' / 'left' are written by
  * the server and are deliberately not accepted here, so a client can't forge
- * them. Mirrors the command ids in frontend-navigator/src/voice.js.
+ * them. Includes the current command ids from frontend-navigator/src/voice.js
+ * plus removed ids accepted for backward compatibility.
  */
 const logActivitySchema = z.object({
   action: z.enum([
     'more',
+    'shorter',
+    'complex',
     'simpler',
+    'details',
+    'map',
+    // Legacy voice-command ids kept for sessions created by older clients.
     'author',
     'year',
     'exit',
-    'map',
     'tellMore',
     'tellLess',
     'tooSimple',
