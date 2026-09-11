@@ -521,15 +521,39 @@ async function seed() {
         isPublic: true,
         imageUrl: '/uploads/visits/mambo-povera.jpg',
       },
+      // Additional standard visits (10 contents each)
+      {
+        title: 'Uffizi: dieci capolavori attraverso i secoli',
+        museumId: uffizi._id,
+        creatorId: autore2._id,
+        description:
+          'Un itinerario completo in dieci tappe, da Giotto e Gentile da Fabriano fino alle celebri opere di Botticelli, Leonardo, Michelangelo, Raffaello, Tiziano e Caravaggio.',
+        sequence: createVisitSequence(uffiziGroupItems, 0, 10),
+        type: 'standard',
+        length: 'normal',
+        isPublic: true,
+      },
+      {
+        title: 'MAMbo: dieci storie dell\'arte italiana',
+        museumId: mambo._id,
+        creatorId: autore2._id,
+        description:
+          'Dieci opere raccontano l\'arte italiana del Novecento, dalle atmosfere sospese di Morandi alle sperimentazioni di Burri, Fontana, Kounellis, Pascali e Pistoletto.',
+        sequence: createVisitSequence(mamboGroupItems, 0, 10),
+        type: 'standard',
+        length: 'normal',
+        isPublic: true,
+      },
     ]);
     console.log(`Created ${visits.length} visits`);
 
     // Link visits to users
     autore.myVisits.push(visits[0]._id, visits[1]._id, visits[3]._id, visits[4]._id);
     docente.myVisits.push(visits[2]._id, visits[5]._id);
+    autore2.myVisits.push(visits[6]._id, visits[7]._id);
     visitatore.savedMuseums.push(uffizi._id, mambo._id);
 
-    await Promise.all([autore.save(), docente.save(), visitatore.save()]);
+    await Promise.all([autore.save(), autore2.save(), docente.save(), visitatore.save()]);
     console.log('Updated user references');
 
     // =====================
