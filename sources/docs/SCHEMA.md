@@ -47,7 +47,7 @@ the account-language API; it remains valid only for authored Item text metadata.
 ### Item
 - `contentId` - Links to Content.universalId
 - `creatorId` - Creator user
-- `targetAudience` - Description of intended audience
+- `targetAudience` - Free-text description of the intended audience (1–120 characters)
 - `descriptions` - Array of tones, each with texts at different lengths
 - `price`, `license`, `isPublic` - Marketplace properties
 - `associatedContents` - Related Content IDs
@@ -153,7 +153,7 @@ the account-language API; it remains valid only for authored Item text metadata.
   _id: ObjectId,
   contentId: String,             // links to Content.universalId
   creatorId: ObjectId,           // refs User
-  targetAudience: String,
+  targetAudience: String,         // free text, trimmed, max 120 characters
   descriptions: [{
     tone: String,                // 'easy'|'medium'|'complex'
     texts: [{

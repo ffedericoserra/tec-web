@@ -381,7 +381,7 @@ async function testItems() {
     } else {
       const itemPayload = {
         contentId: mainContent.universalId,
-        targetAudience: 'student',
+        targetAudience: 'studenti delle scuole medie',
         descriptions: [
           {
             tone: 'medium',
@@ -415,7 +415,7 @@ async function testItems() {
       const metadataPassed =
         createRes.status === 201 &&
         createRes.data?.item?.contentId === mainContent.universalId &&
-        createRes.data?.item?.targetAudience === 'student' &&
+        createRes.data?.item?.targetAudience === 'studenti delle scuole medie' &&
         createRes.data?.item?.descriptions?.[0]?.texts?.[0]?.language === 'en' &&
         createRes.data?.item?.price === 7 &&
         createRes.data?.item?.license === 'CC-BY-NC' &&

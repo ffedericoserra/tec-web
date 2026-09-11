@@ -16,9 +16,14 @@ const descriptionSchema = z.object({
   texts: z.array(textSchema).min(1, 'At least one text is required'),
 });
 
+const targetAudienceSchema = z.string()
+  .trim()
+  .min(1, 'Target audience description is required')
+  .max(120, 'Target audience description must not exceed 120 characters');
+
 const createItemSchema = z.object({
   contentId: z.string().trim().min(1, 'Content ID is required'),
-  targetAudience: z.enum(['general', 'children', 'student', 'expert', 'tourist']),
+  targetAudience: targetAudienceSchema,
   descriptions: z.array(descriptionSchema).min(1, 'At least one description is required'),
   price: z.number().min(0).default(0),
   license: z.enum(['CC-BY', 'CC-BY-SA', 'CC-BY-NC', 'Copyright', 'Public Domain']).default('CC-BY'),
@@ -27,7 +32,7 @@ const createItemSchema = z.object({
 });
 
 const updateItemSchema = z.object({
-  targetAudience: z.enum(['general', 'children', 'student', 'expert', 'tourist']).optional(),
+  targetAudience: targetAudienceSchema.optional(),
   descriptions: z.array(descriptionSchema).optional(),
   price: z.number().min(0).optional(),
   license: z.enum(['CC-BY', 'CC-BY-SA', 'CC-BY-NC', 'Copyright', 'Public Domain']).optional(),

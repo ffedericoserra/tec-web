@@ -29,7 +29,7 @@ function contentTypeLabel(type) {
 
 function targetAudienceLabel(audience) {
     const key = TARGET_AUDIENCE_I18N_KEYS[audience];
-    return key ? marketplaceT(key) : '';
+    return key ? marketplaceT(key) : (audience || '—');
 }
 
 if (!token) {
@@ -754,10 +754,18 @@ async function apriModaleOpere(itemToReplace = null) {
         hydrateVisitItemChoices();
 
         itemsContainer.innerHTML = '';
-        if (museumContentsCache.length > 0) {
-            museumContentsCache.forEach((content) => {
-                if (!content.universalId) return;
+        const usedContentIds = new Set(
+            Array.from(document.querySelectorAll('.draggable-item'))
+                .filter((item) => item !== itemToReplace)
+                .map((item) => item.dataset.contentId)
+                .filter(Boolean)
+        );
+        const selectableContents = museumContentsCache.filter(
+            (content) => content.universalId && !usedContentIds.has(content.universalId)
+        );
 
+        if (selectableContents.length > 0) {
+            selectableContents.forEach((content) => {
                 const itemDiv = document.createElement('button');
                 itemDiv.type = 'button';
                 itemDiv.classList.add('modal-artwork-item');
@@ -819,7 +827,11 @@ async function apriModaleOpere(itemToReplace = null) {
                 itemsContainer.querySelector('.modal-artwork-item')?.focus();
             }
         } else {
-            itemsContainer.innerHTML = renderBuilderMessage(marketplaceT("visitEditor.noContents"));
+            itemsContainer.innerHTML = renderBuilderMessage(
+                museumContentsCache.length > 0
+                    ? marketplaceT('visitEditor.allContentsAdded')
+                    : marketplaceT('visitEditor.noContents')
+            );
             document.getElementById('close-item-modal')?.focus();
         }
     } catch (err) {
@@ -855,6 +867,7 @@ let draggedItem = null;
 let dragSourceList = null;
 const boundArtworkItems = new WeakSet();
 const boundItemChoiceSelects = new WeakSet();
+let visitItemUidSeed = 0;
 let placeholder = document.createElement('li');
 placeholder.classList.add('placeholder');
 
@@ -1078,12 +1091,11 @@ function updateItemSpecificRow(item) {
         itemInfo ? 'visitEditor.editItemForContent' : 'visitEditor.createItemForContent',
         { title: contentTitle }
     );
-    [item.querySelector('.item-open-editor'), item.querySelector('.edit-item-btn')]
-        .filter(Boolean)
-        .forEach((control) => {
-            control.title = editorLabel;
-            control.setAttribute('aria-label', editorLabel);
-        });
+    const editButton = item.querySelector('.edit-item-btn');
+    if (editButton) {
+        editButton.title = editorLabel;
+        editButton.setAttribute('aria-label', editorLabel);
+    }
 
     const replaceButton = item.querySelector('.replace-item-btn');
     if (replaceButton) {
@@ -1162,6 +1174,27 @@ function openItemEditor(item) {
     window.location.href = `create_items.html?${params.toString()}`;
 }
 
+function setArtworkItemExpanded(item, expanded) {
+    const toggle = item.querySelector('.item-accordion-toggle, .item-open-editor');
+    const collapse = item.querySelector('.item-accordion-collapse');
+    if (collapse && !collapse.id) {
+        visitItemUidSeed += 1;
+        collapse.id = `visit-item-details-${Date.now()}-${visitItemUidSeed}`;
+    }
+    const isExpanded = Boolean(expanded);
+    item.classList.toggle('is-expanded', isExpanded);
+    toggle?.setAttribute('aria-expanded', String(isExpanded));
+    if (toggle && collapse?.id) toggle.setAttribute('aria-controls', collapse.id);
+    if (toggle) {
+        const label = marketplaceT(
+            isExpanded ? 'visitEditor.collapseItemDetails' : 'visitEditor.expandItemDetails',
+            { title: item.dataset.title || marketplaceT('common.content') }
+        );
+        toggle.title = label;
+        toggle.setAttribute('aria-label', label);
+    }
+}
+
 function bindArtworkItem(item) {
     if (boundArtworkItems.has(item)) return;
     boundArtworkItems.add(item);
@@ -1170,12 +1203,8 @@ function bindArtworkItem(item) {
         image.addEventListener('error', () => image.classList.add('is-hidden'));
     });
 
-    // Cliccando sulla riga si apre l'editor testi dell'item (create_items.html);
-    // la "linguetta" con l'immagine intera e le indicazioni si abbassa invece
-    // solo al passaggio del mouse (o al focus da tastiera), via CSS :hover.
-    const header = item.querySelector('.item-accordion-header');
-    const openControl = item.querySelector('.item-open-editor') || header;
-    openControl.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
+    const accordionToggle = item.querySelector('.item-accordion-toggle, .item-open-editor');
+    setArtworkItemExpanded(item, item.classList.contains('is-expanded'));
     [
         ['.edit-item-btn', 'visitEditor.editTexts'],
         ['.replace-item-btn', 'visitEditor.changeContent'],
@@ -1189,20 +1218,9 @@ function bindArtworkItem(item) {
         button.setAttribute('aria-label', label);
     });
 
-    if (openControl.classList.contains('item-open-editor')) {
-        openControl.addEventListener('click', () => openItemEditor(item));
-    } else {
-        header.addEventListener('click', (event) => {
-            if (event.target.closest('button, input, textarea, select, a')) return;
-            openItemEditor(item);
-        });
-        header.addEventListener('keydown', (event) => {
-            if ((event.key === 'Enter' || event.key === ' ') && event.target === header) {
-                event.preventDefault();
-                openItemEditor(item);
-            }
-        });
-    }
+    accordionToggle?.addEventListener('click', () => {
+        setArtworkItemExpanded(item, !item.classList.contains('is-expanded'));
+    });
 
     bindItemChoiceControl(item);
     if (itemCatalogReady) updateItemSpecificRow(item);
@@ -1283,6 +1301,8 @@ function creaEdAggiungiItem(
     li.dataset.contentId = contentId || "";
     li.dataset.nextDirections = nextDirections || "";
     li.dataset.prevDirections = prevDirections || "";
+    visitItemUidSeed += 1;
+    const collapseId = `visit-item-details-${Date.now()}-${visitItemUidSeed}`;
 
     // Risolviamo il percorso dell'immagine
     const finalImgUrl = resolveAssetUrl(contentImage);
@@ -1306,7 +1326,7 @@ function creaEdAggiungiItem(
 
     li.innerHTML = `
         <div class="item-accordion-header">
-            <button type="button" class="item-open-editor" aria-label="${escapeHTML(marketplaceT('visitEditor.editTextsAria'))}">
+            <button type="button" class="item-accordion-toggle" aria-expanded="false" aria-controls="${collapseId}">
                 <span class="item-toggle-thumb">${imgTag}</span>
                 <span class="item-toggle-info">
                     <strong class="card-title">${escapeHTML(contentTitle)}</strong>
@@ -1328,7 +1348,7 @@ function creaEdAggiungiItem(
             </span>
             <span class="item-toggle-chevron" aria-hidden="true"></span>
         </div>
-        <div class="item-accordion-collapse">
+        <div class="item-accordion-collapse" id="${collapseId}">
             <div class="item-accordion-body">
                 <div class="artwork-card">
                     ${imgTag}
@@ -1812,9 +1832,7 @@ window.addEventListener('marketplace:language-changed', () => {
         const list = block.querySelector('.block-list');
         if (list) {
             list.querySelectorAll('.draggable-item').forEach((item) => {
-                const openControl = item.querySelector('.item-open-editor')
-                    || item.querySelector('.item-accordion-header');
-                openControl.setAttribute('aria-label', marketplaceT('visitEditor.editTextsAria'));
+                setArtworkItemExpanded(item, item.classList.contains('is-expanded'));
                 [
                     ['.edit-item-btn', 'visitEditor.editTexts'],
                     ['.replace-item-btn', 'visitEditor.changeContent'],

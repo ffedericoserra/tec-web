@@ -27,6 +27,7 @@ export default function Museums() {
   const [user, setUser] = useState(getCachedUser());
   const [museums, setMuseums] = useState([]);
   const [query, setQuery] = useState('');
+  const [expandedMuseumId, setExpandedMuseumId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -92,20 +93,28 @@ export default function Museums() {
           <ul className="museum-list">
             {filtered.map((m) => {
               const city = cityFromAddress(m.address);
+              const museumKey = m._id || m.slug;
+              const isExpanded = expandedMuseumId === museumKey;
+              const previewId = `museum-preview-${museumKey}`;
 
               return (
-              <li key={m._id || m.slug} className="museum-list-item">
+              <li
+                key={museumKey}
+                className={`museum-list-item${isExpanded ? ' is-expanded' : ''}`}
+              >
                 <button
                   type="button"
                   className="museum-row"
-                  onClick={() => navigate(`/${m.slug}`)}
+                  aria-expanded={isExpanded}
+                  aria-controls={previewId}
+                  onClick={() => setExpandedMuseumId(isExpanded ? null : museumKey)}
                 >
                   <span>{m.name}</span>
                   <span className="museum-row-arrow" aria-hidden="true">
                     ›
                   </span>
                 </button>
-                <div className="museum-preview">
+                <div id={previewId} className="museum-preview" hidden={!isExpanded}>
                   <div className="museum-preview-content">
                     {m.imageUrl && (
                       <img

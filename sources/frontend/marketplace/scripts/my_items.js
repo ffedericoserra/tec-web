@@ -17,6 +17,8 @@ const feedback = document.getElementById("items-feedback");
 const museumSelect = document.getElementById("items-museum-select");
 const search = document.getElementById("content-search");
 const detailModal = document.getElementById("content-detail");
+const detailList = document.getElementById("items-detail-list");
+const detailCreateItem = document.getElementById("detail-create-item");
 let detailReturnFocus = null;
 feedback.textContent = marketplaceT("items.loadingContents");
 
@@ -136,38 +138,36 @@ function renderItemRow(item, actions) {
 }
 
 function renderDetail() {
-    const list = document.getElementById("items-detail-list");
     document.querySelectorAll(".tab-btn").forEach((button) => {
         const isActive = button.dataset.tab === activeTab;
         button.classList.toggle("active", isActive);
         button.setAttribute("aria-selected", String(isActive));
         button.tabIndex = isActive ? 0 : -1;
     });
-    list.id = `items-panel-${activeTab}`;
-    list.setAttribute("aria-labelledby", `items-tab-${activeTab}`);
+    detailList.setAttribute("aria-labelledby", `items-tab-${activeTab}`);
 
     const mine = currentItems.filter((item) => item.isOwned);
     const purchased = currentItems.filter((item) => item.isPurchased && !item.isOwned);
     const available = currentItems.filter((item) => item.isPublic && !item.isOwned && !item.isPurchased);
 
     if (activeTab === "marketplace") {
-        list.innerHTML = available.length
+        detailList.innerHTML = available.length
             ? available.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.details")}</a><button class="primary-btn" data-buy-id="${item._id}" type="button">${marketplaceT("items.buy")}</button>`)).join("")
             : `<div class="empty-state">${marketplaceT("items.noneAvailable")}</div>`;
-        list.querySelectorAll("[data-buy-id]").forEach((button) => button.addEventListener("click", () => purchaseItem(button.dataset.buyId)));
+        detailList.querySelectorAll("[data-buy-id]").forEach((button) => button.addEventListener("click", () => purchaseItem(button.dataset.buyId)));
         return;
     }
 
     if (activeTab === "mine") {
-        list.innerHTML = `
-            <div class="available-heading"><h3>${marketplaceT("items.myItems")}</h3><a class="primary-btn" href="${itemEditorUrl()}">${marketplaceT("items.createNew")}</a></div>
+        detailList.innerHTML = `
+            <div class="available-heading"><h3>${marketplaceT("items.myItems")}</h3></div>
             ${mine.length ? mine.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.edit")}</a><button class="danger-btn" data-delete-id="${item._id}" type="button">${marketplaceT("common.delete")}</button>`)).join("") : `<div class="empty-state">${marketplaceT("items.noneCreated")}</div>`}
         `;
-        list.querySelectorAll("[data-delete-id]").forEach((button) => button.addEventListener("click", () => deleteItem(button.dataset.deleteId)));
+        detailList.querySelectorAll("[data-delete-id]").forEach((button) => button.addEventListener("click", () => deleteItem(button.dataset.deleteId)));
         return;
     }
 
-    list.innerHTML = `
+    detailList.innerHTML = `
         <div class="available-heading"><h3>${marketplaceT("items.purchased")}</h3></div>
         ${purchased.length ? purchased.map((item) => renderItemRow(item, `<a class="secondary-btn" href="${itemEditorUrl(item._id)}">${marketplaceT("common.view")}</a>`)).join("") : `<div class="empty-state">${marketplaceT("items.nonePurchased")}</div>`}
     `;
@@ -179,14 +179,15 @@ async function openContent() {
     document.getElementById("detail-title").textContent = currentContent.name || marketplaceT("common.content");
     document.getElementById("detail-author").textContent = currentContent.author || marketplaceT("items.authorMissing");
     document.getElementById("detail-museum").textContent = currentContent.museum.name;
-    document.getElementById("items-detail-list").innerHTML = `<div class="empty-state">${marketplaceT("items.loadingItems")}</div>`;
+    detailCreateItem.href = itemEditorUrl();
+    detailList.innerHTML = `<div class="empty-state">${marketplaceT("items.loadingItems")}</div>`;
     activeTab = "marketplace";
     try {
         const data = await api(`/items?contentId=${encodeURIComponent(currentContent.universalId)}`);
         currentItems = data.items || [];
         renderDetail();
     } catch (error) {
-        document.getElementById("items-detail-list").innerHTML = `<div class="empty-state">${marketplaceT("items.loadItemsError")}</div>`;
+        detailList.innerHTML = `<div class="empty-state">${marketplaceT("items.loadItemsError")}</div>`;
     }
 }
 

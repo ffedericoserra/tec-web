@@ -27,10 +27,38 @@ const urlContentId = urlParams.get('contentId');
 let originalContentId = urlContentId || null;
 let museumContentsCache = [];
 let dropdownTranslation = { key: 'itemEditor.chooseIntro', options: {} };
+let dropdownItemSummary = null;
 
 function setDropdownTranslation(key, options = {}) {
+    dropdownItemSummary = null;
     dropdownTranslation = { key, options };
     document.getElementById('dropdown-selected-text').textContent = marketplaceT(key, options);
+}
+
+function targetAudienceLabel(audience) {
+    const keyByAudience = {
+        general: 'itemEditor.audienceGeneral',
+        children: 'itemEditor.audienceChildren',
+        student: 'itemEditor.audienceStudents',
+        expert: 'itemEditor.audienceExperts',
+        tourist: 'itemEditor.audienceTourists'
+    };
+    return keyByAudience[audience] ? marketplaceT(keyByAudience[audience]) : audience;
+}
+
+function setDropdownItemSummary(creator, targetAudience) {
+    dropdownItemSummary = { creator, targetAudience };
+    dropdownTranslation = {
+        key: 'itemEditor.itemSummary',
+        options: {
+            creator,
+            target: targetAudienceLabel(targetAudience)
+        }
+    };
+    document.getElementById('dropdown-selected-text').textContent = marketplaceT(
+        dropdownTranslation.key,
+        dropdownTranslation.options
+    );
 }
 
 function resolveAssetUrl(path) {
@@ -338,7 +366,8 @@ async function loadCommunityItems() {
                 : item.isPurchased
                     ? marketplaceT('itemEditor.acquired')
                     : `${Number(item.price) || 0} ${marketplaceT('common.credits')}`;
-            const itemDetails = `${tagsText} · ${item.license || 'CC-BY'} · ${priceText}`;
+            const targetText = targetAudienceLabel(item.targetAudience || 'general');
+            const itemDetails = `${targetText} · ${tagsText} · ${item.license || 'CC-BY'} · ${priceText}`;
 
             const authorLine = document.createElement('span');
             const authorName = document.createElement('strong');
@@ -354,9 +383,6 @@ async function loadCommunityItems() {
             itemButton.append(authorLine, detailsLine);
             const selectCommunityItem = async () => {
                 await caricaTestiDaDB(item._id);
-                setDropdownTranslation('itemEditor.viewingBy', {
-                    creator: displayCreatorName
-                });
                 setDropdownOpen(false);
             };
             itemButton.addEventListener('click', selectCommunityItem);
@@ -417,8 +443,9 @@ function clearUI() {
 function resetCommercialFields() {
     document.getElementById('item-prezzo').value = '0';
     document.getElementById('item-license').value = 'CC-BY';
-    document.getElementById('item-is-public').checked = false;
-    document.getElementById('item-target-audience').value = 'general';
+    document.getElementById('item-is-public').checked = true;
+    document.getElementById('item-is-private').checked = false;
+    document.getElementById('item-target-audience').value = '';
 }
 
 async function loadAssociatedContentOptions(selectedIds = []) {
@@ -502,7 +529,8 @@ async function caricaTestiDaDB(idToLoad) {
         document.getElementById('item-prezzo').value = String(currentItem.price ?? 0);
         document.getElementById('item-license').value = currentItem.license || 'CC-BY';
         document.getElementById('item-is-public').checked = Boolean(currentItem.isPublic);
-        document.getElementById('item-target-audience').value = currentItem.targetAudience || 'general';
+        document.getElementById('item-is-private').checked = !currentItem.isPublic;
+        document.getElementById('item-target-audience').value = currentItem.targetAudience || '';
         await loadAssociatedContentOptions(
             (currentItem.associatedContents || []).map((content) => content._id || content)
         );
@@ -513,14 +541,6 @@ async function caricaTestiDaDB(idToLoad) {
             'hidden',
             currentItem.isOwned || currentItem.isPurchased || !currentItem.isPublic
         );
-        setDropdownTranslation(
-            currentItem.isOwned
-                ? 'itemEditor.editingOwned'
-                : currentItem.isPurchased
-                    ? 'itemEditor.viewingPurchased'
-                    : 'itemEditor.viewingAvailable'
-        );
-        
         let creatorName = marketplaceT('itemEditor.unknownUser');
         if (currentItem.creatorId && currentItem.creatorId.username) creatorName = currentItem.creatorId.username;
         else if (typeof currentItem.creatorId === 'string') creatorName = marketplaceT('itemEditor.user', {
@@ -528,6 +548,10 @@ async function caricaTestiDaDB(idToLoad) {
         });
         
         document.getElementById('item-creatore').value = creatorName;
+        setDropdownItemSummary(
+            creatorName,
+            currentItem.targetAudience || marketplaceT('common.notAvailable')
+        );
 
         if (currentItem.descriptions && currentItem.descriptions.length > 0) {
             currentItem.descriptions.forEach(descGroup => {
@@ -620,11 +644,18 @@ document.getElementById('btn-save-exit').addEventListener('click', async () => {
         return;
     }
 
+    const targetAudience = document.getElementById('item-target-audience').value.trim();
+    if (!targetAudience) {
+        showToast(marketplaceT('itemEditor.targetRequired'), "error");
+        document.getElementById('item-target-audience').focus();
+        return;
+    }
+
     // ECCO IL PAYLOAD PULITO: Invia solo le informazioni dell'Item!
     const payload = {
         isPublic: document.getElementById('item-is-public').checked,
         contentId: originalContentId, // Il gancio che collega questo Item all'opera fissa
-        targetAudience: document.getElementById('item-target-audience').value,
+        targetAudience,
         descriptions: finalDescriptions,
         price: Number(document.getElementById('item-prezzo').value),
         license: document.getElementById('item-license').value,
@@ -730,7 +761,14 @@ document.getElementById('btn-delete-item').addEventListener('click', async () =>
 });
 
 window.addEventListener('marketplace:language-changed', () => {
-    setDropdownTranslation(dropdownTranslation.key, dropdownTranslation.options);
+    if (dropdownItemSummary) {
+        setDropdownItemSummary(
+            dropdownItemSummary.creator,
+            dropdownItemSummary.targetAudience
+        );
+    } else {
+        setDropdownTranslation(dropdownTranslation.key, dropdownTranslation.options);
+    }
     labelAudienceTextareas();
     if (originalContentId) loadCommunityItems();
 });

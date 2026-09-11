@@ -288,19 +288,26 @@
     color: rgba(var(--ink-rgb), 0.65);
 }
 
-.publication-toggle {
+.visibility-radio-group {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 9px;
+    flex-wrap: wrap;
+    gap: 8px 14px;
     max-width: 60%;
     font-size: 0.82rem;
     font-weight: 700;
     text-align: right;
+}
+
+.visibility-radio-group label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     cursor: pointer;
 }
 
-.publication-toggle input {
+.visibility-radio-group input {
     width: 18px;
     height: 18px;
     margin: 0;
@@ -1529,6 +1536,7 @@
     background-color: rgba(var(--burgundy-rgb), 0.06);
 }
 
+#artaround-visit-builder .item-accordion-toggle,
 #artaround-visit-builder .item-open-editor {
     display: flex;
     flex: 1 1 220px;
@@ -1544,6 +1552,7 @@
     cursor: pointer;
 }
 
+#artaround-visit-builder .item-accordion-toggle:focus-visible,
 #artaround-visit-builder .item-open-editor:focus-visible {
     border-radius: 4px;
     outline: 2px solid var(--burgundy);
@@ -1671,22 +1680,18 @@
     transition: transform 0.25s ease;
 }
 
-#artaround-visit-builder .draggable-item:hover .item-toggle-chevron,
-#artaround-visit-builder .draggable-item:focus-within .item-toggle-chevron {
+#artaround-visit-builder .draggable-item.is-expanded .item-toggle-chevron {
     transform: rotate(-135deg);
 }
 
-/* --- Corpo a comparsa: solo al passaggio del mouse (o focus da tastiera),
-   come nella versione precedente. Il click sulla riga apre invece l'editor
-   testi (create_items.html). --- */
+/* --- Corpo a comparsa: il click sulla riga compatta apre o chiude i dettagli. --- */
 #artaround-visit-builder .item-accordion-collapse {
     display: grid;
     grid-template-rows: 0fr;
     transition: grid-template-rows 0.3s ease;
 }
 
-#artaround-visit-builder .draggable-item:hover .item-accordion-collapse,
-#artaround-visit-builder .draggable-item:focus-within .item-accordion-collapse {
+#artaround-visit-builder .draggable-item.is-expanded .item-accordion-collapse {
     grid-template-rows: 1fr;
 }
 
@@ -1709,8 +1714,7 @@
     transition: padding 0.3s ease;
 }
 
-#artaround-visit-builder .draggable-item:hover .item-accordion-body,
-#artaround-visit-builder .draggable-item:focus-within .item-accordion-body {
+#artaround-visit-builder .draggable-item.is-expanded .item-accordion-body {
     padding: 10px 8px 4px;
 }
 
@@ -2409,6 +2413,7 @@
         flex-wrap: wrap;
     }
 
+    #artaround-visit-builder .item-accordion-toggle,
     #artaround-visit-builder .item-open-editor {
         order: 1;
         flex-basis: calc(100% - 28px);

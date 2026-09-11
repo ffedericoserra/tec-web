@@ -93,7 +93,8 @@
 
 .museum-row:hover,
 .museum-row:focus-visible,
-.museum-row:active {
+.museum-row:active,
+.museum-list-item.is-expanded .museum-row {
   background: var(--accent);
   color: var(--bg);
   padding-left: 12px;
@@ -109,8 +110,13 @@
 
 .museum-row:hover .museum-row-arrow,
 .museum-row:focus-visible .museum-row-arrow,
-.museum-row:active .museum-row-arrow {
+.museum-row:active .museum-row-arrow,
+.museum-list-item.is-expanded .museum-row-arrow {
   color: var(--bg);
+}
+
+.museum-list-item.is-expanded .museum-row-arrow {
+  transform: rotate(90deg);
 }
 
 .museum-preview {
@@ -120,8 +126,7 @@
   transition: grid-template-rows 0.25s ease, opacity 0.2s ease;
 }
 
-.museum-list-item:hover .museum-preview,
-.museum-list-item:focus-within .museum-preview {
+.museum-list-item.is-expanded .museum-preview {
   grid-template-rows: 1fr;
   opacity: 1;
 }

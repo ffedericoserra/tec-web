@@ -59,8 +59,8 @@ const itemSchema = new mongoose.Schema(
     },
     targetAudience: {
         type: String,
-        enum: ['general', 'children', 'student', 'expert', 'tourist'],
         trim: true,
+        maxlength: 120,
         required: [true, 'Target audience description is required'],
     },
     descriptions: [descriptionSchema],

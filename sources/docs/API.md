@@ -152,7 +152,7 @@ membership in `user.savedVisits`, responding with the resulting state (`isSaved`
 ```json
 {
   "contentId": "uffizi-botticelli-venere",
-  "targetAudience": "tourist",
+  "targetAudience": "famiglie con bambini dai 6 ai 10 anni",
   "descriptions": [
     {
       "tone": "easy",
@@ -171,9 +171,9 @@ membership in `user.savedVisits`, responding with the resulting state (`isSaved`
 ```
 
 **Tone values:** `easy`, `medium`, `complex`
+**Target audience:** free text, trimmed, from 1 to 120 characters
 **Length categories:** `15s`, `30s`, `60s` — each text is meant to be spoken by TTS for at least that long, not skimmed by eye; word counts scale accordingly (roughly 40+/80+/150+ words at a ~150wpm speaking rate).
 **Languages:** `it`, `en`, `fr`, `de`, `es`
-**Target audiences:** `general`, `children`, `student`, `expert`, `tourist`
 **Licenses:** `CC-BY`, `CC-BY-SA`, `CC-BY-NC`, `Copyright`, `Public Domain`
 
 `contentId` must be the immutable `universalId` of an existing Content. Anonymous

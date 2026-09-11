@@ -86,21 +86,29 @@
                         </div>
                     </div>
                     <div class="meta-row">
-                        <span class="meta-label" data-i18n="itemEditor.publishing">PUBBLICAZIONE</span>
-                        <label class="publication-toggle" for="item-is-public">
-                            <input type="checkbox" id="item-is-public">
-                            <span data-i18n="itemEditor.availableMarketplace">Disponibile nel marketplace</span>
-                        </label>
+                        <span class="meta-label" id="item-visibility-label" data-i18n="itemEditor.visibility">VISIBILITÀ</span>
+                        <div class="visibility-radio-group" role="radiogroup" aria-labelledby="item-visibility-label">
+                            <label for="item-is-public">
+                                <input type="radio" id="item-is-public" name="item-visibility" value="public" checked>
+                                <span data-i18n="itemEditor.visibilityPublic">Pubblico</span>
+                            </label>
+                            <label for="item-is-private">
+                                <input type="radio" id="item-is-private" name="item-visibility" value="private">
+                                <span data-i18n="itemEditor.visibilityPrivate">Privato</span>
+                            </label>
+                        </div>
                     </div>
                     <div class="meta-row">
                         <label class="meta-label" for="item-target-audience" data-i18n="itemEditor.target">TARGET</label>
-                        <select id="item-target-audience" class="metadata-control">
-                            <option value="general" data-i18n="itemEditor.audienceGeneral">Generale</option>
-                            <option value="children" data-i18n="itemEditor.audienceChildren">Bambini e famiglie</option>
-                            <option value="student" data-i18n="itemEditor.audienceStudents">Studenti</option>
-                            <option value="expert" data-i18n="itemEditor.audienceExperts">Esperti</option>
-                            <option value="tourist" data-i18n="itemEditor.audienceTourists">Turisti</option>
-                        </select>
+                        <input
+                          type="text"
+                          id="item-target-audience"
+                          class="metadata-control"
+                          maxlength="120"
+                          placeholder="Es. famiglie con bambini"
+                          data-i18n-placeholder="itemEditor.targetPlaceholder"
+                          required
+                        >
                     </div>
                 </div>
                 <fieldset class="associated-content-fieldset">
@@ -121,13 +129,13 @@
                       aria-controls="audience-panel-children"
                     >
                         <span class="audience-header-text">
-                            <span class="audience-header-title" data-i18n="itemEditor.children">Tono semplice</span>
-                            <span class="audience-header-hint" data-i18n="itemEditor.childrenHint">Lessico per bambini: frasi brevi e parole quotidiane</span>
+                            <span class="audience-header-title" data-i18n="itemEditor.children">Tono facile</span>
+                            <span class="audience-header-hint" data-i18n="itemEditor.childrenHint">Lessico semplice e frasi brevi</span>
                         </span>
                         <span class="arrow-icon" id="arrow-children">▼</span>
                     </button>
                     <div class="audience-panel hidden" id="audience-panel-children">
-                        <div class="duration-tabs" role="group" aria-label="Durata descrizione per bambini" data-i18n-aria-label="itemEditor.durationChildrenAria">
+                        <div class="duration-tabs" role="group" aria-label="Durata descrizione con tono facile" data-i18n-aria-label="itemEditor.durationChildrenAria">
                             <button type="button" class="duration-tab" data-duration="15s" aria-pressed="false" data-i18n="itemEditor.seconds15">15 SEC</button>
                             <button type="button" class="duration-tab is-active" data-duration="30s" aria-pressed="true" data-i18n="itemEditor.seconds30">30 SEC</button>
                             <button type="button" class="duration-tab" data-duration="60s" aria-pressed="false" data-i18n="itemEditor.seconds60">60 SEC</button>
@@ -148,13 +156,13 @@
                       aria-controls="audience-panel-standard"
                     >
                         <span class="audience-header-text">
-                            <span class="audience-header-title" data-i18n="itemEditor.standard">Tono standard</span>
+                            <span class="audience-header-title" data-i18n="itemEditor.standard">Tono medio</span>
                             <span class="audience-header-hint" data-i18n="itemEditor.standardHint">Lessico comune e scorrevole, adatto a tutti</span>
                         </span>
                         <span class="arrow-icon open" id="arrow-standard">▼</span>
                     </button>
                     <div class="audience-panel" id="audience-panel-standard">
-                        <div class="duration-tabs" role="group" aria-label="Durata descrizione standard" data-i18n-aria-label="itemEditor.durationStandardAria">
+                        <div class="duration-tabs" role="group" aria-label="Durata descrizione con tono medio" data-i18n-aria-label="itemEditor.durationStandardAria">
                             <button type="button" class="duration-tab" data-duration="15s" aria-pressed="false" data-i18n="itemEditor.seconds15">15 SEC</button>
                             <button type="button" class="duration-tab is-active" data-duration="30s" aria-pressed="true" data-i18n="itemEditor.seconds30">30 SEC</button>
                             <button type="button" class="duration-tab" data-duration="60s" aria-pressed="false" data-i18n="itemEditor.seconds60">60 SEC</button>
@@ -174,13 +182,13 @@
                       aria-controls="audience-panel-expert"
                     >
                         <span class="audience-header-text">
-                            <span class="audience-header-title" data-i18n="itemEditor.experts">Tono approfondito</span>
+                            <span class="audience-header-title" data-i18n="itemEditor.experts">Tono complesso</span>
                             <span class="audience-header-hint" data-i18n="itemEditor.expertsHint">Lessico specialistico, riferimenti tecnici e storico-critici</span>
                         </span>
                         <span class="arrow-icon" id="arrow-expert">▼</span>
                     </button>
                     <div class="audience-panel hidden" id="audience-panel-expert">
-                        <div class="duration-tabs" role="group" aria-label="Durata descrizione per esperti" data-i18n-aria-label="itemEditor.durationExpertsAria">
+                        <div class="duration-tabs" role="group" aria-label="Durata descrizione con tono complesso" data-i18n-aria-label="itemEditor.durationExpertsAria">
                             <button type="button" class="duration-tab" data-duration="15s" aria-pressed="false" data-i18n="itemEditor.seconds15">15 SEC</button>
                             <button type="button" class="duration-tab is-active" data-duration="30s" aria-pressed="true" data-i18n="itemEditor.seconds30">30 SEC</button>
                             <button type="button" class="duration-tab" data-duration="60s" aria-pressed="false" data-i18n="itemEditor.seconds60">60 SEC</button>

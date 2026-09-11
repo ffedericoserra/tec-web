@@ -30,6 +30,7 @@
 .detail-overlay { position:fixed; inset:0; z-index:3000; display:flex; justify-content:flex-end; background:rgba(0,0,0,.55); }
 .detail-panel { width:min(720px,100%); height:100%; overflow:auto; padding:42px; background:var(--cream); }
 .detail-heading { display:flex; justify-content:space-between; gap:20px; }
+.detail-heading-actions { display:flex; align-items:flex-start; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
 .detail-heading h2 { margin:9px 0; font-size:2.5rem; }
 .detail-heading p { color:rgba(22,22,22,.62); }
 .icon-btn { width:42px; height:42px; border:1px solid var(--line); background:transparent; font-size:1.4rem; cursor:pointer; }
@@ -45,4 +46,4 @@
 .primary-btn { background:var(--ink); color:var(--cream); }
 .danger-btn { border-color:var(--burgundy); color:var(--burgundy); }
 .available-heading { display:flex; justify-content:space-between; align-items:center; margin-top:25px; }
-@media(max-width:720px){#artaround-my-items{padding-top:128px}.items-heading,.items-workspace{padding-left:22px;padding-right:22px}.items-toolbar{grid-template-columns:1fr}.detail-panel{padding:25px}.item-row{grid-template-columns:1fr}.item-actions{justify-content:flex-start}}
+@media(max-width:720px){#artaround-my-items{padding-top:128px}.items-heading,.items-workspace{padding-left:22px;padding-right:22px}.items-toolbar{grid-template-columns:1fr}.detail-panel{padding:25px}.detail-heading{align-items:flex-start}.detail-heading-actions{flex-direction:column-reverse;align-items:flex-end}.item-row{grid-template-columns:1fr}.item-actions{justify-content:flex-start}}

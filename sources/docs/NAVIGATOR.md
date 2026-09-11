@@ -233,8 +233,7 @@ Header + ProfileMenu styles live in `styles/header.css`; everything else is page
 - Single effect runs `Promise.all([api('/auth/me'), api('/museums')])`. A `cancelled` flag drops late responses if the user navigates away mid-fetch.
 - 401 from either call → `logout()`.
 - Search filters client-side (case-insensitive `includes` on `name`). The dataset is small (~2 museums seeded), so server-side query isn't worth it.
-- Sorted alphabetically by name. Hovering a row (or moving focus to it with the keyboard) expands a preview with its image, name, city and full address, plus **Scopri le visite** and **Open in Marketplace** controls. On phones the two controls form a row below the details, so they never cover the address; from 640px they return to the right-hand side. The latter opens `/marketplace/pages/visits_list.html?museumId=<id>` so the Marketplace is preselected on that museum; the city is derived from the locality segment of the existing `address` field, so no extra API data is fetched.
-- Click a row → `navigate('/${m.slug}')`.
+- Sorted alphabetically by name. Clicking a row toggles its preview (one museum at a time) with image, name, city and full address, plus **Scopri le visite** and **Open in Marketplace** controls; the row exposes `aria-expanded`/`aria-controls`. On phones the two controls form a row below the details, so they never cover the address; from 640px they return to the right-hand side. **Scopri le visite** navigates to `/${m.slug}`; the Marketplace action opens `/marketplace/pages/visits_list.html?museumId=<id>` so the museum is preselected. The city is derived from the locality segment of the existing `address` field, so no extra API data is fetched.
 - Right slot of the header is the `ProfileMenu` (the only place to log out from authed pages).
 
 ### Account (`/account`)

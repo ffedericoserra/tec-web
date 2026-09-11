@@ -38,14 +38,17 @@
       <section class="detail-panel">
         <div class="detail-heading">
           <div><span class="kicker" id="detail-museum"></span><h2 id="detail-title">Content</h2><p id="detail-author"></p></div>
-          <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi" data-i18n-aria-label="items.closeAria">&times;</button>
+          <div class="detail-heading-actions">
+            <a id="detail-create-item" class="primary-btn" href="#" data-i18n="items.createNew">Crea nuovo Item</a>
+            <button id="close-detail" class="icon-btn" type="button" aria-label="Chiudi" data-i18n-aria-label="items.closeAria">&times;</button>
+          </div>
         </div>
         <div class="detail-tabs" role="tablist" aria-label="Sezioni Item" data-i18n-aria-label="items.detailSectionsAria">
-          <button id="items-tab-marketplace" class="tab-btn active" data-tab="marketplace" type="button" role="tab" aria-selected="true" aria-controls="items-panel-marketplace" tabindex="0" data-i18n="items.marketplace">Marketplace</button>
-          <button id="items-tab-mine" class="tab-btn" data-tab="mine" type="button" role="tab" aria-selected="false" aria-controls="items-panel-mine" tabindex="-1" data-i18n="items.mineTab">I miei Item</button>
-          <button id="items-tab-purchased" class="tab-btn" data-tab="purchased" type="button" role="tab" aria-selected="false" aria-controls="items-panel-purchased" tabindex="-1" data-i18n="items.purchasedTab">Item acquistati</button>
+          <button id="items-tab-marketplace" class="tab-btn active" data-tab="marketplace" type="button" role="tab" aria-selected="true" aria-controls="items-detail-list" tabindex="0" data-i18n="items.marketplace">Marketplace</button>
+          <button id="items-tab-mine" class="tab-btn" data-tab="mine" type="button" role="tab" aria-selected="false" aria-controls="items-detail-list" tabindex="-1" data-i18n="items.mineTab">I miei Item</button>
+          <button id="items-tab-purchased" class="tab-btn" data-tab="purchased" type="button" role="tab" aria-selected="false" aria-controls="items-detail-list" tabindex="-1" data-i18n="items.purchasedTab">Item acquistati</button>
         </div>
-        <div id="items-detail-list" class="items-detail-list" role="tabpanel" tabindex="0"></div>
+        <div id="items-detail-list" class="items-detail-list" role="tabpanel" aria-labelledby="items-tab-marketplace" tabindex="0"></div>
       </section>
     </div>
 
