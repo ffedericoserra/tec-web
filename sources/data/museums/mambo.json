@@ -1,0 +1,255 @@
+{
+  "museum": {
+    "name": "MAMbo - Museo d'Arte Moderna di Bologna",
+    "address": "Via Don Giovanni Minzoni, 14, 40121 Bologna BO",
+    "description": "Il museo d'arte moderna e contemporanea di Bologna, ospitato nell'ex Forno del Pane, con una ricca collezione permanente e mostre temporanee.",
+    "website": "https://www.mambo-bologna.org",
+    "email": "info@mambo-bologna.org",
+    "phone": "051 649 6611",
+    "openingHours": {
+      "mon": "Chiuso",
+      "tue": "10:00 - 18:00",
+      "wed": "10:00 - 18:00",
+      "thu": "10:00 - 20:00",
+      "fri": "10:00 - 18:00",
+      "sat": "10:00 - 18:00",
+      "sun": "10:00 - 18:00"
+    },
+    "imageUrl": "/uploads/museums/mambo.jpg",
+    "floorPlans": [
+      {
+        "floor": 0,
+        "label": "Piano Terra",
+        "imageUrl": "/uploads/maps/mambo-map.png",
+        "bounds": {
+          "north": 44.5001158,
+          "south": 44.4996842,
+          "east": 11.3395186,
+          "west": 11.3378814
+        },
+        "center": {
+          "lat": 44.4999,
+          "lng": 11.3387
+        }
+      }
+    ],
+    "pointsOfInterest": [
+      {
+        "type": "entrance",
+        "coordinates": {
+          "lat": 44.5000748,
+          "lng": 11.3384827
+        },
+        "label": "Ingresso principale"
+      },
+      {
+        "type": "toilet",
+        "coordinates": {
+          "lat": 44.4999997,
+          "lng": 11.3383659
+        },
+        "label": "Bagni Piano Terra"
+      },
+      {
+        "type": "bar",
+        "coordinates": {
+          "lat": 44.4999779,
+          "lng": 11.3382529
+        },
+        "label": "Caffetteria"
+      },
+      {
+        "type": "shop",
+        "coordinates": {
+          "lat": 44.4998918,
+          "lng": 11.3382471
+        },
+        "label": "Bookshop"
+      },
+      {
+        "type": "exit",
+        "coordinates": {
+          "lat": 44.5000748,
+          "lng": 11.3380633
+        },
+        "label": "Uscita secondaria"
+      },
+      {
+        "type": "stairs",
+        "coordinates": {
+          "lat": 44.4998262,
+          "lng": 11.3383659
+        },
+        "label": "Scale principali"
+      }
+    ]
+  },
+  "contents": [
+    {
+      "type": "Artwork",
+      "universalId": "mambo-morandi-natura-morta-1946",
+      "name": "Natura morta",
+      "author": "Giorgio Morandi",
+      "year": "1946",
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3388312
+      },
+      "imageUrl": "/uploads/contents/mambo-morandi-natura-morta-1946.jpg",
+      "qrCode": "QR-mambo-morandi-natura-morta-1946"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-morandi-paesaggio",
+      "name": "Paesaggio",
+      "author": "Giorgio Morandi",
+      "year": "1943",
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3389001
+      },
+      "imageUrl": "/uploads/contents/paesaggio.jpeg",
+      "qrCode": "QR-mambo-morandi-paesaggio"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-burri-rosso-plastica",
+      "name": "Rosso Plastica",
+      "author": "Alberto Burri",
+      "year": "1962",
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.338969
+      },
+      "imageUrl": "/uploads/contents/rossoplastica.jpeg",
+      "qrCode": "QR-mambo-burri-rosso-plastica"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-fontana-concetto-spaziale",
+      "name": "Concetto spaziale, Attese",
+      "author": "Lucio Fontana",
+      "year": "1960",
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3390361
+      },
+      "imageUrl": "/uploads/contents/concettospaziale.jpeg",
+      "qrCode": "QR-mambo-fontana-concetto-spaziale"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-de-chirico-ettore-andromaca",
+      "name": "Ettore e Andromaca",
+      "author": "Giorgio de Chirico",
+      "year": "1924",
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3391069
+      },
+      "imageUrl": "/uploads/contents/ettoreEandro.png",
+      "qrCode": "QR-mambo-de-chirico-ettore-andromaca"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-vedova-plurimo",
+      "name": "Plurimo",
+      "author": "Emilio Vedova",
+      "year": "1962",
+      "coordinates": {
+        "lat": 44.5000202,
+        "lng": 11.3391797
+      },
+      "imageUrl": "/uploads/contents/12052020-Vedova_Plurimo-n.-7-Opposti.png",
+      "qrCode": "QR-mambo-vedova-plurimo"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-kounellis-senza-titolo",
+      "name": "Senza titolo",
+      "author": "Jannis Kounellis",
+      "year": "1979",
+      "coordinates": {
+        "lat": 44.499915,
+        "lng": 11.339352
+      },
+      "imageUrl": "/uploads/contents/kounellis-senza-titolo-74.webp",
+      "qrCode": "QR-mambo-kounellis-senza-titolo"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-paolini-giovane-guardando-lorenzo-lotto",
+      "name": "Giovane che guarda Lorenzo Lotto",
+      "author": "Giulio Paolini",
+      "year": "1967",
+      "coordinates": {
+        "lat": 44.4998112,
+        "lng": 11.3392141
+      },
+      "imageUrl": "/uploads/contents/paolini-giovane-che-guarda-lorenzo-lotto.jpg",
+      "qrCode": "QR-mambo-paolini-giovane-guardando-lorenzo-lotto"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-pascali-bachi-da-setola",
+      "name": "Bachi da setola",
+      "author": "Pino Pascali",
+      "year": "1968",
+      "coordinates": {
+        "lat": 44.4998112,
+        "lng": 11.3391203
+      },
+      "imageUrl": "/uploads/contents/banchi-setola.png",
+      "qrCode": "QR-mambo-pascali-bachi-da-setola"
+    },
+    {
+      "type": "Artwork",
+      "universalId": "mambo-pistoletto-venere-stracci",
+      "name": "Venere degli stracci",
+      "author": "Michelangelo Pistoletto",
+      "year": "1967",
+      "coordinates": {
+        "lat": 44.4999137,
+        "lng": 11.3386588
+      },
+      "imageUrl": "/uploads/contents/venere-starcci.jpeg",
+      "qrCode": "QR-mambo-pistoletto-venere-stracci"
+    },
+    {
+      "type": "Artist",
+      "universalId": "mambo-artist-morandi",
+      "name": "Giorgio Morandi",
+      "year": "1890-1964",
+      "coordinates": {
+        "lat": 44.4999,
+        "lng": 11.3389
+      },
+      "imageUrl": "/uploads/artists/morandi.jpeg",
+      "qrCode": "QR-mambo-artist-morandi"
+    },
+    {
+      "type": "Artist",
+      "universalId": "mambo-artist-fontana",
+      "name": "Lucio Fontana",
+      "year": "1899-1968",
+      "coordinates": {
+        "lat": 44.5,
+        "lng": 11.3388
+      },
+      "imageUrl": "/uploads/artists/fontana.jpeg",
+      "qrCode": "QR-mambo-artist-fontana"
+    },
+    {
+      "type": "Movement",
+      "universalId": "mambo-movement-arte-povera",
+      "name": "Arte Povera",
+      "year": "1960-1970",
+      "coordinates": {
+        "lat": 44.5001,
+        "lng": 11.3387
+      },
+      "imageUrl": "/uploads/movements/artePovera-movement.jpg",
+      "qrCode": "QR-mambo-movement-arte-povera"
+    }
+  ]
+}

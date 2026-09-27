@@ -1,5 +1,6 @@
 node_modules/
 package-lock.json
+!/sources/package-lock.json
 .env
 .env.production
 .mongo-creds
@@ -7,4 +8,18 @@ package-lock.json
 CLAUDE.md
 note
 tmp
+sources/uploads/**
+!sources/uploads/**/
+!sources/uploads/**/*.jpg
+!sources/uploads/**/*.jpeg
+!sources/uploads/**/*.png
+!sources/uploads/**/*.webp
+!sources/uploads/**/.gitkeep
+
+frontend-design
+next-prompt.md
+
+sources/frontend-navigator/dist/
 AGENTS.md
+!/sources/AGENTS.md
+TODO

@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="visitEditor.title">ArtAround - Editor visita</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/create_items.css" />
+    <link rel="stylesheet" href="../stylesheets/responsive.css" />
+  </head>
+  <body id="artaround-visit-builder" class="visit-builder-body">
+    <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
+
+    <main class="visit-builder-shell">
+      <section class="visit-builder-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
+        </div>
+
+        <div class="visit-builder-hero-layout">
+          <div class="visit-builder-heading-block">
+            <a href="#" id="back-to-museum-btn" class="header-back-link" data-i18n="visitEditor.back"
+              >Torna alle visite del museo</a
+            >
+            <span class="visit-builder-kicker" data-i18n="visitEditor.kicker">Editor visita</span>
+            <h1 class="visit-builder-title" data-i18n="visitEditor.heading">Costruisci la visita</h1>
+          </div>
+
+          <aside class="visit-builder-meta-panel" aria-label="Contesto del museo" data-i18n-aria-label="visitEditor.contextAria">
+            <strong data-i18n="common.museum">Museo</strong>
+            <p>
+              <span data-i18n="visitEditor.creatingFor">Stai creando una visita per</span>
+              <span id="display-museum-name" class="highlight-museum">...</span>
+            </p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="visit-builder-editor">
+        <div class="visit-editor-wrapper">
+          <div class="visit-editor-toolbar">
+            <h2 class="section-title-new" data-i18n="visitEditor.route">Percorso della visita</h2>
+            <p data-i18n="visitEditor.routeIntro">Ogni capitolo contiene una parte del percorso: i contenuti al suo interno si susseguono nell'ordine in cui compaiono.</p>
+          </div>
+
+          <div class="visit-meta-form">
+            <div class="input-group visit-title-field">
+              <label for="v-title" class="text-label" data-i18n="visitEditor.visitTitle">Titolo visita</label>
+              <input
+                type="text"
+                id="v-title"
+                placeholder="Titolo della visita"
+                data-i18n-placeholder="visitEditor.visitTitlePlaceholder"
+                required
+              />
+            </div>
+            <div class="input-group visit-desc-field">
+              <label for="v-desc" class="text-label" data-i18n="visitEditor.introduction">Introduzione</label>
+              <textarea
+                id="v-desc"
+                rows="2"
+                placeholder="Descrizione o introduzione generale alla visita..."
+                data-i18n-placeholder="visitEditor.introductionPlaceholder"
+              ></textarea>
+            </div>
+
+            <div class="input-group visit-length-field">
+              <label for="v-length" class="text-label" data-i18n="visitEditor.depth">Livello di approfondimento</label>
+              <select id="v-length">
+                <option value="quick" data-i18n="visitEditor.quick">Rapida</option>
+                <option value="normal" selected data-i18n="visitEditor.normal">Normale</option>
+                <option value="deep" data-i18n="visitEditor.deep">Approfondita</option>
+              </select>
+            </div>
+
+            <div class="input-group visit-visibility-field">
+              <span class="text-label" data-i18n="visitEditor.visibility">Visibilità visita</span>
+              <label class="visit-visibility-toggle" for="v-is-public">
+                <input type="checkbox" id="v-is-public" />
+                <span class="visibility-switch" aria-hidden="true"></span>
+                <span class="visibility-copy">
+                  <strong id="visit-visibility-status" data-i18n="common.private">Privata</strong>
+                  <small id="visit-visibility-hint" data-i18n="visitEditor.privateHint"
+                    >Visibile solo dal tuo account</small
+                  >
+                </span>
+              </label>
+            </div>
+
+            <div class="input-group visit-group-field">
+              <span class="text-label" data-i18n="visitEditor.mode">Modalità</span>
+              <label class="visit-group-toggle" for="v-group">
+                <input type="checkbox" id="v-group" />
+                <span class="visibility-switch" aria-hidden="true"></span>
+                <span class="visibility-copy">
+                  <strong id="visit-group-status" data-i18n="visitEditor.standard">Visita standard</strong>
+                  <small id="visit-group-hint" data-i18n="visitEditor.enableGroup">Attiva per consentire una sessione sincronizzata</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="chapter-tabs-row">
+          <div class="chapter-tabs" id="chapter-tabs" role="tablist" aria-label="Capitoli della visita" data-i18n-aria-label="visitEditor.chaptersAria">
+          </div>
+            <button
+              id="add-block-btn"
+              type="button"
+              class="chapter-tab-add"
+              title="Aggiungi capitolo"
+              aria-label="Aggiungi capitolo"
+              data-i18n-title="visitEditor.addChapter"
+              data-i18n-aria-label="visitEditor.addChapter"
+            >+</button>
+          </div>
+
+          <div class="blocks-wrapper" id="blocks-container"></div>
+
+          <div class="action-buttons">
+            <button
+              id="cancel-btn"
+              class="main-btn cancel-visit-btn"
+              type="button"
+            >
+              <span data-i18n="visitEditor.cancelExit">Annulla / esci</span>
+            </button>
+            <button
+              id="save-visit-btn"
+              class="main-btn save-visit-btn"
+              type="button"
+            >
+              <span data-i18n="visitEditor.save">Salva</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="section-type-modal" class="modal-overlay hidden">
+      <div class="modal-content visit-builder-modal section-type-modal" role="dialog" aria-modal="true" aria-labelledby="section-type-modal-title" aria-describedby="section-type-modal-intro" tabindex="-1">
+        <h3 id="section-type-modal-title" class="modal-top-title" data-i18n="visitEditor.chooseChapterType">Scegli il tipo di capitolo</h3>
+        <p id="section-type-modal-intro" class="section-type-intro" data-i18n="visitEditor.chapterTypeIntro">
+          I capitoli di contenuti raccolgono le tappe della visita, nell'ordine in
+          cui le disponi qui sotto. I capitoli domanda vengono mostrati
+          durante le sessioni di gruppo.
+        </p>
+        <div class="section-type-options">
+          <button
+            type="button"
+            class="section-type-option"
+            data-section-type="artwork"
+          >
+            <strong data-i18n="visitEditor.artworkChapter">Capitolo contenuti</strong>
+            <span data-i18n="visitEditor.artworkChapterCopy">Aggiungi e ordina opere, artisti e altri contenuti del museo lungo il percorso.</span>
+          </button>
+          <button
+            type="button"
+            class="section-type-option"
+            data-section-type="questions"
+          >
+            <strong data-i18n="visitEditor.questionChapter">Capitolo domande</strong>
+            <span data-i18n="visitEditor.questionChapterCopy">Aggiungi domande aperte o a risposta multipla.</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          class="main-btn close-modal-btn"
+          id="close-section-type-modal"
+        >
+          <span data-i18n="common.cancel">Annulla</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="select-item-modal" class="modal-overlay hidden">
+      <div
+        class="modal-content visit-builder-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="select-content-modal-title"
+        tabindex="-1"
+      >
+        <h3 id="select-content-modal-title" class="modal-top-title" data-i18n="visitEditor.chooseContent">Scegli un contenuto</h3>
+        <div class="visit-wallet-panel">
+          <p><span data-i18n="visitEditor.currentBalance">Saldo attuale</span> <strong id="visit-wallet-current">0 A&alpha;</strong></p>
+          <p><span data-i18n="visitEditor.newAdditions">Nuove aggiunte</span> <strong id="visit-wallet-pending">0 A&alpha;</strong></p>
+          <p><span data-i18n="visitEditor.estimatedRemaining">Residuo stimato</span> <strong id="visit-wallet-remaining">0 A&alpha;</strong></p>
+        </div>
+        <div id="items-container" class="items-scroll-container" role="region" aria-live="polite" aria-busy="true"></div>
+        <button
+          type="button"
+          class="main-btn close-modal-btn"
+          id="close-item-modal"
+        >
+          <span data-i18n="common.close">Chiudi</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="cancel-confirm-modal" class="modal-overlay hidden">
+      <div class="modal-content visit-builder-modal center-text-modal" role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-modal-title" aria-describedby="cancel-confirm-modal-copy" tabindex="-1">
+        <h2 id="cancel-confirm-modal-title" class="warning-title" data-i18n="visitEditor.warning">Attenzione</h2>
+        <p id="cancel-confirm-modal-copy" class="warning-text" data-i18n="visitEditor.leaveWarning">
+          You are leaving the editor. Unsaved changes will be lost. Do you want
+          to save them before leaving this page?
+        </p>
+        <div class="modal-action-stack">
+          <button
+            id="confirm-save-btn"
+            class="main-btn confirm-save-btn"
+            type="button"
+          >
+            <span data-i18n="visitEditor.saveVisit">Salva visita</span>
+          </button>
+          <button
+            id="confirm-exit-btn"
+            class="main-btn confirm-exit-btn"
+            type="button"
+          >
+            <span data-i18n="visitEditor.leaveWithoutSaving">Esci senza salvare</span>
+          </button>
+          <button
+            id="close-cancel-modal"
+            class="main-btn continue-edit-btn"
+            type="button"
+          >
+            <span data-i18n="visitEditor.keepEditing">Continua a modificare</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/create_visit.js"></script>
+  </body>
+</html>

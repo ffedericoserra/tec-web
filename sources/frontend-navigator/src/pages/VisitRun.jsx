@@ -1,0 +1,1259 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+import { api, getCachedUser } from '../api.js';
+import { isAuthenticated, logout } from '../auth.js';
+import { connectSession } from '../session.js';
+import PageHeader from '../components/PageHeader.jsx';
+import AssociatedContentsModal from '../components/AssociatedContentsModal.jsx';
+import CommandSheet from '../components/CommandSheet.jsx';
+import MuseumMap from '../components/MuseumMap.jsx';
+import ParticipantsPanel from '../components/ParticipantsPanel.jsx';
+import ChatPanel from '../components/ChatPanel.jsx';
+import ActivitiesPanel from '../components/ActivitiesPanel.jsx';
+import QuizScreen from '../components/QuizScreen.jsx';
+import QuestionSectionScreen from '../components/QuestionSectionScreen.jsx';
+import { normalizeLanguage, speechLocaleForLanguage } from '../i18n.js';
+import '../styles/visitRun.css';
+import '../styles/session.css';
+
+const LENGTHS = ['15s', '30s', '60s'];
+
+/* Order matters: it's the order shown in the tone menu, easiest first. Values
+ * match `descriptions[].tone` as written by the marketplace. */
+const TONES = ['easy', 'medium', 'complex'];
+
+const TTS_SUPPORTED =
+  typeof window !== 'undefined' && 'speechSynthesis' in window;
+
+/* Voice/tap commands logged for the guide during a group visit. This must stay
+ * a subset of the activity enum in src/models/Session.js. */
+const LOGGED_COMMANDS = new Set([
+  'more',
+  'shorter',
+  'complex',
+  'simpler',
+  'map',
+  'details',
+]);
+
+/* A horizontal drag shorter than this is a tap or a stray finger, not a swipe. */
+const SWIPE_THRESHOLD = 45;
+/* How far a gesture must travel before we commit to calling it horizontal or
+ * vertical. Below this the direction is still ambiguous. */
+const SWIPE_AXIS_LOCK = 10;
+
+/**
+ * The description for the requested tone, falling back to the item's first tone
+ * when it doesn't carry that one. Every item authored through the marketplace now
+ * has all three, but seeded or older items may not, and silently showing nothing
+ * would be worse than showing the wrong tone.
+ */
+function pickDescription(item, tone) {
+  const list = item?.descriptions;
+  if (!list?.length) return null;
+  return list.find((d) => d.tone === tone) || list[0];
+}
+
+function availableTones(item) {
+  const list = item?.descriptions || [];
+  return TONES.filter((t) => list.some((d) => d.tone === t));
+}
+
+function SpeakerIcon({ active }) {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <polygon
+        points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"
+        fill={active ? 'currentColor' : 'none'}
+      />
+      {active ? (
+        <>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </>
+      ) : (
+        <>
+          <line x1="22" y1="9" x2="16" y2="15" />
+          <line x1="16" y1="9" x2="22" y2="15" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+function PeopleIcon() {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 19c0-3.1 2.7-5 6-5s6 1.9 6 5" />
+      <path d="M16.5 6.6a3.2 3.2 0 0 1 0 6.1" />
+      <path d="M18 14.4c2 .7 3.5 2.2 3.5 4.6" />
+    </svg>
+  );
+}
+
+function findTextEntry(description, lengthIdx, language) {
+  if (!description) return null;
+  const target = LENGTHS[lengthIdx];
+  const candidates = (description.texts || []).filter(
+    (entry) => entry.lengthCategory === target && entry.text
+  );
+  const preferred = normalizeLanguage(language) || 'it';
+  const entryLanguage = (entry) =>
+    String(entry.language || 'it').toLowerCase().split('-')[0];
+  return (
+    candidates.find((entry) => entryLanguage(entry) === preferred) ||
+    candidates.find((entry) => entryLanguage(entry) === 'it') ||
+    candidates[0] ||
+    null
+  );
+}
+
+function lastAvailableLengthIdx(description, language) {
+  if (!description?.texts?.length) return 0;
+  let max = 0;
+  for (let i = 0; i < LENGTHS.length; i++) {
+    if (findTextEntry(description, i, language)) {
+      max = i;
+    }
+  }
+  return max;
+}
+
+function buildSessionSteps(visit) {
+  const sequence = visit?.sequence || [];
+  const blocks = visit?.blocks || [];
+  if (blocks.length === 0) {
+    return sequence.map((_, itemIndex) => ({ type: 'artwork', itemIndex }));
+  }
+
+  const steps = [];
+  let itemIndex = 0;
+  for (const block of blocks) {
+    if (block.type === 'questions' && block.questions?.length) {
+      steps.push({
+        type: 'questions',
+        sectionId: String(block._id),
+        section: block,
+      });
+      continue;
+    }
+    for (let index = 0; index < (block.items || []).length; index += 1) {
+      steps.push({ type: 'artwork', itemIndex });
+      itemIndex += 1;
+    }
+  }
+  while (itemIndex < sequence.length) {
+    steps.push({ type: 'artwork', itemIndex });
+    itemIndex += 1;
+  }
+  return steps;
+}
+
+export default function VisitRun() {
+  const { t, i18n } = useTranslation();
+  const uiLanguage = normalizeLanguage(i18n.resolvedLanguage) || 'it';
+  /* One component, two routes. `/:museumSlug/:visitSlug` is a solo visit;
+   * `/session/:sessionCode` is a group visit (Extension 1). Session mode adds a
+   * toolbar, hands navigation to the guide and can end in a quiz — everything
+   * else (TTS, tone, swipe, map, commands) is identical, which is why this is one
+   * runner rather than two that would drift apart. */
+  const { museumSlug: museumSlugParam, visitSlug, sessionCode } = useParams();
+  const navigate = useNavigate();
+  const inSession = !!sessionCode;
+
+  const [visit, setVisit] = useState(null);
+  const [contents, setContents] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  /* Session state. `session` is the REST payload (owner, code, isOwner); the
+   * live lists below are owned by the socket and start from the catch-up
+   * `session:state` event, so a reload or a late join rebuilds them in full. */
+  const [session, setSession] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [quizStarted, setQuizStarted] = useState(false);
+  const [quizResults, setQuizResults] = useState([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [sectionResponses, setSectionResponses] = useState([]);
+  const [sessionEnded, setSessionEnded] = useState(false);
+  const [notice, setNotice] = useState(null);
+
+  const [panel, setPanel] = useState(null); // 'participants' | 'chat' | 'activities'
+  /* Counts at the moment each panel was last open, so the badge shows what
+   * arrived since rather than a running total. */
+  const [seen, setSeen] = useState({ chat: 0, activities: 0 });
+
+  const me = getCachedUser();
+  const isOwner = !!session?.isOwner;
+
+  const [entryIndex, setEntryIndex] = useState(0);
+  const [mode, setMode] = useState('describe');
+  const [lengthIdx, setLengthIdx] = useState(0);
+
+  /* Tone is a visit-wide preference, not per-stop: a visitor who wants the easy
+   * register wants it for the whole visit. Kept even when a given item can't
+   * honour it, so it re-applies at the next item that can. */
+  const [tone, setTone] = useState('easy');
+  const [toneMenuOpen, setToneMenuOpen] = useState(false);
+
+  const [assocOpen, setAssocOpen] = useState(false);
+  const [assocLoading, setAssocLoading] = useState(false);
+  const [assocError, setAssocError] = useState(null);
+  const [assocCache, setAssocCache] = useState({});
+  const [assocItemId, setAssocItemId] = useState(null);
+
+  const [ttsEnabled, setTtsEnabled] = useState(false);
+
+  /* Content images are resolved server-side from uploads/contents/, so a URL
+   * here normally means the file exists. It can still 404 if the file is deleted
+   * between the load and the visit — fall back to the placeholder rather than
+   * showing a broken image. Keyed by URL so one bad image doesn't affect the
+   * other stops. */
+  const [brokenImages, setBrokenImages] = useState(() => new Set());
+
+  // Answer to a question command ('author' / 'year' / 'exit'). When set it takes
+  // over the description body; any navigation command clears it.
+  const [answer, setAnswer] = useState(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [mapOpen, setMapOpen] = useState(false);
+
+  // Command answers are localized snapshots. Close one if another tab changes
+  // the UI language so stale copy is never left over the translated runner.
+  useEffect(() => {
+    setAnswer(null);
+  }, [uiLanguage]);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate('/', { replace: true });
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    /* Session mode needs one extra hop: the code resolves to a session, which
+     * names the visit and its museum. Everything after that is the same pair of
+     * fetches the solo runner does, so the two modes share one render path. */
+    async function load() {
+      let sess = null;
+      let visitRef = visitSlug;
+      let museum = museumSlugParam;
+
+      if (inSession) {
+        const res = await api(`/sessions/${encodeURIComponent(sessionCode)}`);
+        sess = res.session;
+        visitRef = sess.visitId?._id;
+        museum = sess.visitId?.museumId?.slug;
+        if (!visitRef || !museum) {
+          throw new Error(t('visitRun.invalidSession'));
+        }
+      }
+
+      const [visRes, contentsRes] = await Promise.all([
+        api(`/visits/${visitRef}`),
+        api(`/museums/${museum}/contents`),
+      ]);
+      return { sess, visit: visRes.visit, contents: contentsRes.contents || [] };
+    }
+
+    load()
+      .then(({ sess, visit: loaded, contents: list }) => {
+        if (cancelled) return;
+        const map = {};
+        for (const c of list) {
+          if (c.universalId) map[c.universalId] = c;
+        }
+        setContents(map);
+        setVisit(loaded);
+        if (sess) {
+          setSession(sess);
+          setParticipants(sess.participants || []);
+          setMessages(sess.messages || []);
+          setQuizStarted(!!sess.quizStarted);
+          setCurrentStepIndex(sess.currentStepIndex || 0);
+          setSectionResponses(sess.sectionResponses || []);
+          /* Start where the group already is, not at stop 1 — a student joining
+           * halfway through should land on the artwork everyone is standing at.
+           * The socket's session:state will confirm this a moment later. */
+          setEntryIndex(sess.currentItemIndex || 0);
+        } else {
+          setEntryIndex(0);
+          setCurrentStepIndex(0);
+        }
+        setMode('describe');
+        setLengthIdx(0);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err.status === 401) {
+          logout();
+          return;
+        }
+        if (err.status === 404) {
+          // A dead session code is a dead end; send the user somewhere useful.
+          navigate(inSession ? '/museums' : `/${museumSlugParam}`, {
+            replace: true,
+          });
+          return;
+        }
+        setError('visitRun.loadError');
+        setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [museumSlugParam, visitSlug, sessionCode, inSession, navigate]);
+
+  /* Real-time half of a group visit. Deliberately keyed on `sessionCode` alone:
+   * anything else in the dep array would tear down and rebuild the connection on
+   * every state change, so the handlers below all use functional updates rather
+   * than closing over current state. */
+  useEffect(() => {
+    if (!inSession) return;
+    return connectSession(sessionCode, {
+      'session:state': (s) => {
+        setParticipants(s.participants || []);
+        setMessages(s.messages || []);
+        setActivities(s.activities || []);
+        setQuizStarted(!!s.quizStarted);
+        setEntryIndex(s.currentItemIndex || 0);
+        setCurrentStepIndex(s.currentStepIndex || 0);
+        setSectionResponses(s.sectionResponses || []);
+      },
+      'session:participants': (s) => setParticipants(s.participants || []),
+      'session:item-changed': ({ currentItemIndex }) => {
+        setAnswer(null);
+        setLengthIdx(0);
+        /* Directions first when the group moves forward, the artwork itself when
+         * it goes back — the same rule the solo runner uses for Next/Previous,
+         * for the same reason: forward means everyone has to walk somewhere. */
+        setEntryIndex((prev) => {
+          setMode(currentItemIndex > prev ? 'logistic' : 'describe');
+          return currentItemIndex;
+        });
+      },
+      'session:step-changed': ({ currentStepIndex: nextStep }) => {
+        setCurrentStepIndex(nextStep || 0);
+        setAnswer(null);
+        setLengthIdx(0);
+      },
+      'session:section-response': (response) =>
+        setSectionResponses((list) => [
+          ...list.filter(
+            (entry) =>
+              !(
+                entry.sectionId === response.sectionId &&
+                entry.questionId === response.questionId &&
+                String(entry.userId) === String(response.userId)
+              )
+          ),
+          response,
+        ]),
+      'session:chat': (msg) => setMessages((list) => [...list, msg]),
+      'session:activity': (act) => setActivities((list) => [...list, act]),
+      'session:quiz-started': () => setQuizStarted(true),
+      'session:quiz-submitted': (result) =>
+        setQuizResults((list) => [
+          ...list.filter((r) => r.userId !== result.userId),
+          result,
+        ]),
+      'session:ended': () => setSessionEnded(true),
+    });
+  }, [inSession, sessionCode]);
+
+  /* Keep the open panel marked as read as things arrive, rather than only
+   * stamping it on open. Without this the badge counts messages you are looking
+   * at — including your own, which lands back through the socket like anyone
+   * else's and would otherwise leave a permanent "1" after you send. */
+  useEffect(() => {
+    if (panel === 'chat') setSeen((s) => ({ ...s, chat: messages.length }));
+  }, [panel, messages.length]);
+
+  useEffect(() => {
+    if (panel === 'activities')
+      setSeen((s) => ({ ...s, activities: activities.length }));
+  }, [panel, activities.length]);
+
+  const sequence = visit?.sequence || [];
+  // `GET /visits/:id` deliberately strips answer keys for a non-author. During
+  // a session the host instead uses the role-aware session payload, which may
+  // include the correct options while keeping them hidden from participants.
+  const sessionVisit = inSession && session?.visitId ? session.visitId : visit;
+  const sessionSteps = useMemo(
+    () => buildSessionSteps(sessionVisit),
+    [sessionVisit]
+  );
+  const activeSessionStep = inSession
+    ? sessionSteps[currentStepIndex] || null
+    : null;
+  const activeQuestionSection =
+    activeSessionStep?.type === 'questions' ? activeSessionStep.section : null;
+  const museumSlug = visit?.museumId?.slug || museumSlugParam;
+  const entry = sequence[entryIndex] || null;
+  const item = entry?.itemId || null;
+  const content = item?.contentId ? contents[item.contentId] : null;
+  const description = pickDescription(item, tone);
+  const maxLen = lastAvailableLengthIdx(description, uiLanguage);
+  const itemTones = availableTones(item);
+  /* What the user is actually hearing, which is the preference only when this
+   * item carries it. The pill shows this rather than the preference so it never
+   * claims a tone the text isn't in. */
+  const effectiveTone = description?.tone || tone;
+
+  /* One entry per sequence position for the map. Coordinates (and floor) live
+   * on the Content, not the Item, so they're resolved through the same contents
+   * map the image and the details modal use. Entries keep their index even when
+   * they have no coordinates — the map lists those separately rather than
+   * renumbering. `floor` defaults to 0 so museums without floor data (the
+   * common case today) still resolve to a single, unfiltered floor. */
+  const mapStops = useMemo(
+    () =>
+      sequence.map((seqEntry, i) => {
+        const seqItem = seqEntry?.itemId;
+        const seqContent = seqItem?.contentId ? contents[seqItem.contentId] : null;
+        return {
+          index: i,
+          name:
+            seqContent?.name ||
+            seqItem?.contentId ||
+            t('visitRun.stopFallback', { count: i + 1 }),
+          lat: seqContent?.coordinates?.lat,
+          lng: seqContent?.coordinates?.lng,
+          floor: seqContent?.floor ?? 0,
+        };
+      }),
+    [sequence, contents, t]
+  );
+
+  const isFirst = inSession ? currentStepIndex === 0 : entryIndex === 0;
+  const isLast = inSession
+    ? currentStepIndex >= sessionSteps.length - 1
+    : entryIndex >= sequence.length - 1;
+  const atMaxLength = mode === 'describe' && lengthIdx >= maxLen;
+
+  const quiz = sessionVisit?.quiz || [];
+  const quizActive = inSession && quizStarted && quiz.length > 0;
+
+  let bodyText = '';
+  let bodyTextLanguage = uiLanguage;
+  if (!visit || activeQuestionSection || sequence.length === 0 || quizActive) {
+    /* Empty during the quiz too, which is what stops TTS from reading the last
+     * artwork's description over the questions — the speech effect keys on
+     * bodyText and cancels when it's empty. */
+    bodyText = '';
+  } else if (answer) {
+    // Wins over the description. Because the TTS effect below keys on bodyText,
+    // answers get spoken automatically with no extra speech code.
+    bodyText = answer.text;
+    bodyTextLanguage = answer.language;
+  } else if (mode === 'logistic') {
+    const prevEntry = sequence[entryIndex - 1];
+    const authoredDirections =
+      prevEntry?.nextDirections?.trim() || entry?.prevDirections?.trim();
+    if (authoredDirections) {
+      bodyText = authoredDirections;
+      // Directions have no language metadata in the Visit schema. Existing
+      // and seeded directions are Italian, so that is the honest fallback.
+      bodyTextLanguage = 'it';
+    } else {
+      bodyText = t('visitRun.nextDirectionsFallback');
+    }
+  } else if (description) {
+    const textEntry = findTextEntry(description, lengthIdx, uiLanguage);
+    if (textEntry) {
+      bodyText = textEntry.text;
+      bodyTextLanguage = String(textEntry.language || 'it').toLowerCase().split('-')[0];
+    } else {
+      bodyText = t('visitRun.descriptionLengthUnavailable');
+    }
+  } else {
+    bodyText = t('visitRun.descriptionUnavailable');
+  }
+
+  useEffect(() => {
+    if (!TTS_SUPPORTED) return;
+    if (!ttsEnabled || !bodyText) {
+      window.speechSynthesis.cancel();
+      return;
+    }
+    const utter = new SpeechSynthesisUtterance(bodyText);
+    utter.lang = speechLocaleForLanguage(bodyTextLanguage);
+    utter.rate = 1;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+    return () => window.speechSynthesis.cancel();
+  }, [ttsEnabled, bodyText, bodyTextLanguage]);
+
+  /* Same dismissal contract as ProfileMenu: outside-mousedown or Escape. */
+  useEffect(() => {
+    if (!toneMenuOpen) return;
+    function onDown(e) {
+      if (!e.target.closest('.visit-tone')) setToneMenuOpen(false);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setToneMenuOpen(false);
+    }
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [toneMenuOpen]);
+
+  /* In a group visit the guide doesn't move their own view — they ask the server
+   * to move the group, and everyone including the guide follows the resulting
+   * `session:item-changed`. One broadcast drives every screen, so the group can't
+   * end up split across two artworks. Students never reach these (their buttons
+   * are hidden and the matching commands are disabled). */
+  function goNext() {
+    if (isLast) return;
+    if (inSession) {
+      if (isOwner) sessionAction('advance');
+      return;
+    }
+    setAnswer(null);
+    setEntryIndex((i) => i + 1);
+    setMode('logistic');
+    setLengthIdx(0);
+  }
+
+  function goPrevious() {
+    if (isFirst) return;
+    if (inSession) {
+      if (isOwner) sessionAction('previous');
+      return;
+    }
+    setAnswer(null);
+    setEntryIndex((i) => i - 1);
+    setMode('describe');
+    setLengthIdx(0);
+  }
+
+  async function sessionAction(path, body) {
+    try {
+      await api(`/sessions/${encodeURIComponent(sessionCode)}/${path}`, {
+        method: 'POST',
+        ...(body ? { body } : {}),
+      });
+    } catch (err) {
+      if (err.status === 401) {
+        logout();
+        return;
+      }
+      /* Non-fatal: the visit keeps working, the group just didn't move. Shown
+       * as a dismissible line rather than through setError, which would swap
+       * the whole runner for an error screen over one failed button press. */
+      setNotice('visitRun.actionError');
+    }
+  }
+
+  function handleDescribe() {
+    setAnswer(null);
+    if (mode === 'logistic') {
+      setMode('describe');
+      setLengthIdx(0);
+    } else if (lengthIdx < maxLen) {
+      setLengthIdx((i) => i + 1);
+    }
+  }
+
+  // Length and tone are deliberately independent axes. Shortening selects a
+  // briefer text without changing its easy/medium/complex register.
+  function handleShorter() {
+    setAnswer(null);
+    if (mode !== 'describe') return;
+    if (lengthIdx > 0) setLengthIdx((i) => i - 1);
+  }
+
+  function adjacentTone(delta) {
+    const currentIndex = TONES.indexOf(effectiveTone);
+    for (
+      let index = currentIndex + delta;
+      index >= 0 && index < TONES.length;
+      index += delta
+    ) {
+      if (itemTones.includes(TONES[index])) return TONES[index];
+    }
+    return null;
+  }
+
+  function handleToneStep(delta) {
+    setAnswer(null);
+    if (mode !== 'describe') return;
+    const nextTone = adjacentTone(delta);
+    if (nextTone) selectTone(nextTone);
+  }
+
+  function selectTone(next) {
+    setToneMenuOpen(false);
+    setTone(next);
+    // Keep the reading depth across the switch — you change tone to re-hear the
+    // same amount of detail differently — but don't land past the end if the new
+    // tone happens to carry fewer lengths.
+    const nextMax = lastAvailableLengthIdx(
+      pickDescription(item, next),
+      uiLanguage
+    );
+    setLengthIdx((i) => Math.min(i, nextMax));
+  }
+
+  /* Swipe across the description to change length: left for longer, right for
+   * shorter. The same ladder Describe! and the voice commands walk, so all three
+   * stay in sync through `lengthIdx`. */
+  function stepLength(delta) {
+    if (mode !== 'describe' || answer) return;
+    setLengthIdx((i) => Math.min(Math.max(i + delta, 0), maxLen));
+  }
+
+  const swipe = useRef(null);
+
+  function onDescPointerDown(e) {
+    if (mode !== 'describe' || answer) return;
+    swipe.current = { x: e.clientX, y: e.clientY, axis: null };
+  }
+
+  function onDescPointerMove(e) {
+    const s = swipe.current;
+    if (!s || s.axis) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (Math.hypot(dx, dy) < SWIPE_AXIS_LOCK) return;
+    /* Lock the axis once the gesture is unambiguous. A vertical gesture is
+     * abandoned outright so it scrolls the description normally — this block is
+     * the only scrollable region on the page. */
+    s.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+  }
+
+  function onDescPointerUp(e) {
+    const s = swipe.current;
+    swipe.current = null;
+    if (!s || s.axis !== 'x') return;
+    const dx = e.clientX - s.x;
+    if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+    stepLength(dx < 0 ? 1 : -1);
+  }
+
+  function onDescPointerCancel() {
+    // Fired when the browser takes the gesture over for vertical scrolling.
+    swipe.current = null;
+  }
+
+  function answerAuthor() {
+    setAnswer({
+      text: content?.author
+        ? t('visitRun.authorAnswer', { author: content.author })
+        : t('visitRun.authorUnavailable'),
+      language: uiLanguage,
+    });
+  }
+
+  function answerYear() {
+    setAnswer({
+      text: content?.year
+        ? t('visitRun.yearAnswer', { year: content.year })
+        : t('visitRun.yearUnavailable'),
+      language: uiLanguage,
+    });
+  }
+
+  function answerExit() {
+    // POIs ride along on the visit fetch — getVisit populates museumId unselected.
+    const pois = visit?.museumId?.pointsOfInterest || [];
+    const exits = pois.filter((p) => p.type === 'exit' && p.label);
+    if (exits.length === 0) {
+      setAnswer({ text: t('visitRun.noExit'), language: uiLanguage });
+      return;
+    }
+    // No "nearest" claim — the Base tier is explicitly map without positioning.
+    setAnswer({
+      text: exits.length === 1
+        ? t('visitRun.oneExit', { exit: exits[0].label })
+        : t('visitRun.manyExits', {
+            exits: exits.map((exit) => exit.label).join(', '),
+          }),
+      language: uiLanguage,
+    });
+  }
+
+  /* The one place the mic and the tap list converge. */
+  function runCommand(id) {
+    /* In a group visit, what a student asks for feeds the guide's Activities
+     * panel. Logged here rather than in each handler so the mic and the tap list
+     * are covered by one call, and only for students — the guide watching their
+     * own taps scroll past would be noise. */
+    if (inSession && !isOwner && LOGGED_COMMANDS.has(id)) {
+      sessionAction('activity', { action: id });
+    }
+    switch (id) {
+      case 'more':
+        handleDescribe();
+        break;
+      case 'shorter':
+        handleShorter();
+        break;
+      case 'complex':
+        handleToneStep(1);
+        break;
+      case 'simpler':
+        handleToneStep(-1);
+        break;
+      case 'next':
+        goNext();
+        break;
+      case 'previous':
+        goPrevious();
+        break;
+      case 'map':
+        setMapOpen(true);
+        break;
+      case 'details':
+        openAssociated();
+        break;
+      default:
+        break;
+    }
+  }
+
+  // Which commands can't do anything right now — greys out the sheet's rows.
+  // In a group visit the guide owns the group's position, so students get the
+  // navigation rows greyed out rather than hidden: seeing that Next exists but
+  // isn't theirs explains the runner better than a shorter list would.
+  const studentInSession = inSession && !isOwner;
+  const activeParticipants = participants.filter((p) => p.isActive).length;
+  const unreadChat = Math.max(0, messages.length - seen.chat);
+  const unreadActivities = Math.max(0, activities.length - seen.activities);
+  const commandsDisabled = {
+    more: atMaxLength,
+    shorter: mode !== 'describe' || lengthIdx === 0,
+    complex: mode !== 'describe' || !adjacentTone(1),
+    simpler: mode !== 'describe' || !adjacentTone(-1),
+    next: isLast || studentInSession,
+    previous: isFirst || studentInSession,
+    details: !item,
+  };
+
+  async function handleEndVisit() {
+    if (!inSession) {
+      navigate(`/${museumSlug}`);
+      return;
+    }
+    /* Role-dependent, matching the server's authorization: the guide ends the
+     * visit for everyone, a student only removes themselves and leaves the group
+     * running. Ending is destructive for other people, so it's confirmed. */
+    if (isOwner) {
+      const ok = window.confirm(
+        t('visitRun.endGroupConfirm')
+      );
+      if (!ok) return;
+      await sessionAction('end');
+    } else {
+      await sessionAction('leave');
+    }
+    navigate(museumSlug ? `/${museumSlug}` : '/museums');
+  }
+
+  async function openAssociated() {
+    if (!item) return;
+    setAssocItemId(item._id);
+    setAssocOpen(true);
+    setAssocError(null);
+    if (assocCache[item._id]) return;
+    setAssocLoading(true);
+    try {
+      const res = await api(`/items/${item._id}`);
+      setAssocCache((c) => ({ ...c, [item._id]: res.item }));
+    } catch (err) {
+      if (err.status === 401) {
+        logout();
+        return;
+      }
+      setAssocError('visitRun.loadAssociatedError');
+    } finally {
+      setAssocLoading(false);
+    }
+  }
+
+  function closeAssociated() {
+    setAssocOpen(false);
+    setAssocItemId(null);
+  }
+
+  /* Opening a panel marks its contents read. The badge therefore counts what has
+   * arrived since the last look, not since the visit began — during a long group
+   * visit the running total would be meaningless. */
+  function openPanel(which) {
+    setPanel(which);
+  }
+
+  function closePanel() {
+    setPanel(null);
+  }
+
+  if (loading) {
+    return (
+      <div className="page-visit-run">
+        <PageHeader />
+        <p className="visit-status" role="status">{t('common.loading')}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-visit-run">
+        <PageHeader
+          right={
+            <button
+              type="button"
+              className="end-visit-btn"
+              onClick={handleEndVisit}
+            >
+              {t('visitRun.endVisit')}
+            </button>
+          }
+        />
+        <p className="visit-status error" role="alert">{t(error)}</p>
+      </div>
+    );
+  }
+
+  /* The guide ended the group visit. Shown rather than redirected silently,
+   * which from a student's side would be indistinguishable from a crash. */
+  if (sessionEnded) {
+    return (
+      <div className="page-visit-run">
+        <PageHeader subtitle={visit?.museumId?.name} />
+        <div className="quiz-waiting">
+          <p>{t('visitRun.endedByGuide')}</p>
+          <button
+            type="button"
+            className="quiz-submit"
+            onClick={() => navigate(museumSlug ? `/${museumSlug}` : '/museums')}
+          >
+            {t('visitRun.backToVisits')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    !visit ||
+    (sequence.length === 0 && (!inSession || sessionSteps.length === 0))
+  ) {
+    return (
+      <div className="page-visit-run">
+        <PageHeader
+          subtitle={visit?.museumId?.name}
+          right={
+            <button
+              type="button"
+              className="end-visit-btn"
+              onClick={handleEndVisit}
+            >
+              {t('visitRun.endVisit')}
+            </button>
+          }
+        />
+        <p className="visit-status" role="status">{t('visitRun.empty')}</p>
+      </div>
+    );
+  }
+
+  const museumName = visit.museumId?.name || '';
+  const contentName = content?.name || (item?.contentId || '—');
+  const imageUrl = content?.imageUrl;
+  const showImage = imageUrl && !brokenImages.has(imageUrl);
+
+  return (
+    <div className="page-visit-run">
+      <PageHeader
+        subtitle={museumName}
+        right={
+          <button
+            type="button"
+            className="end-visit-btn"
+            onClick={handleEndVisit}
+          >
+            {t('visitRun.endVisit')}
+          </button>
+        }
+      />
+
+      {inSession && (
+        <div className="session-bar">
+          <button
+            type="button"
+            className="session-bar-btn is-icon"
+            onClick={() => openPanel('participants')}
+            aria-label={t('visitRun.participantsAria', {
+              count: activeParticipants,
+            })}
+            title={t('visitRun.participants')}
+          >
+            <PeopleIcon />
+          </button>
+          <button
+            type="button"
+            className="session-bar-btn"
+            onClick={() => openPanel('chat')}
+          >
+            {t('chat.title')}
+            {unreadChat > 0 && (
+              <span className="session-badge">{unreadChat}</span>
+            )}
+          </button>
+          {/* Activities is the guide's window onto what the group is asking for,
+              so it isn't shown to students — it's their own actions in it. */}
+          {isOwner && (
+            <button
+              type="button"
+              className="session-bar-btn"
+              onClick={() => openPanel('activities')}
+            >
+              {t('visitRun.activities')}
+              {unreadActivities > 0 && (
+                <span className="session-badge">{unreadActivities}</span>
+              )}
+            </button>
+          )}
+          <span className="session-code">{t('visitRun.groupCode', { code: sessionCode })}</span>
+        </div>
+      )}
+
+      {notice && (
+        <p className="visit-status error" onClick={() => setNotice(null)}>
+          {t(notice)}
+        </p>
+      )}
+
+      {quizActive ? (
+        <QuizScreen
+          quiz={quiz}
+          code={sessionCode}
+          isOwner={isOwner}
+          results={quizResults}
+        />
+      ) : activeQuestionSection ? (
+        <QuestionSectionScreen
+          section={activeQuestionSection}
+          code={sessionCode}
+          isOwner={isOwner}
+          responses={sectionResponses}
+          isFirst={isFirst}
+          isLast={isLast && quiz.length === 0}
+          onPrevious={goPrevious}
+          onNext={
+            isLast && quiz.length > 0
+              ? () => sessionAction('quiz/start')
+              : goNext
+          }
+          nextLabel={
+            isLast && quiz.length > 0
+              ? t('visitRun.startQuiz')
+              : t('visitRun.next')
+          }
+        />
+      ) : (
+        <div className="visit-run-content">
+          <div className="visit-image-wrap">
+        {showImage ? (
+          <img
+            key={imageUrl}
+            src={imageUrl}
+            alt={contentName}
+            className="visit-image"
+            onError={() =>
+              setBrokenImages((prev) => new Set(prev).add(imageUrl))
+            }
+          />
+        ) : (
+          <div className="visit-image-placeholder">{contentName}</div>
+        )}
+        <button
+          type="button"
+          className="visit-image-plus"
+          onClick={openAssociated}
+          aria-label={t('visitRun.showAssociated')}
+          disabled={!item}
+        >
+          ?
+        </button>
+          </div>
+
+          <div className="visit-reading-panel">
+      <h1 id="visit-current-content-title" className="sr-only">{contentName}</h1>
+      <div className="visit-actions-row">
+        <button
+          type="button"
+          className={`visit-describe-btn${
+            mode === 'logistic' ? ' is-prompt' : ''
+          }`}
+          onClick={handleDescribe}
+          disabled={atMaxLength}
+        >
+          {t('visitRun.describe')}
+        </button>
+        <button
+          type="button"
+          className="visit-ask-btn"
+          onClick={() => setSheetOpen(true)}
+        >
+          {t('visitRun.askAnything')}
+        </button>
+      </div>
+
+      <div
+        className={`visit-description${
+          mode === 'logistic' && !answer ? ' is-logistic' : ''
+        }${answer ? ' is-answer' : ''}`}
+        role="region"
+        aria-labelledby="visit-current-content-title"
+        aria-live="polite"
+        onPointerDown={onDescPointerDown}
+        onPointerMove={onDescPointerMove}
+        onPointerUp={onDescPointerUp}
+        onPointerCancel={onDescPointerCancel}
+      >
+        <div className="visit-desc-head">
+          {answer ? (
+            <span className="visit-answer-pill">{t('visitRun.answer')}</span>
+          ) : mode === 'describe' && description ? (
+            <div className="visit-tone">
+              <button
+                type="button"
+                className="visit-tone-pill"
+                onClick={() => setToneMenuOpen((v) => !v)}
+                aria-expanded={toneMenuOpen}
+                aria-haspopup="menu"
+                aria-label={t('visitRun.toneAria', {
+                  tone: t(`visitRun.tones.${effectiveTone}`, {
+                    defaultValue: effectiveTone,
+                  }),
+                })}
+              >
+                {t(`visitRun.tones.${effectiveTone}`, {
+                  defaultValue: effectiveTone,
+                })}
+                <span className="visit-tone-caret" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
+              {toneMenuOpen && (
+                <div className="visit-tone-menu" role="menu">
+                  {TONES.map((toneOption) => {
+                    const has = itemTones.includes(toneOption);
+                    return (
+                      <button
+                        key={toneOption}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={toneOption === effectiveTone}
+                        className={`visit-tone-option${
+                          toneOption === effectiveTone ? ' is-active' : ''
+                        }`}
+                        onClick={() => selectTone(toneOption)}
+                        disabled={!has}
+                        title={has ? undefined : t('visitRun.toneUnavailable')}
+                      >
+                        {t(`visitRun.tones.${toneOption}`)}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <span />
+          )}
+
+          {mode === 'describe' && description && !answer && (
+            <div
+              className="visit-length-dots"
+              aria-label={t('visitRun.lengthAria', {
+                current: lengthIdx + 1,
+                total: maxLen + 1,
+              })}
+            >
+              {Array.from({ length: maxLen + 1 }, (_, i) => (
+                <span
+                  key={i}
+                  className={`visit-length-dot${
+                    i === lengthIdx ? ' is-active' : ''
+                  }`}
+                  aria-hidden="true"
+                />
+              ))}
+            </div>
+          )}
+          {answer && (
+            <button
+              type="button"
+              className="visit-answer-close"
+              onClick={() => setAnswer(null)}
+              aria-label={t('visitRun.closeAnswer')}
+            >
+              ×
+            </button>
+          )}
+          {TTS_SUPPORTED && !answer && (
+            <button
+              type="button"
+              className={`visit-tts-btn${ttsEnabled ? ' is-on' : ''}`}
+              onClick={() => setTtsEnabled((v) => !v)}
+              aria-pressed={ttsEnabled}
+              aria-label={
+                ttsEnabled
+                  ? t('visitRun.disableVoice')
+                  : t('visitRun.enableVoice')
+              }
+              title={
+                ttsEnabled
+                  ? t('visitRun.disableVoice')
+                  : t('visitRun.enableVoice')
+              }
+            >
+              <SpeakerIcon active={ttsEnabled} />
+            </button>
+          )}
+        </div>
+        <p>{bodyText}</p>
+      </div>
+
+      {/* Students don't navigate — the guide moves the whole group — so their
+          bar carries Map alone rather than two permanently-dead buttons. */}
+      <div
+        className={`visit-bottom-bar${studentInSession ? ' is-student' : ''}`}
+      >
+        {!studentInSession && (
+          <>
+            <button
+              type="button"
+              className="visit-nav-btn"
+              onClick={goPrevious}
+              disabled={isFirst}
+            >
+              {t('visitRun.previous')}
+            </button>
+            {/* On the last stop the guide's Next becomes Start Quiz, but only
+                when the visit actually carries one — otherwise Next just ends
+                disabled as it does in a solo visit. */}
+            {inSession && isOwner && isLast && quiz.length > 0 ? (
+              <button
+                type="button"
+                className="visit-nav-btn"
+                onClick={() => sessionAction('quiz/start')}
+              >
+                {t('visitRun.startQuiz')}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="visit-nav-btn"
+                onClick={goNext}
+                disabled={isLast}
+              >
+                {t('visitRun.next')}
+              </button>
+            )}
+          </>
+        )}
+        <button
+          type="button"
+          className="visit-nav-btn"
+          onClick={() => setMapOpen(true)}
+        >
+          {t('visitRun.map')}
+        </button>
+      </div>
+          </div>
+        </div>
+      )}
+
+      {sheetOpen && (
+        <CommandSheet
+          disabled={commandsDisabled}
+          onCommand={runCommand}
+          onClose={() => setSheetOpen(false)}
+        />
+      )}
+
+      {mapOpen && (
+        <MuseumMap
+          museum={visit.museumId}
+          stops={mapStops}
+          currentIndex={entryIndex}
+          onClose={() => setMapOpen(false)}
+        />
+      )}
+
+      {assocOpen && (
+        <AssociatedContentsModal
+          content={content}
+          item={assocItemId ? assocCache[assocItemId] : null}
+          loading={assocLoading}
+          error={assocError ? t(assocError) : null}
+          onClose={closeAssociated}
+        />
+      )}
+
+      {panel === 'participants' && (
+        <ParticipantsPanel
+          code={sessionCode}
+          isOwner={isOwner}
+          ownerName={session?.owner?.username}
+          participants={participants}
+          meId={me?._id}
+          onClose={closePanel}
+        />
+      )}
+
+      {panel === 'chat' && (
+        <ChatPanel
+          code={sessionCode}
+          messages={messages}
+          meId={me?._id}
+          onClose={closePanel}
+        />
+      )}
+
+      {panel === 'activities' && (
+        <ActivitiesPanel
+          activities={activities}
+          visit={session?.visitId?.blocks ? session.visitId : visit}
+          responses={sectionResponses}
+          participants={participants}
+          sessionCode={sessionCode}
+          onClose={closePanel}
+        />
+      )}
+    </div>
+  );
+}

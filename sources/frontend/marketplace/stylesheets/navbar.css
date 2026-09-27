@@ -1,0 +1,241 @@
+/* ==========================================================================
+   ARTAROUND - NAVBAR.CSS (Stile antiproiettile globale)
+   ========================================================================== */
+
+/* Forza la sovrascrittura del bianco di styles.css */
+header.top-nav.editorial-nav {
+    background-color: #F2F1ED !important; 
+    border-bottom: 1px solid #161616 !important; 
+    position: fixed !important; 
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; 
+    height: 80px !important;
+    display: flex;
+    align-items: center;
+    padding: 0 !important;
+    box-shadow: none !important; /* Rimuove ombre globali */
+}
+
+header.editorial-nav .nav-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    padding: 0 10vw;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+/* Logo Aα allineato alla colonna di sinistra */
+header.editorial-nav .brand { 
+    flex: 0 0 auto;
+    text-decoration: none;
+}
+
+header.editorial-nav .logo-text {
+    font-size: 2.4rem !important;
+    font-weight: 700 !important;
+    color: #161616 !important;
+    font-family: 'Helvetica', Arial, sans-serif !important;
+    letter-spacing: -1px !important;
+    text-transform: none !important;
+}
+
+/* Link principali */
+header.editorial-nav .nav-links { 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    gap: clamp(18px, 3vw, 48px);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+header.editorial-nav .nav-main {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+header.editorial-nav .nav-links li {
+    flex: 0 1 auto;
+}
+
+/* Stile dei link (forziamo l'Helvetica per sovrascrivere stili globali) */
+header.editorial-nav a,
+header.editorial-nav .nav-auth a { 
+    color: #161616 !important; 
+    font-size: 0.75rem !important; 
+    text-transform: uppercase !important; 
+    font-weight: bold !important; 
+    text-decoration: none !important; 
+    transition: color 0.3s !important;
+    white-space: nowrap;
+    font-family: 'Helvetica', Arial, sans-serif !important;
+}
+
+/* Il link attivo con la riga bordeaux (sovrascrive l'oro di styles.css) */
+header.editorial-nav .nav-links a.active,
+header.editorial-nav .nav-auth a.active {
+    color: #710014 !important;
+    border-bottom: 2px solid #710014 !important;
+    padding-bottom: 5px !important;
+}
+
+header.editorial-nav a:hover,
+header.editorial-nav .nav-auth a:hover { 
+    color: #710014 !important; 
+}
+
+/* Auth Links (Account, Logout) nella colonna di destra */
+header.editorial-nav .nav-auth-wrapper { 
+    flex: 0 0 auto;
+}
+
+header.editorial-nav .nav-auth { 
+    display: flex; 
+    align-items: center;
+    gap: clamp(14px, 2vw, 30px); 
+    list-style: none; 
+    margin: 0;
+    padding: 0;
+}
+
+/* The avatar menu is rendered for authenticated users, but it only replaces
+   the Account/Logout links in the compact mobile header. */
+header.editorial-nav .nav-profile {
+    display: none;
+    position: relative;
+}
+
+header.editorial-nav .nav-profile-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #161616;
+    border-radius: 50%;
+    background: #F2F1ED;
+    overflow: hidden;
+}
+
+header.editorial-nav .nav-profile-toggle:focus-visible {
+    outline: 2px solid #710014;
+    outline-offset: 3px;
+}
+
+header.editorial-nav .nav-profile-avatar {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+header.editorial-nav .nav-profile-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 164px;
+    padding: 6px;
+    border: 1px solid #161616;
+    background: #F2F1ED;
+    box-shadow: 0 8px 20px rgba(22, 22, 22, 0.16);
+}
+
+header.editorial-nav .nav-profile-menu[hidden] {
+    display: none;
+}
+
+header.editorial-nav .nav-profile-menu a,
+header.editorial-nav .nav-profile-menu button {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 0;
+    background: transparent;
+    color: #161616;
+    font-family: 'Helvetica', Arial, sans-serif;
+    font-size: 0.75rem;
+    font-weight: bold;
+    line-height: 44px;
+    text-align: left;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+header.editorial-nav .nav-profile-menu a:hover,
+header.editorial-nav .nav-profile-menu a:focus-visible,
+header.editorial-nav .nav-profile-menu button:hover,
+header.editorial-nav .nav-profile-menu button:focus-visible {
+    color: #710014;
+    background: rgba(113, 0, 20, 0.08);
+    outline: none;
+}
+
+header.editorial-nav .nav-profile-menu a.active {
+    color: #710014;
+    border-left: 2px solid #710014;
+}
+
+@media (max-width: 900px) {
+    header.editorial-nav .nav-wrapper {
+        gap: 16px;
+        padding: 0 24px;
+    }
+
+    header.editorial-nav .nav-links {
+        justify-content: flex-start;
+        gap: 16px;
+        overflow-x: auto;
+    }
+
+    header.editorial-nav .nav-main {
+        min-width: 0;
+    }
+
+    header.editorial-nav .nav-auth {
+        gap: 14px;
+    }
+}
+
+@media (max-width: 720px) {
+    header.top-nav.editorial-nav {
+        height: auto !important;
+        min-height: 80px;
+    }
+
+    header.editorial-nav .nav-wrapper {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+    }
+
+    header.editorial-nav .nav-main {
+        order: 3;
+        flex-basis: 100%;
+        min-width: 0;
+    }
+
+    header.editorial-nav .nav-links {
+        padding-bottom: 4px;
+    }
+
+    header.editorial-nav .nav-auth-desktop {
+        display: none;
+    }
+
+    header.editorial-nav .nav-profile {
+        display: flex;
+    }
+}

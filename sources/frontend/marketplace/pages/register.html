@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="../assets/artaround/logo.png" />
+    <title data-i18n="register.title">ArtAround - Registrazione</title>
+    <link rel="stylesheet" href="../stylesheets/navbar.css" />
+    <link rel="stylesheet" href="../stylesheets/register.css" />
+    <link rel="stylesheet" href="../stylesheets/responsive.css" />
+  </head>
+  <body id="artaround-register" class="register-body">
+    <header class="top-nav editorial-nav"><div class="nav-wrapper"></div></header>
+
+    <main class="register-page-shell">
+      <section class="register-hero">
+        <div class="page-grid-lines">
+          <div class="grid-line line-25"></div>
+          <div class="grid-line line-50"></div>
+          <div class="grid-line line-75"></div>
+        </div>
+
+        <div class="shape-circle circle-small"></div>
+        <div class="shape-circle circle-large"></div>
+
+        <div class="register-layout">
+          <section class="register-heading-block">
+            <span class="register-kicker" data-i18n="register.kicker">Nuovo account</span>
+            <h1 class="register-title">
+              <span class="font-light" data-i18n="register.heroWord">UNISCITI AD</span><br />
+              <span class="burgundy-text">ARTAROUND</span>
+            </h1>
+            <p class="register-copy" data-i18n="register.copy">
+              Crea il tuo profilo per costruire tour, salvare percorsi e
+              organizzare nuove visite.
+            </p>
+          </section>
+
+          <section
+            class="register-panel"
+            aria-labelledby="register-panel-title"
+          >
+            <div class="register-panel-header">
+              <span class="text-label" data-i18n="common.account">Account</span>
+              <h2 id="register-panel-title" data-i18n="register.heading">Registrati</h2>
+            </div>
+
+            <form id="register-form" class="register-form">
+              <div class="input-group">
+                <label for="reg-username" class="text-label" data-i18n="common.username">Username</label>
+                <input
+                  class="input-slot"
+                  id="reg-username"
+                  type="text"
+                  autocomplete="username"
+                  required
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="reg-email" class="text-label" data-i18n="common.email">Email</label>
+                <input
+                  class="input-slot"
+                  id="reg-email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+
+              <div class="input-group">
+                <label for="reg-pwd" class="text-label" data-i18n="common.password">Password</label>
+                <div class="password-field">
+                  <input
+                    class="input-slot"
+                    id="reg-pwd"
+                    type="password"
+                    autocomplete="new-password"
+                    required
+                  />
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    data-password-visibility-toggle
+                    aria-label="Mostra password"
+                    data-i18n-aria-label="common.showPassword"
+                    aria-pressed="false"
+                  >
+                    <img src="../assets/artaround/closed-eye-icon.png" alt="" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+
+              <button class="main-btn" type="submit" data-i18n="register.submit">Registrati</button>
+
+              <div
+                id="error-msg"
+                class="register-message"
+                aria-live="polite"
+              ></div>
+            </form>
+
+            <p class="login-prompt">
+              <span data-i18n="register.hasAccount">Hai già un account?</span>
+              <a href="login.html" data-i18n="register.login">Accedi</a>
+            </p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="../vendor/i18next.min.js"></script>
+    <script src="../scripts/i18n.js"></script>
+    <script src="../scripts/navbar.js"></script>
+    <script src="../scripts/register.js"></script>
+  </body>
+</html>

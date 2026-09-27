@@ -1,0 +1,223 @@
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  padding: 12px 18px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.page-header-back {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.page-header-marketplace {
+  min-height: var(--tap);
+  padding: 0 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.page-header-back:hover,
+.page-header-back:focus-visible,
+.page-header-marketplace:hover,
+.page-header-marketplace:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.page-header-brand {
+  min-width: 0;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-link:hover {
+  text-decoration: underline;
+}
+
+.brand-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.brand-sep {
+  color: var(--line-soft);
+  margin: 0 8px;
+  font-weight: 400;
+  text-transform: none;
+}
+
+.brand-sub {
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+
+.page-header-actions,
+.page-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 390px) {
+  .page-header {
+    gap: 8px;
+    padding-inline: 12px;
+  }
+
+  .page-header-marketplace {
+    font-size: 10px;
+  }
+
+  .brand-sep,
+  .brand-sub {
+    display: none;
+  }
+}
+
+.profile {
+  position: relative;
+}
+
+.profile-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.profile-avatar {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-btn:hover,
+.profile-btn[aria-expanded='true'] {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.profile-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.profile-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  min-width: 210px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-top: 3px solid var(--accent);
+  border-radius: 0;
+  box-shadow: 0 16px 32px rgba(22, 22, 22, 0.18);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: profile-pop 0.12s ease;
+}
+
+@keyframes profile-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-menu p {
+  margin: 0;
+  font-size: 14px;
+  word-break: break-all;
+}
+
+.profile-username {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.profile-wallet {
+  color: var(--muted);
+}
+
+.profile-menu-action {
+  width: 100%;
+  margin-top: 10px;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line-soft);
+  padding: 12px 0 4px;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-align: left;
+  text-transform: uppercase;
+  transition: color 0.2s ease;
+}
+
+.profile-menu-action:hover,
+.profile-menu-action:focus-visible,
+.profile-logout:hover,
+.profile-logout:focus-visible {
+  color: var(--accent);
+  outline: none;
+}

@@ -1,0 +1,1178 @@
+.page-visit-run {
+  height: 100vh;
+  /* Keep this after the fallback: 100vh can extend behind mobile browser chrome,
+     leaving the fixed bottom navigation beyond reach with no page scroll. */
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* On phones this keeps the existing vertical runner: artwork, controls,
+ * scrollable description and navigation. The reading panel becomes the useful
+ * flex boundary when the same markup switches to two columns on wider screens. */
+.visit-run-content,
+.visit-reading-panel {
+  min-height: 0;
+}
+
+.visit-run-content {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.visit-reading-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.end-visit-btn {
+  background: transparent;
+  border: 0;
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  border-bottom: 1px solid transparent;
+}
+
+.end-visit-btn:hover,
+.end-visit-btn:focus-visible {
+  border-bottom-color: currentColor;
+  outline: none;
+}
+
+/* ---------- Image block ---------- */
+
+.visit-image-wrap {
+  position: relative;
+  flex-shrink: 0;
+  background: var(--surface-alt);
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 46dvh;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+/* `contain`, not `cover`: these are artworks, and cropping a painting to fill a
+   square box cuts off exactly what the description is talking about. Portrait and
+   landscape canvases letterbox against the surface colour, which is what a museum
+   app should do. */
+.visit-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+.visit-image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 16px;
+  text-align: center;
+  padding: 24px;
+  font-style: italic;
+}
+
+.visit-image-plus {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 2px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 6px rgba(22, 22, 22, 0.12);
+}
+
+.visit-image-plus:hover,
+.visit-image-plus:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  outline: none;
+}
+
+/* ---------- Action buttons ---------- */
+
+.visit-actions-row {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  flex-shrink: 0;
+}
+
+.visit-describe-btn {
+  flex: 1;
+  min-height: var(--tap);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-describe-btn:hover,
+.visit-describe-btn:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
+
+.visit-describe-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.visit-describe-btn.is-prompt {
+  animation: prompt-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes prompt-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(113, 0, 20, 0.55);
+  }
+  60% {
+    box-shadow: 0 0 0 10px rgba(113, 0, 20, 0);
+  }
+}
+
+.visit-ask-btn {
+  flex: 1;
+  min-height: var(--tap);
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(22, 22, 22, 0.35);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-ask-btn:hover,
+.visit-ask-btn:active {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+/* ---------- Description body ---------- */
+
+.visit-description {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 18px 16px;
+  /* Vertical scrolling stays with the browser; horizontal is ours, for the
+     swipe that steps through description lengths. Without this the browser
+     never yields the gesture and the swipe is only reachable with a mouse. */
+  touch-action: pan-y;
+}
+
+.visit-description p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.visit-description.is-logistic p {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.visit-desc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 12px;
+  min-height: 28px;
+}
+
+/* Tone picker — replaces the old read-only length pill. Tone is now the pill;
+   the length it used to show is carried by the dots to its right. */
+.visit-tone {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.visit-tone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.visit-tone-pill:hover,
+.visit-tone-pill[aria-expanded='true'] {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.visit-tone-caret {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.visit-tone-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 20;
+  min-width: 132px;
+  padding: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(22, 22, 22, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visit-tone-option {
+  min-height: var(--tap);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+}
+
+.visit-tone-option:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.visit-tone-option.is-active {
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.visit-tone-option:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Length indicator — which of the 15s / 30s / 60s texts is showing. */
+.visit-length-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 auto;
+}
+
+.visit-length-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--line-soft);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.visit-length-dot.is-active {
+  background: var(--accent);
+  transform: scale(1.15);
+}
+
+/* Answer takeover — a question command ('author' / 'year' / 'exit') temporarily
+   replaces the description body. Burgundy accent marks it as not-the-description. */
+.visit-description.is-answer {
+  background: var(--surface-alt);
+  border-left: 3px solid var(--accent);
+}
+
+.visit-answer-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.visit-answer-close {
+  position: relative;
+  flex: 0 0 36px;
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-answer-close::before,
+.visit-answer-close::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: currentColor;
+  pointer-events: none;
+}
+
+.visit-answer-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.visit-answer-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.visit-answer-close:hover,
+.visit-answer-close:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  outline: none;
+}
+
+.visit-tts-btn {
+  margin-left: auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.visit-tts-btn:hover,
+.visit-tts-btn:focus-visible {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+  outline: none;
+}
+
+.visit-tts-btn.is-on {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.visit-tts-btn.is-on:hover,
+.visit-tts-btn.is-on:focus-visible {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}
+
+/* ---------- Bottom nav bar ---------- */
+
+.visit-bottom-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--line-soft);
+  flex-shrink: 0;
+  background: var(--bg);
+}
+
+.visit-nav-btn {
+  flex: 1;
+  min-height: var(--tap);
+  padding: 12px 8px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(22, 22, 22, 0.35);
+  background: transparent;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.visit-nav-btn:not(:disabled):not([aria-disabled='true']):hover,
+.visit-nav-btn:not(:disabled):not([aria-disabled='true']):focus-visible {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+  outline: none;
+}
+
+.visit-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.visit-nav-btn[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+/* ---------- Loading / empty states ---------- */
+
+.visit-status {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  color: var(--muted);
+}
+
+.visit-status.error {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ---------- Associated contents modal ---------- */
+
+.assoc-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 22, 22, 0.78);
+  backdrop-filter: blur(3px);
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  animation: assoc-fade 0.15s ease;
+}
+
+@media (min-height: 640px) {
+  .assoc-overlay {
+    align-items: center;
+  }
+}
+
+@keyframes assoc-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.assoc-dialog {
+  width: 100%;
+  max-width: 480px;
+  max-height: 82dvh;
+  max-height: 82vh;
+  background: var(--bg);
+  border-radius: 0;
+  border-top: 4px solid var(--accent);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(22, 22, 22, 0.22);
+  animation: assoc-slide 0.18s ease;
+}
+
+@keyframes assoc-slide {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.assoc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line-soft);
+  flex-shrink: 0;
+}
+
+.assoc-head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.assoc-close {
+  background: transparent;
+  border: 0;
+  padding: 4px 10px;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.assoc-close:hover,
+.assoc-close:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.assoc-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px 20px;
+}
+
+.assoc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Content detail rows: bold label, value beside it, one per line. `dt`/`dd` are
+   inlined rather than gridded so a long title wraps under its own label instead
+   of forcing a wide, ragged label column. */
+.assoc-details {
+  margin: 0;
+  padding: 0;
+}
+
+.assoc-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  padding: 7px 0;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.assoc-detail-row dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.assoc-detail-row dd {
+  margin: 0;
+  min-width: 0;
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* The `---` in the requested layout: a rule above the Universal ID row. */
+.assoc-detail-row.is-separated {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.assoc-detail-row.is-separated dd {
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.assoc-related {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.assoc-related-title {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.assoc-related .assoc-list > li {
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 0;
+  background: transparent;
+  transition: background 0.2s ease;
+}
+
+.assoc-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 28px 12px;
+  font-size: 14px;
+}
+
+/* ---------- Command sheet (voice control + tappable vocabulary) ---------- */
+
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(22, 22, 22, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: assoc-fade 0.15s ease;
+}
+
+.cmd-sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--radius) var(--radius) 0 0;
+  animation: assoc-slide 0.18s ease;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.cmd-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  flex-shrink: 0;
+}
+
+.cmd-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.cmd-close {
+  width: var(--tap);
+  height: var(--tap);
+  border: none;
+  background: transparent;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cmd-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.cmd-mic-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 18px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.cmd-mic {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Reuses the Describe! prompt keyframe so "the app wants input" reads the same
+   way in both places. */
+.cmd-mic.is-listening {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  animation: prompt-pulse 1.6s ease-in-out infinite;
+}
+
+.cmd-mic-label {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.cmd-mic-status {
+  margin: 0;
+  font-size: 13px;
+  color: var(--accent);
+  text-align: center;
+}
+
+.cmd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cmd-item {
+  width: 100%;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cmd-item:active:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.cmd-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.cmd-item-label {
+  font-weight: 500;
+}
+
+.cmd-item-hint {
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  flex-shrink: 0;
+}
+
+/* ---- Museum map (MuseumMap.jsx) ---- */
+
+.map-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 22, 22, 0.5);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: assoc-fade 0.15s ease;
+}
+
+.map-dialog {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88dvh;
+  max-height: 88vh;
+  background: var(--surface);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.2);
+  animation: assoc-slide 0.18s ease;
+}
+
+.map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.map-head-titles {
+  min-width: 0;
+}
+
+.map-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-floor-label {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.map-close {
+  flex-shrink: 0;
+  width: var(--tap);
+  height: var(--tap);
+  margin: -10px -12px -10px 0;
+  border: 0;
+  background: none;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.map-body {
+  padding: 14px 16px 18px;
+  overflow-y: auto;
+}
+
+.map-plate {
+  position: relative;
+  background: var(--surface-alt);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  /* Must match PLATE_ASPECT in MuseumMap.jsx. A fixed box rather than the plan's
+     own ratio: a 2.67:1 floor plan rendered at its natural aspect is a 130px-tall
+     letterbox on mobile, with markers too small to read or tap. */
+  aspect-ratio: 4 / 3;
+  max-height: 46dvh;
+  max-height: 46vh;
+}
+
+.map-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Scoped exception to the app-wide no-zoom rule (`touch-action: pan-x pan-y`
+     in base.css). Browser zoom is off because it breaks the fixed runner layout,
+     but a floor plan is unusable without pinch — so the plate takes the gestures
+     itself and drives the SVG viewBox. Must stay `none` or the browser steals
+     the drag for scrolling. */
+  touch-action: none;
+  cursor: grab;
+}
+
+.map-svg:active {
+  cursor: grabbing;
+}
+
+.map-zoom {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.map-zoom button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.map-zoom button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.map-controls {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.map-fit-btn {
+  flex: 1;
+  min-height: 36px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.map-fit-btn:active:not(:disabled) {
+  background: var(--surface-alt);
+}
+
+.map-fit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ⚠️ Stroke *geometry* for the map markers is set as k-scaled presentation
+   attributes in MuseumMap.jsx, so it stays a constant size on screen while the
+   plan zooms. Never set `stroke-width` or `stroke-dasharray` in here: CSS beats
+   presentation attributes, so a value here silently kills the scaling — the
+   stroke stays at a fixed user-unit width while the radius shrinks with the
+   zoom, and the markers turn into solid blobs with unreadable numbers. These
+   rules carry colour only. */
+
+/* The order the stops are walked in. Dashed and muted so it reads as a hint
+   rather than a wall. */
+.map-route {
+  stroke: var(--muted);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.65;
+}
+
+.map-stop,
+.map-poi {
+  cursor: pointer;
+}
+
+.map-stop circle {
+  fill: var(--surface);
+  stroke: var(--ink);
+}
+
+.map-stop text {
+  fill: var(--ink);
+  text-anchor: middle;
+  font-weight: 700;
+}
+
+/* The current stop, which is as much position as the Base tier claims. */
+.map-stop.is-current circle {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+
+.map-stop.is-current text {
+  fill: #fff;
+}
+
+.map-poi circle {
+  fill: var(--surface);
+  stroke: var(--line-soft);
+}
+
+.map-poi text {
+  text-anchor: middle;
+}
+
+.map-footer {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-alt);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.map-footer-title {
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-footer-sub {
+  font-size: 12px;
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.map-legend {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-legend-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--ink);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.map-legend-mark.is-current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.map-legend-mark.is-poi {
+  border-color: var(--line-soft);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.map-note,
+.map-empty {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.map-empty {
+  text-align: center;
+  margin: 24px 0;
+}
+
+/* A phone-height composition wastes the horizontal room of landscape tablets,
+ * laptops and TVs. At this point the artwork and its reading controls sit side
+ * by side, while the description remains the only scrolling region. */
+@media (min-width: 900px) {
+  .page-visit-run {
+    background: var(--surface-alt);
+  }
+
+  .visit-run-content {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+    grid-template-rows: minmax(0, 1fr);
+    width: min(1440px, 100%);
+    margin-inline: auto;
+    background: var(--bg);
+  }
+
+  .visit-image-wrap {
+    height: auto;
+    max-height: none;
+    aspect-ratio: auto;
+    border-bottom: 0;
+  }
+
+  .visit-reading-panel {
+    border-left: 1px solid var(--line-soft);
+  }
+
+  .visit-description {
+    padding: 18px 28px 24px;
+  }
+
+  .visit-actions-row,
+  .visit-bottom-bar {
+    padding-inline: 28px;
+  }
+}
+
+@media (max-width: 360px) {
+  .visit-actions-row {
+    flex-direction: column;
+    gap: 8px;
+    padding-block: 10px;
+  }
+
+  .visit-describe-btn,
+  .visit-ask-btn {
+    flex: none;
+    width: 100%;
+  }
+
+  .visit-bottom-bar {
+    gap: 6px;
+    padding-inline: 10px;
+  }
+
+  .visit-nav-btn {
+    padding-inline: 5px;
+    font-size: 10px;
+    letter-spacing: 0.4px;
+  }
+}
